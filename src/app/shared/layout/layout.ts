@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
 import { Navbar } from '../navbar/navbar';
-import { Sidebar } from '../sidebar/sidebar';
 import { RouterOutlet } from '@angular/router';
+import { SidebarHome } from '../../sidebar/sidebar-home/sidebar-home';
 
 @Component({
   selector: 'app-layout',
-  imports: [Navbar, Sidebar, RouterOutlet],
+  imports: [Navbar, SidebarHome, RouterOutlet],
   templateUrl: './layout.html',
   styleUrl: './layout.css',
 })
