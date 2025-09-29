@@ -1,0 +1,53 @@
+/* Active item styling */
+.sidebar-item-active {
+  background-color: rgba(0, 82, 204, 0.08) !important;
+  color: #0052CC !important;
+}
+
+.sidebar-item-active span {
+  color: #0052CC !important;
+}
+
+.sidebar-item-active svg {
+  color: #0052CC !important;
+}
+
+/* Sub-menu active item styling */
+.sidebar-sub-item-active {
+  background-color: rgba(0, 82, 204, 0.08) !important;
+  color: #0052CC !important;
+}
+
+/* Folder icon styling */
+.folder-icon {
+  background-color: #0052CC !important;
+}
+
+.folder-icon svg {
+  color: #FFFFFF !important;
+}
+
+/* Dropdown arrow rotation */
+.dropdown-arrow {
+  transition: transform 0.2s ease-in-out;
+}
+
+.dropdown-arrow.rotated {
+  transform: rotate(180deg);
+}
+
+/* Collapsible content animation */
+.collapsible-content {
+  transition: all 0.2s ease-in-out;
+  overflow: hidden;
+}
+
+.collapsible-content.collapsed {
+  max-height: 0;
+  opacity: 0;
+}
+
+.collapsible-content.expanded {
+  max-height: 500px;
+  opacity: 1;
+}
