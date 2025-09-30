@@ -1,17 +1,87 @@
-<div
-  style="
-    width: 255px;
-    background-color: #f4f4f4;
-    padding: 20px;
-    height: calc(100vh - 64px);
-    box-sizing: border-box;
-  "
->
-  <h2 style="margin-top: 0">Sidebar</h2>
-  <ul style="list-style: none; padding: 0">
-    <li>#Dashboard</li>
-    <li>#Profile</li>
-    <li>#Settings</li>
-    <li>#Logout</li>
-  </ul>
+<!-- Sidebar Container -->
+<div class="w-[255px] h-screen bg-white text-gray-800 flex flex-col border-r border-gray-200">
+  <!-- Sidebar Header with Logo -->
+  <app-sidebar-header></app-sidebar-header>
+  
+
+  <!-- Sidebar Menu -->
+  <nav class="flex-1 overflow-y-auto p-3 text-sm">
+    <ul class="space-y-1">
+      
+      <!-- Dashboard -->
+      <li>
+        <a href="#" class="block rounded-md px-3 py-2 sidebar-item-active font-semibold">
+          Dashboard
+        </a>
+      </li>
+
+      <!-- Projects -->
+      <li>
+        <button class="flex w-full items-center justify-between px-3 py-2 rounded-md hover:bg-gray-50">
+          <span class="font-medium">Projects</span>
+          <svg class="w-4 h-4 dropdown-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+        </button>
+        <ul class="ml-4 mt-1 collapsible-content expanded space-y-1">
+          <li><a href="#" class="block rounded-md px-3 py-2 sidebar-sub-item-active font-semibold text-[#0052CC]">All Projects</a></li>
+          <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">Create Project</a></li>
+          <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">Import from Jira</a></li>
+        </ul>
+      </li>
+
+      <!-- DU Management -->
+      <li>
+        <button class="flex w-full items-center justify-between px-3 py-2 rounded-md hover:bg-gray-50">
+          <span class="font-medium">DU Management</span>
+          <svg class="w-4 h-4 dropdown-arrow rotated" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+        </button>
+        <ul class="ml-4 mt-1 collapsible-content expanded space-y-1">
+          <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">View All DUs</a></li>
+          <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">Add new DU</a></li>
+        </ul>
+      </li>
+
+      <!-- User Management -->
+      <li>
+        <button class="flex w-full items-center justify-between px-3 py-2 rounded-md hover:bg-gray-50">
+          <span class="font-medium">User Management</span>
+          <svg class="w-4 h-4 dropdown-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+        </button>
+        <ul class="ml-4 mt-1 collapsible-content collapsed space-y-1">
+          <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">All Users</a></li>
+          <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">Create User</a></li>
+        </ul>
+      </li>
+
+      <!-- Roles & Permissions -->
+      <li>
+        <button class="flex w-full items-center justify-between px-3 py-2 rounded-md hover:bg-gray-50">
+          <span class="font-medium">Roles & Permissions</span>
+          <svg class="w-4 h-4 dropdown-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+        </button>
+        <ul class="ml-4 mt-1 collapsible-content collapsed space-y-1">
+          <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">All Roles</a></li>
+          <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">Create Role</a></li>
+        </ul>
+      </li>
+
+      <!-- Reports -->
+      <li>
+        <a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">
+          Reports
+        </a>
+      </li>
+
+      <!-- Settings -->
+      <li>
+        <button class="flex w-full items-center justify-between px-3 py-2 rounded-md hover:bg-gray-50">
+          <span class="font-medium">Settings</span>
+          <svg class="w-4 h-4 dropdown-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+        </button>
+        <ul class="ml-4 mt-1 collapsible-content collapsed space-y-1">
+          <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">System Settings</a></li>
+          <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">Import/Export</a></li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
 </div>
