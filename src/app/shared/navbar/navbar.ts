@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+import { SidebarHome } from '../../sidebar/sidebar-home/sidebar-home';
 
 @Component({
   selector: 'app-navbar',
-  imports: [],
+  imports: [RouterOutlet],
   templateUrl: './navbar.html',
-  styleUrl: './navbar.css'
+  styleUrl: './navbar.css',
 })
-export class Navbar {
-
-}
+export class Navbar {}

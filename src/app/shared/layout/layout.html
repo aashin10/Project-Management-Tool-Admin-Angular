@@ -1,7 +1,11 @@
-<app-navbar></app-navbar>
-<div class="main-container">
+<div style="display: flex">
   <app-sidebar-home></app-sidebar-home>
-  <div class="content-area">
-    <router-outlet></router-outlet>
+
+  <div class="main-container" style="display: flex; flex-direction: column; width: 100%">
+    <app-navbar></app-navbar>
+
+    <div class="content-area" style="flex-grow: 1; padding: 20px">
+      <router-outlet></router-outlet>
+    </div>
   </div>
 </div>
