@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { Projectslist } from './pages/projectslist/projectslist';
+
 import { Createproject } from './pages/createproject/createproject';
 import { Importfromjira } from './pages/importfromjira/importfromjira';
 import { Individualproject } from './pages/individualproject/individualproject';
