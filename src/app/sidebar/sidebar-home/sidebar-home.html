@@ -6,7 +6,8 @@
   <div class="h-16 flex items-center px-4 border-b border-gray-200 gap-4 shadow-sm"
     [ngClass]="isCollapsed ? 'justify-center' : 'justify-center'">
     <!-- Logo -->
-    <div class="w-8 h-8 bg-[#0052CC] rounded-md flex items-center justify-center shadow-sm flex-shrink-0 cursor-pointer" [routerLink]="'dashboard'">
+    <div class="w-8 h-8 bg-[#0052CC] rounded-md flex items-center justify-center shadow-sm flex-shrink-0 cursor-pointer"
+      [routerLink]="'dashboard'">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path
@@ -15,7 +16,8 @@
       </svg>
     </div>
     <!-- Title -->
-    <span *ngIf="!isCollapsed" class="ml-3 font-semibold opacity-80 text-sm tracking-tight text-gray-900 cursor-pointer" [routerLink]="'dashboard'">Jira
+    <span *ngIf="!isCollapsed" class="ml-3 font-semibold opacity-80 text-sm tracking-tight text-gray-900 cursor-pointer"
+      [routerLink]="'dashboard'">Jira
       Admin</span>
   </div>
 
@@ -56,8 +58,7 @@
 
             <ul class="ml-4 space-y-1 overflow-hidden transition-all duration-200">
               <li *ngFor="let child of item.children">
-                <a [routerLink]="child.route" routerLinkActive="active-child"
-                  [routerLinkActiveOptions]="{exact: true}"
+                <a [routerLink]="child.route" routerLinkActive="active-child" [routerLinkActiveOptions]="{exact: true}"
                   class="block rounded-sm px-3 py-2 hover:bg-gray-50 cursor-pointer">
                   {{ child.label }}
                 </a>

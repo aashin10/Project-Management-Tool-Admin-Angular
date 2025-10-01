@@ -43,8 +43,10 @@ nav::-webkit-scrollbar-thumb:hover {
 }
 
 .sidebar-text {
-    font-size: 0.79rem; /* 12px */
-    line-height: 1.25rem; /* 20px */
+    font-size: 0.79rem;
+    /* 12px */
+    line-height: 1.25rem;
+    /* 20px */
     font-weight: 500;
     color: rgb(0, 0, 0, 0.7);
 }
