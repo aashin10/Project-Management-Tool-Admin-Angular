@@ -1,12 +1,25 @@
-<div
-  style="
-    height: 64px;
-    background-color: #333;
-    color: white;
-    display: flex;
-    align-items: center;
-    padding: 0 20px;
-  "
->
-  <h1 style="margin: 0; font-size: 20px">Navbar</h1>
-</div>
+<nav class="bg-white shadow-sm border-b">
+  <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+    <div
+      class="flex flex-row lg:justify-between lg:items-center py-3 lg:py-0 lg:h-16 gap-3 lg:gap-4"
+    >
+      <!-- Breadcrumb Navigation (Hidden on Mobile) -->
+      <div class="hidden lg:flex items-center flex-shrink min-w-0">
+        <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="w-full lg:max-w-lg flex-shrink">
+        <app-search-bar
+          [placeholder]="'Search Projects, Users and Reports...'"
+          (search)="onSearch($event)"
+        ></app-search-bar>
+      </div>
+
+      <!-- Action Icons -->
+      <div class="flex items-center justify-end flex-shrink-0">
+        <app-action-buttons (actionClick)="onActionClick($event)"></app-action-buttons>
+      </div>
+    </div>
+  </div>
+</nav>
