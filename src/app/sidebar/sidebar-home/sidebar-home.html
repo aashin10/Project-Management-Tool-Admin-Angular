@@ -2,97 +2,39 @@
 <div class="w-[255px] h-screen bg-white text-gray-800 flex flex-col border-r border-gray-200">
   <!-- Sidebar Header with Logo -->
   <app-sidebar-header></app-sidebar-header>
+
   <!-- Sidebar Menu -->
   <nav class="flex-1 overflow-y-auto p-3 text-sm">
     <ul class="space-y-1">
-      
+
       <!-- Dashboard -->
-      <app-sidebar-single-section icon="lucide lucide-house w-4 h-4" label="Dashboard" route="/dashboard"></app-sidebar-single-section>
+      <app-sidebar-single-section [icon]="dashboardIcon" label="Dashboard" route="/dashboard">
+      </app-sidebar-single-section>
 
       <!-- Projects -->
-      <app-sidebar-single-section icon="lucide lucide-folder-open w-4 h-4" label="Projects" route="/projects"></app-sidebar-single-section>
-
-      <!-- <li>
-        <button class="flex w-full items-center justify-between px-3 py-2 rounded-md hover:bg-gray-50">
-          <div class="flex items-center gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-folder-open w-4 h-4" aria-hidden="true"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"></path></svg>
-            <span class="font-medium">Projects</span>
-          </div>
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down w-4 h-4 transition-transform group-data-[state=open]:rotate-180" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
-        </button>
-        <ul class="ml-4 mt-1 collapsible-content expanded space-y-1">
-          <li><a href="#" class="block rounded-md px-3 py-2 bg-[#0052CC] bg-opacity-8 text-[#0052CC] font-semibold border-l-4 border-[#0052CC]">All Projects</a></li>
-          <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">Create Project</a></li>
-          <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">Import from Jira</a></li>
-        </ul>
-      </li> -->
+      <app-sidebar-single-section [icon]="projectsIcon" label="Projects" route="/projects">
+      </app-sidebar-single-section>
 
       <!-- DU Management -->
-      <app-sidebar-single-section icon="lucide lucide-building w-4 h-4" label="DU Management" route="/deliveryunits"></app-sidebar-single-section>
-      <!-- <li>
-        <button class="flex w-full items-center justify-between px-3 py-2 rounded-md hover:bg-gray-50">
-          <div class="flex items-center gap-3">
-            <lucide-icon [img]="Building" class="w-4 h-4"></lucide-icon>
-            <span class="font-medium">DU Management</span>
-          </div>
-          <lucide-icon [img]="ChevronDown" class="w-4 h-4 dropdown-arrow rotated"></lucide-icon>
-        </button>
-        <ul class="ml-4 mt-1 collapsible-content expanded space-y-1">
-          <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">View All DUs</a></li>
-          <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">Add new DU</a></li>
-        </ul>
-      </li> -->
+      <app-sidebar-single-section [icon]="buildingIcon" label="DU Management" route="/deliveryunits">
+      </app-sidebar-single-section>
 
       <!-- User Management -->
-      <app-sidebar-single-section icon="lucide lucide-user w-4 h-4" label="User Management" route="/users"></app-sidebar-single-section>
-      <!-- <li>
-        <button class="flex w-full items-center justify-between px-3 py-2 rounded-md hover:bg-gray-50">
-          <div class="flex items-center gap-3">
-            <lucide-icon [img]="User" class="w-4 h-4"></lucide-icon>
-            <span class="font-medium">User Management</span>
-          </div>
-          <lucide-icon [img]="ChevronDown" class="w-4 h-4 dropdown-arrow"></lucide-icon>
-        </button>
-        <ul class="ml-4 mt-1 collapsible-content collapsed space-y-1">
-          <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">All Users</a></li>
-          <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">Create User</a></li>
-        </ul>
-      </li> -->
+      <app-sidebar-single-section [icon]="userIcon" label="User Management" route="/users">
+      </app-sidebar-single-section>
 
       <!-- Roles & Permissions -->
-      <app-sidebar-single-section icon="lucide lucide-shield w-4 h-4" label="Roles & Permissions" route="/roles"></app-sidebar-single-section>
-      <!-- <li>
-        <button class="flex w-full items-center justify-between px-3 py-2 rounded-md hover:bg-gray-50">
-          <div class="flex items-center gap-3">
-            <lucide-icon [img]="Shield" class="w-4 h-4"></lucide-icon>
-            <span class="font-medium">Roles & Permissions</span>
-          </div>
-          <lucide-icon [img]="ChevronDown" class="w-4 h-4 dropdown-arrow"></lucide-icon>
-        </button>
-        <ul class="ml-4 mt-1 collapsible-content collapsed space-y-1">
-          <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">All Roles</a></li>
-          <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">Create Role</a></li>
-        </ul>
-      </li> -->
+      <app-sidebar-single-section [icon]="shieldIcon" label="Roles & Permissions" route="/roles">
+      </app-sidebar-single-section>
 
       <!-- Reports -->
-      <app-sidebar-single-section icon="lucide lucide-bar-chart-3 w-4 h-4" label="Reports" route="/reports"></app-sidebar-single-section>
+      <app-sidebar-single-section [icon]="reportsIcon" label="Reports" route="/reports">
+      </app-sidebar-single-section>
 
       <!-- Settings -->
-      <app-sidebar-single-section icon="lucide lucide-settings w-4 h-4" label="Settings" route="/settings"></app-sidebar-single-section>
-      <!-- <li>
-        <button class="flex w-full items-center justify-between px-3 py-2 rounded-md hover:bg-gray-50">
-          <div class="flex items-center gap-3">
-            <lucide-icon [img]="Settings" class="w-4 h-4"></lucide-icon>
-            <span class="font-medium">Settings</span>
-          </div>
-          <lucide-icon [img]="ChevronDown" class="w-4 h-4 dropdown-arrow"></lucide-icon>
-        </button>
-        <ul class="ml-4 mt-1 collapsible-content collapsed space-y-1">
-          <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">System Settings</a></li>
-          <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">Import/Export</a></li>
-        </ul>
-      </li> -->
+      <app-sidebar-single-section [icon]="settingsIcon" label="Settings" route="/settings">
+      </app-sidebar-single-section>
+
     </ul>
   </nav>
 </div>

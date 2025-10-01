@@ -1,10 +1,7 @@
 <li>
-  <a
-    [routerLink]="route"
-    routerLinkActive="active"
-    class="flex items-center gap-3 rounded-sm px-3 py-2 hover:bg-gray-50"
-  >
-    <i [class]="icon"></i>
-    {{ label }}
+  <a [routerLink]="route" routerLinkActive="active"
+    class="flex items-center gap-3 rounded-sm px-3 py-2 hover:bg-gray-50">
+    <span [innerHTML]="iconSvg"></span>
+    <span class="font-medium">{{ label }}</span>
   </a>
 </li>

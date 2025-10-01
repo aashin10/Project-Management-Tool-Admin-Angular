@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-sidebar-single-section',
@@ -14,5 +15,11 @@ export class SidebarSingleSection {
   @Input() label: string = '';
   @Input() route: string = '';
 
-  constructor() {}
+  iconSvg: SafeHtml = '';
+
+  constructor(private sanitizer: DomSanitizer) {}
+
+  ngOnInit() {
+    this.iconSvg = this.sanitizer.bypassSecurityTrustHtml(this.icon);
+  }
 }
