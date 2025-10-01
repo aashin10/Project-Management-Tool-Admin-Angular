@@ -3,7 +3,7 @@
   class="h-screen bg-white text-gray-800 flex flex-col border-r border-gray-200 transition-all duration-300">
 
   <!-- Sidebar Header with Logo -->
-  <div class="h-16 flex items-center px-4 border-b border-gray-200 gap-4 shadow-sm"
+  <div class="h-16 flex items-center px-4 border-b border-gray-200 gap-2 shadow-sm"
     [ngClass]="isCollapsed ? 'justify-center' : 'justify-center'">
     <!-- Logo -->
     <div class="w-8 h-8 bg-[#0052CC] rounded-md flex items-center justify-center shadow-sm flex-shrink-0 cursor-pointer"
@@ -16,7 +16,7 @@
       </svg>
     </div>
     <!-- Title -->
-    <span *ngIf="!isCollapsed" class="ml-3 font-semibold opacity-80 text-sm tracking-tight text-gray-900 cursor-pointer"
+    <span *ngIf="!isCollapsed" class="ml-3 font-semibold opacity-80 text-[17px] tracking-tight text-gray-900 cursor-pointer"
       [routerLink]="'dashboard'">Jira
       Admin</span>
   </div>
