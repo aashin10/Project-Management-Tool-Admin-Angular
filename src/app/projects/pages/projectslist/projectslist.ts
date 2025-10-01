@@ -11,7 +11,6 @@ interface Project {
   projectManager: string;
   managerInitials: string;
   teamSize: number;
-  progress: number;
   selected?: boolean;
 }
 
@@ -33,7 +32,6 @@ export class Projectslist {
   selectedStatus = 'all';
   selectedPriority = 'all';
   selectedManager = 'all';
-  selectedProgress = 'all';
   
   rowsPerPage = 10;
   currentPage = 1;
@@ -91,7 +89,6 @@ export class Projectslist {
       projectManager: 'Asha Varma',
       managerInitials: 'AV',
       teamSize: 12,
-      progress: 68,
       selected: false
     },
     {
@@ -103,7 +100,6 @@ export class Projectslist {
       projectManager: 'Pranav Iyer',
       managerInitials: 'PI',
       teamSize: 8,
-      progress: 22,
       selected: false
     },
     {
@@ -115,7 +111,6 @@ export class Projectslist {
       projectManager: 'Sarah Chen',
       managerInitials: 'SC',
       teamSize: 15,
-      progress: 100,
       selected: false
     },
     {
@@ -127,7 +122,6 @@ export class Projectslist {
       projectManager: 'Michael Rodriguez',
       managerInitials: 'MR',
       teamSize: 6,
-      progress: 45,
       selected: false
     },
     {
@@ -139,7 +133,6 @@ export class Projectslist {
       projectManager: 'Emma Thompson',
       managerInitials: 'ET',
       teamSize: 9,
-      progress: 78,
       selected: false
     },
     {
@@ -151,7 +144,6 @@ export class Projectslist {
       projectManager: 'James Wilson',
       managerInitials: 'JW',
       teamSize: 11,
-      progress: 15,
       selected: false
     },
     {
@@ -163,7 +155,6 @@ export class Projectslist {
       projectManager: 'Lisa Anderson',
       managerInitials: 'LA',
       teamSize: 18,
-      progress: 95,
       selected: false
     },
     {
@@ -175,7 +166,6 @@ export class Projectslist {
       projectManager: 'David Kumar',
       managerInitials: 'DK',
       teamSize: 20,
-      progress: 55,
       selected: false
     },
     {
@@ -187,7 +177,6 @@ export class Projectslist {
       projectManager: 'Rachel Green',
       managerInitials: 'RG',
       teamSize: 14,
-      progress: 10,
       selected: false
     },
     {
@@ -199,7 +188,6 @@ export class Projectslist {
       projectManager: 'Tom Harris',
       managerInitials: 'TH',
       teamSize: 7,
-      progress: 35,
       selected: false
     },
     {
@@ -211,7 +199,6 @@ export class Projectslist {
       projectManager: 'Nina Patel',
       managerInitials: 'NP',
       teamSize: 25,
-      progress: 72,
       selected: false
     },
     {
@@ -223,7 +210,6 @@ export class Projectslist {
       projectManager: 'Alex Johnson',
       managerInitials: 'AJ',
       teamSize: 10,
-      progress: 100,
       selected: false
     },
     {
@@ -235,7 +221,6 @@ export class Projectslist {
       projectManager: 'Sophie Turner',
       managerInitials: 'ST',
       teamSize: 8,
-      progress: 60,
       selected: false
     },
     {
@@ -247,7 +232,6 @@ export class Projectslist {
       projectManager: 'Robert Chen',
       managerInitials: 'RC',
       teamSize: 12,
-      progress: 20,
       selected: false
     },
     {
@@ -259,7 +243,6 @@ export class Projectslist {
       projectManager: 'Maria Garcia',
       managerInitials: 'MG',
       teamSize: 9,
-      progress: 48,
       selected: false
     },
     {
@@ -271,7 +254,6 @@ export class Projectslist {
       projectManager: 'Kevin Lee',
       managerInitials: 'KL',
       teamSize: 16,
-      progress: 30,
       selected: false
     },
     {
@@ -283,7 +265,6 @@ export class Projectslist {
       projectManager: 'Laura Martinez',
       managerInitials: 'LM',
       teamSize: 11,
-      progress: 65,
       selected: false
     },
     {
@@ -295,7 +276,6 @@ export class Projectslist {
       projectManager: 'Chris Brown',
       managerInitials: 'CB',
       teamSize: 6,
-      progress: 100,
       selected: false
     },
     {
@@ -307,7 +287,6 @@ export class Projectslist {
       projectManager: 'Amanda White',
       managerInitials: 'AW',
       teamSize: 8,
-      progress: 42,
       selected: false
     },
     {
@@ -319,7 +298,6 @@ export class Projectslist {
       projectManager: 'Daniel Kim',
       managerInitials: 'DK',
       teamSize: 13,
-      progress: 18,
       selected: false
     },
     {
@@ -331,7 +309,6 @@ export class Projectslist {
       projectManager: 'Jessica Wang',
       managerInitials: 'JW',
       teamSize: 15,
-      progress: 58,
       selected: false
     },
     {
@@ -343,7 +320,6 @@ export class Projectslist {
       projectManager: 'Michael Smith',
       managerInitials: 'MS',
       teamSize: 7,
-      progress: 25,
       selected: false
     },
     {
@@ -355,7 +331,6 @@ export class Projectslist {
       projectManager: 'Olivia Davis',
       managerInitials: 'OD',
       teamSize: 10,
-      progress: 75,
       selected: false
     },
     {
@@ -367,7 +342,6 @@ export class Projectslist {
       projectManager: 'Ryan Taylor',
       managerInitials: 'RT',
       teamSize: 5,
-      progress: 100,
       selected: false
     },
     {
@@ -379,7 +353,6 @@ export class Projectslist {
       projectManager: 'Emily Wilson',
       managerInitials: 'EW',
       teamSize: 12,
-      progress: 62,
       selected: false
     },
     {
@@ -391,7 +364,6 @@ export class Projectslist {
       projectManager: 'Brandon Lee',
       managerInitials: 'BL',
       teamSize: 9,
-      progress: 12,
       selected: false
     },
     {
@@ -403,7 +375,6 @@ export class Projectslist {
       projectManager: 'Sophia Anderson',
       managerInitials: 'SA',
       teamSize: 18,
-      progress: 70,
       selected: false
     },
     {
@@ -415,7 +386,6 @@ export class Projectslist {
       projectManager: 'Jacob Martinez',
       managerInitials: 'JM',
       teamSize: 14,
-      progress: 38,
       selected: false
     },
     {
@@ -427,7 +397,6 @@ export class Projectslist {
       projectManager: 'Mia Robinson',
       managerInitials: 'MR',
       teamSize: 6,
-      progress: 52,
       selected: false
     },
     {
@@ -439,7 +408,6 @@ export class Projectslist {
       projectManager: 'Ethan Clark',
       managerInitials: 'EC',
       teamSize: 8,
-      progress: 100,
       selected: false
     },
     {
@@ -451,7 +419,6 @@ export class Projectslist {
       projectManager: 'Ava Lewis',
       managerInitials: 'AL',
       teamSize: 7,
-      progress: 56,
       selected: false
     },
     {
@@ -463,7 +430,6 @@ export class Projectslist {
       projectManager: 'Noah Walker',
       managerInitials: 'NW',
       teamSize: 5,
-      progress: 8,
       selected: false
     },
     {
@@ -475,7 +441,6 @@ export class Projectslist {
       projectManager: 'Isabella Hall',
       managerInitials: 'IH',
       teamSize: 20,
-      progress: 68,
       selected: false
     },
     {
@@ -487,7 +452,6 @@ export class Projectslist {
       projectManager: 'Liam Young',
       managerInitials: 'LY',
       teamSize: 11,
-      progress: 32,
       selected: false
     },
     {
@@ -499,7 +463,6 @@ export class Projectslist {
       projectManager: 'Charlotte King',
       managerInitials: 'CK',
       teamSize: 6,
-      progress: 44,
       selected: false
     },
     {
@@ -511,7 +474,6 @@ export class Projectslist {
       projectManager: 'Mason Wright',
       managerInitials: 'MW',
       teamSize: 13,
-      progress: 100,
       selected: false
     },
     {
@@ -523,7 +485,6 @@ export class Projectslist {
       projectManager: 'Amelia Scott',
       managerInitials: 'AS',
       teamSize: 8,
-      progress: 50,
       selected: false
     },
     {
@@ -535,7 +496,6 @@ export class Projectslist {
       projectManager: 'Lucas Green',
       managerInitials: 'LG',
       teamSize: 10,
-      progress: 15,
       selected: false
     },
     {
@@ -547,7 +507,6 @@ export class Projectslist {
       projectManager: 'Harper Adams',
       managerInitials: 'HA',
       teamSize: 12,
-      progress: 60,
       selected: false
     },
     {
@@ -559,7 +518,6 @@ export class Projectslist {
       projectManager: 'Elijah Baker',
       managerInitials: 'EB',
       teamSize: 9,
-      progress: 28,
       selected: false
     },
     {
@@ -571,7 +529,6 @@ export class Projectslist {
       projectManager: 'Evelyn Nelson',
       managerInitials: 'EN',
       teamSize: 16,
-      progress: 64,
       selected: false
     },
     {
@@ -583,7 +540,6 @@ export class Projectslist {
       projectManager: 'Alexander Carter',
       managerInitials: 'AC',
       teamSize: 11,
-      progress: 100,
       selected: false
     },
     {
@@ -595,7 +551,6 @@ export class Projectslist {
       projectManager: 'Abigail Mitchell',
       managerInitials: 'AM',
       teamSize: 15,
-      progress: 73,
       selected: false
     },
     {
@@ -607,7 +562,6 @@ export class Projectslist {
       projectManager: 'James Perez',
       managerInitials: 'JP',
       teamSize: 6,
-      progress: 10,
       selected: false
     },
     {
@@ -619,7 +573,6 @@ export class Projectslist {
       projectManager: 'Emily Roberts',
       managerInitials: 'ER',
       teamSize: 10,
-      progress: 54,
       selected: false
     },
     {
@@ -631,7 +584,6 @@ export class Projectslist {
       projectManager: 'Benjamin Turner',
       managerInitials: 'BT',
       teamSize: 12,
-      progress: 36,
       selected: false
     },
     {
@@ -643,7 +595,6 @@ export class Projectslist {
       projectManager: 'Madison Phillips',
       managerInitials: 'MP',
       teamSize: 7,
-      progress: 48,
       selected: false
     },
     {
@@ -655,7 +606,6 @@ export class Projectslist {
       projectManager: 'Samuel Campbell',
       managerInitials: 'SC',
       teamSize: 14,
-      progress: 100,
       selected: false
     },
     {
@@ -667,7 +617,6 @@ export class Projectslist {
       projectManager: 'Victoria Parker',
       managerInitials: 'VP',
       teamSize: 8,
-      progress: 58,
       selected: false
     },
     {
@@ -679,7 +628,6 @@ export class Projectslist {
       projectManager: 'Henry Evans',
       managerInitials: 'HE',
       teamSize: 9,
-      progress: 12,
       selected: false
     }
   ];
