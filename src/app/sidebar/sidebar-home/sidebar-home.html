@@ -7,10 +7,12 @@
     <ul class="space-y-1">
       
       <!-- Dashboard -->
-      <app-sidebar-single-section icon="lucide lucide-house w-4 h-4" label="Dashboard"></app-sidebar-single-section>
+      <app-sidebar-single-section icon="lucide lucide-house w-4 h-4" label="Dashboard" route="/dashboard"></app-sidebar-single-section>
 
       <!-- Projects -->
-      <li>
+      <app-sidebar-single-section icon="lucide lucide-folder-open w-4 h-4" label="Projects" route="/projects"></app-sidebar-single-section>
+
+      <!-- <li>
         <button class="flex w-full items-center justify-between px-3 py-2 rounded-md hover:bg-gray-50">
           <div class="flex items-center gap-3">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-folder-open w-4 h-4" aria-hidden="true"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"></path></svg>
@@ -23,10 +25,11 @@
           <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">Create Project</a></li>
           <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">Import from Jira</a></li>
         </ul>
-      </li>
+      </li> -->
 
       <!-- DU Management -->
-      <li>
+      <app-sidebar-single-section icon="lucide lucide-building w-4 h-4" label="DU Management" route="/deliveryunits"></app-sidebar-single-section>
+      <!-- <li>
         <button class="flex w-full items-center justify-between px-3 py-2 rounded-md hover:bg-gray-50">
           <div class="flex items-center gap-3">
             <lucide-icon [img]="Building" class="w-4 h-4"></lucide-icon>
@@ -38,10 +41,11 @@
           <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">View All DUs</a></li>
           <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">Add new DU</a></li>
         </ul>
-      </li>
+      </li> -->
 
       <!-- User Management -->
-      <li>
+      <app-sidebar-single-section icon="lucide lucide-user w-4 h-4" label="User Management" route="/users"></app-sidebar-single-section>
+      <!-- <li>
         <button class="flex w-full items-center justify-between px-3 py-2 rounded-md hover:bg-gray-50">
           <div class="flex items-center gap-3">
             <lucide-icon [img]="User" class="w-4 h-4"></lucide-icon>
@@ -53,10 +57,11 @@
           <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">All Users</a></li>
           <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">Create User</a></li>
         </ul>
-      </li>
+      </li> -->
 
       <!-- Roles & Permissions -->
-      <li>
+      <app-sidebar-single-section icon="lucide lucide-shield w-4 h-4" label="Roles & Permissions" route="/roles"></app-sidebar-single-section>
+      <!-- <li>
         <button class="flex w-full items-center justify-between px-3 py-2 rounded-md hover:bg-gray-50">
           <div class="flex items-center gap-3">
             <lucide-icon [img]="Shield" class="w-4 h-4"></lucide-icon>
@@ -68,18 +73,14 @@
           <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">All Roles</a></li>
           <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">Create Role</a></li>
         </ul>
-      </li>
+      </li> -->
 
       <!-- Reports -->
-      <li>
-        <a href="#" class="flex items-center gap-3 rounded-md px-3 py-2 hover:bg-gray-50">
-          <lucide-icon [img]="BarChart3" class="w-4 h-4"></lucide-icon>
-          Reports
-        </a>
-      </li>
+      <app-sidebar-single-section icon="lucide lucide-bar-chart-3 w-4 h-4" label="Reports" route="/reports"></app-sidebar-single-section>
 
       <!-- Settings -->
-      <li>
+      <app-sidebar-single-section icon="lucide lucide-settings w-4 h-4" label="Settings" route="/settings"></app-sidebar-single-section>
+      <!-- <li>
         <button class="flex w-full items-center justify-between px-3 py-2 rounded-md hover:bg-gray-50">
           <div class="flex items-center gap-3">
             <lucide-icon [img]="Settings" class="w-4 h-4"></lucide-icon>
@@ -91,7 +92,7 @@
           <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">System Settings</a></li>
           <li><a href="#" class="block rounded-md px-3 py-2 hover:bg-gray-50">Import/Export</a></li>
         </ul>
-      </li>
+      </li> -->
     </ul>
   </nav>
 </div>
