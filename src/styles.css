@@ -1,8 +1,8 @@
 @import 'tailwindcss';
 
-* {
+/* * {
   margin: 0px;
-}
+} */
 body {
   font-family: sans-serif;
 }
