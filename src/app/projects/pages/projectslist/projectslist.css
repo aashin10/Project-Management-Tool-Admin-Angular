@@ -1,0 +1,13 @@
+/* No custom CSS needed - all styling is done with Tailwind utility classes in the HTML */
+
+/* Optional: Add custom styles for specific elements if needed */
+input[type="checkbox"] {
+  accent-color: #2563eb;
+}
+
+/* Ensure smooth transitions */
+* {
+  transition-property: background-color, border-color, color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
