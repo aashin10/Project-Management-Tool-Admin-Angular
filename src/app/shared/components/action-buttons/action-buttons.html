@@ -3,7 +3,8 @@
     *ngFor="let btn of buttons"
     class="p-2 rounded-full hover:bg-gray-100 transition-colors"
     [attr.aria-label]="btn.label"
+    (click)="onAction(btn.type)"
   >
-    <lucide-icon [name]="btn.icon" class="h-5 w-5 sm:h-6 sm:w-6 text-gray-500"></lucide-icon>
+    <span class="text-lg">{{ btn.icon }}</span>
   </button>
 </div>

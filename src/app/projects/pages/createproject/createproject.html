@@ -1,1 +1,44 @@
-<p>createproject works!</p>
+<div class="create-project-container">
+  <div class="header">
+    <div class="back-link">
+      <i class="back-icon">←</i>
+      <span>Back to Projects</span>
+    </div>
+    <div class="header-content">
+      <app-sectiontitle title="Create New Project" description="Set up your project with team members and define objectives"></app-sectiontitle>
+    </div>
+  </div>
+
+  <div class="content-wrapper">
+    <!-- Left Section - Form -->
+    <div class="form-section">
+      <!-- Basic Information Component -->
+      <app-basic-information
+        [(projectName)]="projectName"
+        [(projectKey)]="projectKey"
+        [(description)]="description"
+        [(priority)]="priority"
+        (projectNameChange)="onProjectNameChange($event)"
+        (projectKeyChange)="onProjectKeyChange($event)"
+        (descriptionChange)="onDescriptionChange($event)"
+        (priorityChange)="onPriorityChange($event)"
+      ></app-basic-information>
+
+      <!-- Team & Organization Component -->
+      <app-team-organization
+        [(manager)]="manager"
+        [(deliveryUnit)]="deliveryUnit"
+        (managerChange)="onManagerChange($event)"
+        (deliveryUnitChange)="onDeliveryUnitChange($event)"
+      ></app-team-organization>
+    </div>
+
+    <!-- Right Section - Project Preview Component -->
+    <!-- <app-project-preview
+      [projectName]="projectName"
+      [projectKey]="projectKey"
+      (createProject)="onCreateProject()"
+      (cancel)="onCancel()"
+    ></app-project-preview> -->
+  </div>
+</div>
