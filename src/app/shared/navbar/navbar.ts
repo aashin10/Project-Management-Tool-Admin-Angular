@@ -7,7 +7,6 @@ import { ActionButtons, ActionType } from '../components/action-buttons/action-b
 
 @Component({
   selector: 'app-navbar',
-  standalone: true,
   imports: [CommonModule, BreadcrumbItem, SearchBar, ActionButtons],
   templateUrl: './navbar.html',
   styles: [
