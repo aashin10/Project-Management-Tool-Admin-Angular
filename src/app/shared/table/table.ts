@@ -9,6 +9,13 @@ export interface TableColumn {
   sortable?: boolean;
   width?: string;
   badgeColors?: { [key: string]: string }; // For different badge colors
+  actions?:ActionItem [];
+}
+export interface ActionItem {
+  label: string;
+  icon?: string;
+  action: string;
+  class?: string; // For styling (e.g., danger for delete)
 }
 
 @Component({
@@ -18,19 +25,18 @@ export interface TableColumn {
   styleUrl: './table.css'
 })
 export class Table {
-toggleAll() {
-throw new Error('Method not implemented.');
-}
+
   @Input() columns: TableColumn[] = [];
   @Input() data: any[] = [];
   @Input() showCheckbox: boolean = false;
-  @Input() itemsPerPage: number = 25;
+  @Input() itemsPerPage: number = 10;
   
   @Output() rowSelect = new EventEmitter<any>();
   @Output() actionClick = new EventEmitter<{action: string, row: any}>();
   
   currentPage: number = 1;
   selectedRows: Set<number> = new Set();
+  openActionMenuIndex: number | null = null;
 
   get paginatedData() {
     const start = (this.currentPage - 1) * this.itemsPerPage;
@@ -55,7 +61,21 @@ throw new Error('Method not implemented.');
       this.currentPage = page;
     }
   }
-
+  toggleAll() {
+  // Check if all rows are currently selected
+  const allSelected = this.selectedRows.size === this.paginatedData.length;
+  
+  if (allSelected) {
+    // Unselect all
+    this.selectedRows.clear();
+  } else {
+    // Select all visible rows
+    this.selectedRows.clear();
+    for (let i = 0; i < this.paginatedData.length; i++) {
+      this.selectedRows.add(i);
+    }
+  }
+}
   previousPage() {
     this.goToPage(this.currentPage - 1);
   }
@@ -93,5 +113,31 @@ throw new Error('Method not implemented.');
     };
     
     return `${baseClasses} ${colorMap[value?.toLowerCase()] || 'bg-gray-100 text-gray-800'}`;
+  }
+  
+
+  // ... existing methods
+
+  toggleActionsMenu(index: number) {
+    if (this.openActionMenuIndex === index) {
+      this.openActionMenuIndex = null;
+    } else {
+      this.openActionMenuIndex = index;
+    }
+  }
+
+  closeActionsMenu() {
+    this.openActionMenuIndex = null;
+  }
+
+  handleAction(action: string, row: any) {
+    this.actionClick.emit({ action, row });
+  }
+
+  getActionClass(customClass?: string): string {
+    if (customClass === 'danger') {
+      return 'text-red-600 hover:bg-red-50';
+    }
+    return 'text-gray-700';
   }
 }
