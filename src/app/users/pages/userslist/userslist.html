@@ -1,1 +1,18 @@
-<app-sectiontitle title="User Management" description="Manage user accounts and permissions"></app-sectiontitle>
+<div class="flex ">
+  <app-sectiontitle
+    title="User Management"
+    description="Manage user accounts and permissions"
+  ></app-sectiontitle>
+
+    <app-custom-button
+      label="Add User"
+      (click)="onAddUser()"
+      class="ml-auto"
+      [bgClass]="'bg-[#0052CC]'"
+      [hoverClass]="'hover:bg-[#0052cce6]'"
+      [textColor]="'text-white'"
+      [extraClasses]="'font-bold mt-4'"
+      [fontSize]="'text-base'"
+    ></app-custom-button>
+
+</div>
