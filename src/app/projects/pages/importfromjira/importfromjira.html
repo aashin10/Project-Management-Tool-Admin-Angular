@@ -1,1 +1,76 @@
-<p>importfromjira works!</p>
+<!-- Section Title -->
+<app-sectiontitle [title]="sectionTitle" [description]="sectionDescription"></app-sectiontitle>
+
+<!-- Progress Indicator -->
+<div class="w-full">
+  <div class="flex items-center justify-around ml-8 mr-8">
+    <ng-container *ngFor="let step of importSteps; let i = index">
+      <div class="flex flex-col items-center flex-shrink-0">
+        <div
+          [class]="
+            'w-12 h-12 rounded-full flex   items-center justify-center text-sm font-medium ' +
+            (step.step === currentStep
+              ? 'bg-blue-600 text-white'
+              : step.step < currentStep
+              ? 'bg-green-500 text-white'
+              : 'bg-gray-200 text-gray-600')
+          "
+        >
+          {{ step.step }}
+        </div>
+        <span class="text-xs mt-2" [class.text-blue-600]="step.step === currentStep">
+          {{ step.title }}
+        </span>
+      </div>
+
+      <!-- Connector line -->
+      <div *ngIf="i < importSteps.length - 1" class="flex-grow h-0.5 bg-gray-200 mx-2"></div>
+    </ng-container>
+  </div>
+</div>
+
+<!-- Process Container -->
+<div
+  class="p-10 m-6 bg-white rounded-xl border border-gray-300 flex flex-col text-center space-y-10 shadow-sm items-center"
+>
+  <!-- Step Content -->
+  <div class="w-full max-w-xl" [ngSwitch]="currentStep">
+    <div *ngSwitchCase="1">
+      <lucide-icon [name]="importSteps[0].icon" class="h-8 w-8 text-gray-500"></lucide-icon>
+      <h3 class="text-2xl font-semibold text-gray-800 mt-4">{{ importSteps[0].title }}</h3>
+      <p class="text-sm text-gray-600 mt-2">{{ importSteps[0].description }}</p>
+      <!-- Add your connection form here -->
+    </div>
+
+    <div *ngSwitchCase="2">
+      <lucide-icon [name]="importSteps[1].icon" class="h-8 w-8 text-gray-500"></lucide-icon>
+      <h3 class="text-2xl font-semibold text-gray-800 mt-4">{{ importSteps[1].title }}</h3>
+      <p class="text-sm text-gray-600 mt-2">{{ importSteps[1].description }}</p>
+      <!-- Add your project selection interface here -->
+    </div>
+
+    <div *ngSwitchCase="3">
+      <lucide-icon [name]="importSteps[2].icon" class="h-8 w-8 text-gray-500"></lucide-icon>
+      <h3 class="text-2xl font-semibold text-gray-800 mt-4">{{ importSteps[2].title }}</h3>
+      <p class="text-sm text-gray-600 mt-2">{{ importSteps[2].description }}</p>
+      <!-- Add your user import interface here -->
+    </div>
+  </div>
+
+  <!-- Navigation Buttons -->
+  <div class="flex flex-col sm:flex-row gap-4 mt-6">
+    <button
+      *ngIf="currentStep > 1"
+      (click)="previousStep()"
+      class="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
+    >
+      Back
+    </button>
+    <button
+      (click)="nextStep()"
+      class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+    >
+      {{ currentStep === 3 ? 'Finish' : 'Continue' }}
+    </button>
+  </div>
+</div>
