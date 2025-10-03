@@ -35,25 +35,76 @@
 >
   <!-- Step Content -->
   <div class="w-full max-w-xl" [ngSwitch]="currentStep">
-    <div *ngSwitchCase="1">
+    <div *ngSwitchCase="1" class="flex flex-col justify-around items-center">
       <lucide-icon [name]="importSteps[0].icon" class="h-8 w-8 text-gray-500"></lucide-icon>
       <h3 class="text-2xl font-semibold text-gray-800 mt-4">{{ importSteps[0].title }}</h3>
       <p class="text-sm text-gray-600 mt-2">{{ importSteps[0].description }}</p>
-      <!-- Add your connection form here -->
+
+      <div class="flex items-center justify-center w-full mt-4">
+        <label
+          for="dropzone-file"
+          class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50"
+        >
+          <div class="flex flex-col items-center justify-center pt-5 pb-6">
+            <svg
+              class="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 20 16"
+            >
+              <path
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
+              />
+            </svg>
+            <p class="mb-2 text-sm text-gray-500 dark:text-gray-400">
+              <span class="font-semibold">Click to upload</span> or drag and drop
+            </p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              SVG, PNG, JPG or GIF (MAX. 800x400px)
+            </p>
+          </div>
+          <input id="dropzone-file" type="file" class="hidden" />
+        </label>
+      </div>
     </div>
 
-    <div *ngSwitchCase="2">
+    <div *ngSwitchCase="2" class="flex flex-col items-center space-y-6">
+      <!-- Icon -->
       <lucide-icon [name]="importSteps[1].icon" class="h-8 w-8 text-gray-500"></lucide-icon>
-      <h3 class="text-2xl font-semibold text-gray-800 mt-4">{{ importSteps[1].title }}</h3>
-      <p class="text-sm text-gray-600 mt-2">{{ importSteps[1].description }}</p>
-      <!-- Add your project selection interface here -->
+
+      <!-- Title & Description -->
+      <h3 class="text-2xl font-semibold text-gray-800">{{ importSteps[1].title }}</h3>
+      <p class="text-sm text-gray-600">{{ importSteps[1].description }}</p>
+
+      <!-- Jira URL Input -->
+      <div class="flex flex-col space-y-2 w-100">
+        <label for="jira-url" class="font-medium">Jira Instance URL *</label>
+        <input
+          id="jira-url"
+          type="text"
+          placeholder="https://yourcompany.atlassian.net"
+          class="border rounded p-2 placeholder-gray-500"
+        />
+        <button class="bg-blue-600 text-white py-2 px-4 flex items-center justify-center space-x-2">
+          Authorize with JIRA
+        </button>
+      </div>
     </div>
 
-    <div *ngSwitchCase="3">
+    <div *ngSwitchCase="3" class="flex flex-col justify-around items-center">
       <lucide-icon [name]="importSteps[2].icon" class="h-8 w-8 text-gray-500"></lucide-icon>
       <h3 class="text-2xl font-semibold text-gray-800 mt-4">{{ importSteps[2].title }}</h3>
       <p class="text-sm text-gray-600 mt-2">{{ importSteps[2].description }}</p>
-      <!-- Add your user import interface here -->
+      <div class="flex w-full justify-between m-2">
+        <app-search-bar class="w-100"></app-search-bar>
+        <button>Select All</button>
+      </div>
+      <app-importprojectslist class="w-full"></app-importprojectslist>
     </div>
   </div>
 
