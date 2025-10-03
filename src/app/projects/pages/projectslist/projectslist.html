@@ -20,32 +20,31 @@
           icon="/images/export.svg"
           label="Export All"
           shortLabel="Export"
-          bgClass="bg-white border border-gray-300 hover:bg-gray-50"
-          extraClasses=""
-        ></app-custom-button>
+        />
         <app-custom-button
           (click)="importFromJira()"
           icon="/images/import.svg"
           label="Import from Jira"
           shortLabel="Import"
-          bgClass="bg-white border border-gray-300 hover:bg-gray-50"
-          extraClasses=""
-        ></app-custom-button>
+        />
+
         <app-custom-button
           (click)="createProject()"
           icon="/images/plus.svg"
           label="Create Project"
           shortLabel="Create"
-          bgClass="border border-gray-300 text-white hover:bg-blue-700"
-          extraClasses="bg-blue-600"
-        ></app-custom-button>
+          bgClass="bg-blue-600"
+          textColor="text-white"
+          hoverClass="hover:bg-blue-700"
+          borderClass="border border-blue-600"
+        />
       </div>
     </div>
 
     <!-- Search and Filter Section -->
     <div class="flex flex-col sm:flex-row gap-3 mb-6">
       <div class="flex-1 flex items-center bg-white border border-gray-300 rounded-[2px] px-3">
-        <span class="text-gray-400 mr-2"><img src="/images/search.svg" alt=""></span>
+        <span class="text-gray-400 mr-2"><img src="/images/search.svg" alt="" /></span>
         <input
           type="text"
           [(ngModel)]="searchQuery"
@@ -54,15 +53,18 @@
           class="text-gray-700 flex-1 py-2.5 text-sm outline-none"
         />
       </div>
-      
+
       <button
         (click)="toggleFilters()"
         class="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-[2px] text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors whitespace-nowrap cursor-pointer"
       >
-        <span><img src="/images/filter.svg" alt=""></span>
+        <span><img src="/images/filter.svg" alt="" /></span>
         <span class="hidden sm:inline">Advanced Filters</span>
         <span class="sm:hidden">Filters</span>
-        <span *ngIf="hasActiveFilters" class="ml-1 px-2 py-0.5 bg-blue-600 text-white rounded-full text-xs">
+        <span
+          *ngIf="hasActiveFilters"
+          class="ml-1 px-2 py-0.5 bg-blue-600 text-white rounded-full text-xs"
+        >
           {{ selectedStatuses.length + selectedPriorities.length + selectedManagers.length }}
         </span>
       </button>
@@ -78,7 +80,10 @@
         <div>
           <label class="block font-semibold text-gray-900 mb-3">Status</label>
           <div class="space-y-2.5">
-            <label *ngFor="let status of statusOptions" class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1.5 rounded transition-colors">
+            <label
+              *ngFor="let status of statusOptions"
+              class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1.5 rounded transition-colors"
+            >
               <input
                 type="checkbox"
                 [checked]="isStatusSelected(status)"
@@ -94,7 +99,10 @@
         <div>
           <label class="block font-semibold text-gray-900 mb-3">Priority</label>
           <div class="space-y-2.5">
-            <label *ngFor="let priority of priorityOptions" class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1.5 rounded transition-colors">
+            <label
+              *ngFor="let priority of priorityOptions"
+              class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1.5 rounded transition-colors"
+            >
               <input
                 type="checkbox"
                 [checked]="isPrioritySelected(priority)"
@@ -109,12 +117,22 @@
         <!-- Project Manager Filter -->
         <div>
           <label class="block font-semibold text-gray-900 mb-3">Project Manager</label>
-          
+
           <!-- Manager Search -->
           <div class="mb-3">
             <div class="flex items-center bg-gray-50 border border-gray-300 rounded px-2 py-1.5">
-              <svg class="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <svg
+                class="w-4 h-4 text-gray-400 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
               </svg>
               <input
                 type="text"
@@ -126,7 +144,10 @@
           </div>
 
           <div class="space-y-2.5 max-h-48 overflow-y-auto">
-            <label *ngFor="let manager of filteredManagers" class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1.5 rounded transition-colors">
+            <label
+              *ngFor="let manager of filteredManagers"
+              class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1.5 rounded transition-colors"
+            >
               <input
                 type="checkbox"
                 [checked]="isManagerSelected(manager)"
@@ -135,7 +156,7 @@
               />
               <span class="text-sm text-gray-700">{{ manager }}</span>
             </label>
-            
+
             <button
               *ngIf="displayedManagerCount < totalManagerCount && !showAllManagers"
               (click)="toggleShowAllManagers()"
@@ -143,7 +164,7 @@
             >
               + Show {{ totalManagerCount - displayedManagerCount }} more
             </button>
-            
+
             <button
               *ngIf="showAllManagers && totalManagerCount > 4"
               (click)="toggleShowAllManagers()"
@@ -158,7 +179,9 @@
       <!-- Selected Filters Display -->
       <div *ngIf="hasActiveFilters" class="mt-5 pt-5 border-t border-gray-200">
         <div class="flex items-center justify-between mb-3">
-          <span class="text-sm font-semibold text-gray-900">Active Filters ({{ getActiveFilterCount() }})</span>
+          <span class="text-sm font-semibold text-gray-900"
+            >Active Filters ({{ getActiveFilterCount() }})</span
+          >
           <button
             (click)="clearAllFilters()"
             class="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors cursor-pointer"
@@ -178,7 +201,12 @@
               class="hover:bg-blue-100 rounded-full p-0.5 transition-colors cursor-pointer"
             >
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </span>
@@ -194,7 +222,12 @@
               class="hover:bg-purple-100 rounded-full p-0.5 transition-colors cursor-pointer"
             >
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </span>
@@ -210,7 +243,12 @@
               class="hover:bg-green-100 rounded-full p-0.5 transition-colors cursor-pointer"
             >
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </span>
@@ -237,87 +275,227 @@
                   class="w-4 h-4 rounded border-gray-300 cursor-pointer"
                 />
               </th>
-              <th class="px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 min-w-[200px]">
-                <div 
+              <th
+                class="px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 min-w-[200px]"
+              >
+                <div
                   class="flex items-center gap-2 select-none p-1 rounded transition-colors"
                   [class.cursor-pointer]="tableHeaders[0].sortable"
                   [class.hover:bg-gray-100]="tableHeaders[0].sortable"
-                  (click)="tableHeaders[0].sortable && tableHeaders[0].field ? sortBy(tableHeaders[0].field) : null"
+                  (click)="
+                    tableHeaders[0].sortable && tableHeaders[0].field
+                      ? sortBy(tableHeaders[0].field)
+                      : null
+                  "
                 >
                   <span>{{ tableHeaders[0].label }}</span>
-                  <span *ngIf="tableHeaders[0].sortable" class="flex items-center justify-center w-4 h-4">
-                    <span *ngIf="sortField === tableHeaders[0].field && sortDirection === 'asc'" class="text-blue-600 font-bold">↑</span>
-                    <span *ngIf="sortField === tableHeaders[0].field && sortDirection === 'desc'" class="text-blue-600 font-bold">↓</span>
-                    <svg *ngIf="sortField !== tableHeaders[0].field" class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                  <span
+                    *ngIf="tableHeaders[0].sortable"
+                    class="flex items-center justify-center w-4 h-4"
+                  >
+                    <span
+                      *ngIf="sortField === tableHeaders[0].field && sortDirection === 'asc'"
+                      class="text-blue-600 font-bold"
+                      >↑</span
+                    >
+                    <span
+                      *ngIf="sortField === tableHeaders[0].field && sortDirection === 'desc'"
+                      class="text-blue-600 font-bold"
+                      >↓</span
+                    >
+                    <svg
+                      *ngIf="sortField !== tableHeaders[0].field"
+                      class="w-4 h-4 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                      />
                     </svg>
                   </span>
                 </div>
               </th>
-              <th class="px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 min-w-[100px]">
-                <div 
+              <th
+                class="px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 min-w-[100px]"
+              >
+                <div
                   class="flex items-center gap-2 select-none p-1 rounded transition-colors"
                   [class.cursor-pointer]="tableHeaders[1].sortable"
                   [class.hover:bg-gray-100]="tableHeaders[1].sortable"
-                  (click)="tableHeaders[1].sortable && tableHeaders[1].field ? sortBy(tableHeaders[1].field) : null"
+                  (click)="
+                    tableHeaders[1].sortable && tableHeaders[1].field
+                      ? sortBy(tableHeaders[1].field)
+                      : null
+                  "
                 >
                   <span>{{ tableHeaders[1].label }}</span>
-                  <span *ngIf="tableHeaders[1].sortable" class="flex items-center justify-center w-4 h-4">
-                    <span *ngIf="sortField === tableHeaders[1].field && sortDirection === 'asc'" class="text-blue-600 font-bold">↑</span>
-                    <span *ngIf="sortField === tableHeaders[1].field && sortDirection === 'desc'" class="text-blue-600 font-bold">↓</span>
-                    <svg *ngIf="sortField !== tableHeaders[1].field" class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                  <span
+                    *ngIf="tableHeaders[1].sortable"
+                    class="flex items-center justify-center w-4 h-4"
+                  >
+                    <span
+                      *ngIf="sortField === tableHeaders[1].field && sortDirection === 'asc'"
+                      class="text-blue-600 font-bold"
+                      >↑</span
+                    >
+                    <span
+                      *ngIf="sortField === tableHeaders[1].field && sortDirection === 'desc'"
+                      class="text-blue-600 font-bold"
+                      >↓</span
+                    >
+                    <svg
+                      *ngIf="sortField !== tableHeaders[1].field"
+                      class="w-4 h-4 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                      />
                     </svg>
                   </span>
                 </div>
               </th>
-              <th class="px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 min-w-[90px]">
-                <div 
+              <th
+                class="px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 min-w-[90px]"
+              >
+                <div
                   class="flex items-center gap-2 select-none p-1 rounded transition-colors"
                   [class.cursor-pointer]="tableHeaders[2].sortable"
                   [class.hover:bg-gray-100]="tableHeaders[2].sortable"
-                  (click)="tableHeaders[2].sortable && tableHeaders[2].field ? sortBy(tableHeaders[2].field) : null"
+                  (click)="
+                    tableHeaders[2].sortable && tableHeaders[2].field
+                      ? sortBy(tableHeaders[2].field)
+                      : null
+                  "
                 >
                   <span>{{ tableHeaders[2].label }}</span>
-                  <span *ngIf="tableHeaders[2].sortable" class="flex items-center justify-center w-4 h-4">
-                    <span *ngIf="sortField === tableHeaders[2].field && sortDirection === 'asc'" class="text-blue-600 font-bold">↑</span>
-                    <span *ngIf="sortField === tableHeaders[2].field && sortDirection === 'desc'" class="text-blue-600 font-bold">↓</span>
-                    <svg *ngIf="sortField !== tableHeaders[2].field" class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                  <span
+                    *ngIf="tableHeaders[2].sortable"
+                    class="flex items-center justify-center w-4 h-4"
+                  >
+                    <span
+                      *ngIf="sortField === tableHeaders[2].field && sortDirection === 'asc'"
+                      class="text-blue-600 font-bold"
+                      >↑</span
+                    >
+                    <span
+                      *ngIf="sortField === tableHeaders[2].field && sortDirection === 'desc'"
+                      class="text-blue-600 font-bold"
+                      >↓</span
+                    >
+                    <svg
+                      *ngIf="sortField !== tableHeaders[2].field"
+                      class="w-4 h-4 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                      />
                     </svg>
                   </span>
                 </div>
               </th>
-              <th class="px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 min-w-[160px]">
-                <div 
+              <th
+                class="px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 min-w-[160px]"
+              >
+                <div
                   class="flex items-center gap-2 select-none p-1 rounded transition-colors"
                   [class.cursor-pointer]="tableHeaders[3].sortable"
                   [class.hover:bg-gray-100]="tableHeaders[3].sortable"
-                  (click)="tableHeaders[3].sortable && tableHeaders[3].field ? sortBy(tableHeaders[3].field) : null"
+                  (click)="
+                    tableHeaders[3].sortable && tableHeaders[3].field
+                      ? sortBy(tableHeaders[3].field)
+                      : null
+                  "
                 >
                   <span>{{ tableHeaders[3].label }}</span>
-                  <span *ngIf="tableHeaders[3].sortable" class="flex items-center justify-center w-4 h-4">
-                    <span *ngIf="sortField === tableHeaders[3].field && sortDirection === 'asc'" class="text-blue-600 font-bold">↑</span>
-                    <span *ngIf="sortField === tableHeaders[3].field && sortDirection === 'desc'" class="text-blue-600 font-bold">↓</span>
-                    <svg *ngIf="sortField !== tableHeaders[3].field" class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                  <span
+                    *ngIf="tableHeaders[3].sortable"
+                    class="flex items-center justify-center w-4 h-4"
+                  >
+                    <span
+                      *ngIf="sortField === tableHeaders[3].field && sortDirection === 'asc'"
+                      class="text-blue-600 font-bold"
+                      >↑</span
+                    >
+                    <span
+                      *ngIf="sortField === tableHeaders[3].field && sortDirection === 'desc'"
+                      class="text-blue-600 font-bold"
+                      >↓</span
+                    >
+                    <svg
+                      *ngIf="sortField !== tableHeaders[3].field"
+                      class="w-4 h-4 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                      />
                     </svg>
                   </span>
                 </div>
               </th>
-              <th class="px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 min-w-[100px]">
-                <div 
+              <th
+                class="px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 min-w-[100px]"
+              >
+                <div
                   class="flex items-center gap-2 select-none p-1 rounded transition-colors"
                   [class.cursor-pointer]="tableHeaders[4].sortable"
                   [class.hover:bg-gray-100]="tableHeaders[4].sortable"
-                  (click)="tableHeaders[4].sortable && tableHeaders[4].field ? sortBy(tableHeaders[4].field) : null"
+                  (click)="
+                    tableHeaders[4].sortable && tableHeaders[4].field
+                      ? sortBy(tableHeaders[4].field)
+                      : null
+                  "
                 >
                   <span>{{ tableHeaders[4].label }}</span>
-                  <span *ngIf="tableHeaders[4].sortable" class="flex items-center justify-center w-4 h-4">
-                    <span *ngIf="sortField === tableHeaders[4].field && sortDirection === 'asc'" class="text-blue-600 font-bold">↑</span>
-                    <span *ngIf="sortField === tableHeaders[4].field && sortDirection === 'desc'" class="text-blue-600 font-bold">↓</span>
-                    <svg *ngIf="sortField !== tableHeaders[4].field" class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                  <span
+                    *ngIf="tableHeaders[4].sortable"
+                    class="flex items-center justify-center w-4 h-4"
+                  >
+                    <span
+                      *ngIf="sortField === tableHeaders[4].field && sortDirection === 'asc'"
+                      class="text-blue-600 font-bold"
+                      >↑</span
+                    >
+                    <span
+                      *ngIf="sortField === tableHeaders[4].field && sortDirection === 'desc'"
+                      class="text-blue-600 font-bold"
+                      >↓</span
+                    >
+                    <svg
+                      *ngIf="sortField !== tableHeaders[4].field"
+                      class="w-4 h-4 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                      />
                     </svg>
                   </span>
                 </div>
