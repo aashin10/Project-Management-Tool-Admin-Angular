@@ -1,0 +1,12 @@
+<button
+  (click)="onClick()"
+  [ngClass]="[
+    'flex items-center h-9 text-black gap-2 px-3 lg:px-4  rounded-[2px] text-sm font-medium transition-colors',
+    bgClass,
+    extraClasses
+  ]"
+>
+  <span *ngIf="icon"><img [src]="icon" alt="" class="w-4 h-4" /></span>
+  <span class="hidden sm:inline">{{ label }}</span>
+  <span class="sm:hidden">{{ shortLabel || label }}</span>
+</button>
