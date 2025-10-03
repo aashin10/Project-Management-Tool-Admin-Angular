@@ -40,7 +40,7 @@
       <h3 class="text-2xl font-semibold text-gray-800 mt-4">{{ importSteps[0].title }}</h3>
       <p class="text-sm text-gray-600 mt-2">{{ importSteps[0].description }}</p>
 
-      <div class="flex items-center justify-center w-full mt-4">
+      <div class="flex items-center justify-center w-full mt-4 flex-col">
         <label
           for="dropzone-file"
           class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50"
@@ -70,10 +70,25 @@
           </div>
           <input id="dropzone-file" type="file" class="hidden" />
         </label>
+        <div class="flex justify-around w-100 mt-6">
+          <app-custom-button
+            label="Skip for Now"
+            shortLabel="Skip"
+            bgClass="bg-blue-300 border border-gray-300 hover:bg-gray-50"
+            extraClasses=""
+          ></app-custom-button>
+          <app-custom-button
+            (action)="nextStep()"
+            label="Continue "
+            shortLabel="Continue"
+            bgClass="bg-blue-300 border border-gray-300 hover:bg-gray-50"
+            extraClasses=""
+          ></app-custom-button>
+        </div>
       </div>
     </div>
 
-    <div *ngSwitchCase="2" class="flex flex-col items-center space-y-6">
+    <div *ngSwitchCase="2" class="flex flex-col items-center justify-center pace-y-6">
       <!-- Icon -->
       <lucide-icon [name]="importSteps[1].icon" class="h-8 w-8 text-gray-500"></lucide-icon>
 
@@ -90,38 +105,38 @@
           placeholder="https://yourcompany.atlassian.net"
           class="border rounded p-2 placeholder-gray-500"
         />
-        <button class="bg-blue-600 text-white py-2 px-4 flex items-center justify-center space-x-2">
-          Authorize with JIRA
-        </button>
+        <app-custom-button
+          (action)="nextStep()"
+          label="Authorize with JIRA "
+          shortLabel="Authorize"
+          bgClass="bg-blue-300 border border-gray-300 hover:bg-gray-50 w-100"
+          extraClasses=""
+        ></app-custom-button>
       </div>
     </div>
 
-    <div *ngSwitchCase="3" class="flex flex-col justify-around items-center">
+    <div *ngSwitchCase="3" class="flex flex-col justify-center items-center">
       <lucide-icon [name]="importSteps[2].icon" class="h-8 w-8 text-gray-500"></lucide-icon>
       <h3 class="text-2xl font-semibold text-gray-800 mt-4">{{ importSteps[2].title }}</h3>
       <p class="text-sm text-gray-600 mt-2">{{ importSteps[2].description }}</p>
-      <div class="flex w-full justify-between m-2">
-        <app-search-bar class="w-100"></app-search-bar>
-        <button>Select All</button>
+      <div class="flex w-full justify-between mt-6">
+        <app-search-bar class="w-100" [placeholder]="'Select Projects..'"></app-search-bar>
+        <app-custom-button
+          (action)="nextStep()"
+          label="Select All "
+          shortLabel="Select All"
+          bgClass="bg-blue-300 border border-gray-300 hover:bg-gray-50"
+          extraClasses=""
+        ></app-custom-button>
       </div>
       <app-importprojectslist class="w-full"></app-importprojectslist>
+      <app-custom-button
+        (action)="nextStep()"
+        label="Import "
+        shortLabel="Authorize"
+        bgClass="bg-blue-300 border border-gray-300 hover:bg-gray-50 w-50"
+        extraClasses="mt-4"
+      ></app-custom-button>
     </div>
-  </div>
-
-  <!-- Navigation Buttons -->
-  <div class="flex flex-col sm:flex-row gap-4 mt-6">
-    <button
-      *ngIf="currentStep > 1"
-      (click)="previousStep()"
-      class="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
-    >
-      Back
-    </button>
-    <button
-      (click)="nextStep()"
-      class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-    >
-      {{ currentStep === 3 ? 'Finish' : 'Continue' }}
-    </button>
   </div>
 </div>
