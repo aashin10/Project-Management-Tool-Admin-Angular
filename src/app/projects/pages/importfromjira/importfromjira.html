@@ -88,7 +88,7 @@
       </div>
     </div>
 
-    <div *ngSwitchCase="2" class="flex flex-col items-center space-y-6">
+    <div *ngSwitchCase="2" class="flex flex-col items-center justify-center pace-y-6">
       <!-- Icon -->
       <lucide-icon [name]="importSteps[1].icon" class="h-8 w-8 text-gray-500"></lucide-icon>
 
@@ -115,11 +115,11 @@
       </div>
     </div>
 
-    <div *ngSwitchCase="3" class="flex flex-col justify-around items-center">
+    <div *ngSwitchCase="3" class="flex flex-col justify-center items-center">
       <lucide-icon [name]="importSteps[2].icon" class="h-8 w-8 text-gray-500"></lucide-icon>
       <h3 class="text-2xl font-semibold text-gray-800 mt-4">{{ importSteps[2].title }}</h3>
       <p class="text-sm text-gray-600 mt-2">{{ importSteps[2].description }}</p>
-      <div class="flex w-full justify-between">
+      <div class="flex w-full justify-between mt-6">
         <app-search-bar class="w-100" [placeholder]="'Select Projects..'"></app-search-bar>
         <app-custom-button
           (action)="nextStep()"
@@ -130,6 +130,13 @@
         ></app-custom-button>
       </div>
       <app-importprojectslist class="w-full"></app-importprojectslist>
+      <app-custom-button
+        (action)="nextStep()"
+        label="Import "
+        shortLabel="Authorize"
+        bgClass="bg-blue-300 border border-gray-300 hover:bg-gray-50 w-50"
+        extraClasses="mt-4"
+      ></app-custom-button>
     </div>
   </div>
 </div>

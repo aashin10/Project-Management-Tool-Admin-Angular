@@ -27,11 +27,123 @@ export class Importprojectslist {
       description: 'Tools for internal team productivity.',
       issuesCount: 30,
     },
+    {
+      title: 'Demo Project',
+      description: 'Demo project for testing purposes.',
+      issuesCount: 45,
+    },
+
+    {
+      title: 'Client Portal',
+      description: 'Portal for client interactions and feedback.',
+      issuesCount: 12,
+    },
+    {
+      title: 'Internal Tools',
+      description: 'Tools for internal team productivity.',
+      issuesCount: 30,
+    },
+    {
+      title: 'Demo Project',
+      description: 'Demo project for testing purposes.',
+      issuesCount: 45,
+    },
+
+    {
+      title: 'Client Portal',
+      description: 'Portal for client interactions and feedback.',
+      issuesCount: 12,
+    },
+    {
+      title: 'Internal Tools',
+      description: 'Tools for internal team productivity.',
+      issuesCount: 30,
+    },
+    {
+      title: 'Demo Project',
+      description: 'Demo project for testing purposes.',
+      issuesCount: 45,
+    },
+
+    {
+      title: 'Client Portal',
+      description: 'Portal for client interactions and feedback.',
+      issuesCount: 12,
+    },
+    {
+      title: 'Internal Tools',
+      description: 'Tools for internal team productivity.',
+      issuesCount: 30,
+    },
+    {
+      title: 'Demo Project',
+      description: 'Demo project for testing purposes.',
+      issuesCount: 45,
+    },
+
+    {
+      title: 'Client Portal',
+      description: 'Portal for client interactions and feedback.',
+      issuesCount: 12,
+    },
+    {
+      title: 'Internal Tools',
+      description: 'Tools for internal team productivity.',
+      issuesCount: 30,
+    },
+    {
+      title: 'Demo Project',
+      description: 'Demo project for testing purposes.',
+      issuesCount: 45,
+    },
+
+    {
+      title: 'Client Portal',
+      description: 'Portal for client interactions and feedback.',
+      issuesCount: 12,
+    },
+    {
+      title: 'Internal Tools',
+      description: 'Tools for internal team productivity.',
+      issuesCount: 30,
+    },
+    {
+      title: 'Demo Project',
+      description: 'Demo project for testing purposes.',
+      issuesCount: 45,
+    },
+
+    {
+      title: 'Client Portal',
+      description: 'Portal for client interactions and feedback.',
+      issuesCount: 12,
+    },
+    {
+      title: 'Internal Tools',
+      description: 'Tools for internal team productivity.',
+      issuesCount: 30,
+    },
+    {
+      title: 'Demo Project',
+      description: 'Demo project for testing purposes.',
+      issuesCount: 45,
+    },
+
+    {
+      title: 'Client Portal',
+      description: 'Portal for client interactions and feedback.',
+      issuesCount: 12,
+    },
+    {
+      title: 'Internal Tools',
+      description: 'Tools for internal team productivity.',
+      issuesCount: 30,
+    },
   ];
   paginatedProjects: any = [];
 
   currentPage: number = 1;
-  itemsPerPage: number = 1;
+  itemsPerPage: number = 5;
 
   ngOnInit() {
     this.updatePaginatedProjects();
