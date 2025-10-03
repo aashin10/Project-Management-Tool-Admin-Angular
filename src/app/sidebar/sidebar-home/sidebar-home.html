@@ -1,17 +1,88 @@
-<div
-  style="
-    width: 255px;
-    background-color: #f4f4f4;
-    padding: 20px;
-    height: calc(100vh - 64px);
-    box-sizing: border-box;
-  "
->
-  <h2 style="margin-top: 0">Sidebar</h2>
-  <ul style="list-style: none; padding: 0">
-    <li>#Dashboard</li>
-    <li>#Profile</li>
-    <li>#Settings</li>
-    <li>#Logout</li>
-  </ul>
+<!-- Sidebar Container -->
+<div [ngClass]="isCollapsed ? 'w-16' : 'w-[255px]'"
+  class="h-screen bg-white text-gray-800 flex flex-col border-r border-gray-200 transition-all duration-300">
+
+  <!-- Sidebar Header with Logo -->
+  <div class="h-16 flex items-center px-4 border-b border-gray-200 gap-2 shadow-sm"
+    [ngClass]="isCollapsed ? 'justify-center' : 'justify-center'">
+    <!-- Logo -->
+    <div class="w-8 h-8 bg-[#0052CC] rounded-md flex items-center justify-center shadow-sm flex-shrink-0 cursor-pointer"
+      [routerLink]="'dashboard'">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path
+          d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2">
+        </path>
+      </svg>
+    </div>
+    <!-- Title -->
+    <span *ngIf="!isCollapsed" class="ml-3 font-semibold opacity-80 text-[17px] tracking-tight text-gray-900 cursor-pointer"
+      [routerLink]="'dashboard'">Jira
+      Admin</span>
+  </div>
+
+  <!-- Sidebar Menu -->
+  <nav class="flex-1 overflow-y-auto p-3 sidebar-text">
+    <ul class="space-y-1">
+
+      <!-- Loop through menu items -->
+      <li *ngFor="let item of menuItems">
+
+        <!-- Items without children (simple links) -->
+        <a *ngIf="!item.children || item.children.length === 0" [routerLink]="item.route" routerLinkActive="active"
+          class="flex items-center gap-3 rounded-sm px-3 py-2 hover:bg-gray-50 cursor-pointer">
+          <span [innerHTML]="getSanitizedIcon(item.icon)" class="flex-shrink-0"></span>
+          <span *ngIf="!isCollapsed" class="font-medium">{{ item.label }}</span>
+        </a>
+
+        <!-- Items with children (accordion) -->
+        <div *ngIf="item.children && item.children.length > 0">
+          <!-- Parent button -->
+          <button (click)="toggleSection(item)"
+            class="flex w-full items-center justify-between rounded-sm px-3 py-2 hover:bg-gray-50 cursor-pointer">
+            <div class="flex items-center gap-3">
+              <span [innerHTML]="getSanitizedIcon(item.icon)" class="flex-shrink-0"></span>
+              <span *ngIf="!isCollapsed" class="font-medium">{{ item.label }}</span>
+            </div>
+            <svg *ngIf="!isCollapsed" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              class="w-4 h-4 transition-transform duration-200" [ngClass]="{'rotate-180': item.expanded}">
+              <path d="m6 9 6 6 6-6"></path>
+            </svg>
+          </button>
+
+          <!-- Children (submenu) with vertical line -->
+          <div *ngIf="item.expanded && !isCollapsed" class="relative ml-4 mt-1">
+            <!-- Vertical line -->
+            <div class="absolute left-[7px] top-0 bottom-0 w-[1px] bg-gray-300"></div>
+
+            <ul class="ml-4 space-y-1 overflow-hidden transition-all duration-200">
+              <li *ngFor="let child of item.children">
+                <a [routerLink]="child.route" routerLinkActive="active-child" [routerLinkActiveOptions]="{exact: true}"
+                  class="block rounded-sm px-3 py-2 hover:bg-gray-50 cursor-pointer">
+                  {{ child.label }}
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </li>
+
+    </ul>
+  </nav>
+
+  <!-- Collapse Toggle at Bottom -->
+  <div class="border-t border-gray-200 p-3">
+    <button (click)="toggleCollapse()"
+      class="flex items-center justify-end-safe w-full px-3 py-2 rounded-sm hover:bg-gray-50 cursor-pointer"
+      [title]="isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        class="w-4 h-4 transition-transform duration-200" [ngClass]="{'rotate-180': isCollapsed}">
+        <path d="m15 18-6-6 6-6"></path>
+      </svg>
+      <span *ngIf="!isCollapsed" class="ml-2 font-medium text-xs"></span>
+    </button>
+  </div>
+
 </div>
