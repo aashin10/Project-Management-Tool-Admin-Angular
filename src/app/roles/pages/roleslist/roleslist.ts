@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
 import { NgFor } from '@angular/common';
+import { SearchBar } from '../../../shared/components/search-bar/search-bar';
 
 interface Role {
   name: string;
@@ -11,7 +12,7 @@ interface Role {
 
 @Component({
   selector: 'app-roleslist',
-  imports: [Sectiontitle,NgFor],
+  imports: [Sectiontitle,NgFor,SearchBar],
   templateUrl: './roleslist.html',
   styleUrl: './roleslist.css'
 })
@@ -23,4 +24,11 @@ export class Roleslist {
     { name: 'Project Manager', description: 'Manage projects and team members', users: 5, created: 'Jan 15, 2024' },
     { name: 'Viewer', description: 'Read-only access to most system areas', users: 12, created: 'Jan 15, 2024' },
   ];
+
+  onSearch(query: string): void {
+  this.roles = this.roles.filter(role =>
+    role.name.toLowerCase().includes(query.toLowerCase()) ||
+    role.description.toLowerCase().includes(query.toLowerCase())
+  );
+}
 }

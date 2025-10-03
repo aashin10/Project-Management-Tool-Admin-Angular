@@ -135,13 +135,6 @@ export class SidebarHome {
     }
   }
 
-  isParentActive(item: MenuItem): boolean {
-    if (!item.children || item.children.length === 0) return false;
-    
-    const currentUrl = this.router.url;
-    return item.children.some(child => currentUrl.startsWith(child.route));
-  }
-
   private expandActiveParent(): void {
     const currentUrl = this.router.url;
     
