@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
 import { Table } from "../../../shared/table/table";
 import { Sectiontitle } from "../../../shared/sectiontitle/sectiontitle";
+import { CustomButton } from "../../../shared/custom-button/custom-button";
 
 @Component({
   selector: 'app-deliveryunitslist',
-  imports: [Table, Sectiontitle],
+  imports: [Table, Sectiontitle, CustomButton],
   templateUrl: './deliveryunitslist.html',
   styleUrl: './deliveryunitslist.css'
 })
