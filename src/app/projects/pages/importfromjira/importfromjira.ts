@@ -4,10 +4,18 @@ import { LucideAngularModule, Users, Settings, Database } from 'lucide-angular';
 import { CommonModule } from '@angular/common';
 import { SearchBar } from '../../../shared/components/search-bar/search-bar';
 import { Importprojectslist } from '../../components/importprojectslist/importprojectslist';
+import { CustomButton } from '../../../shared/custom-button/custom-button';
 
 @Component({
   selector: 'app-importfromjira',
-  imports: [Sectiontitle, CommonModule, LucideAngularModule, SearchBar, Importprojectslist],
+  imports: [
+    Sectiontitle,
+    CommonModule,
+    LucideAngularModule,
+    SearchBar,
+    Importprojectslist,
+    CustomButton,
+  ],
   templateUrl: './importfromjira.html',
   styleUrl: './importfromjira.css',
 })
