@@ -16,7 +16,6 @@
       </svg>
     </div>
     <!-- Title -->
-
     <span *ngIf="!isCollapsed" class="ml-3 font-semibold opacity-80 text-[17px] tracking-tight text-gray-900 cursor-pointer"
       [routerLink]="'dashboard'">Jira
       Admin</span>
@@ -51,6 +50,7 @@
               <path d="m6 9 6 6 6-6"></path>
             </svg>
           </button>
+
           <!-- Children (submenu) with vertical line -->
           <div *ngIf="item.expanded && !isCollapsed" class="relative ml-4 mt-1">
             <!-- Vertical line -->
