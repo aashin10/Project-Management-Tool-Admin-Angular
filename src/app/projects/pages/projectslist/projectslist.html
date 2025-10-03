@@ -3,118 +3,224 @@
   [class]="'ml-' + (sidebarCollapsed ? '16' : '64')"
   (click)="closeActionsMenu()"
 >
-  <!-- Main content container with responsive padding and max-width -->
-  <div
-    class="transition-all duration-300 "
-  >
+  <div class="transition-all duration-300 px-4 lg:px-6 py-6">
     <!-- Header Section -->
     <div class="flex flex-col lg:flex-row justify-between items-start gap-4 pb-6">
       <div class="flex-1 min-w-0">
-        <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-2 truncate">
+        <h1 class="text-3xl lg:text-3xl font-bold text-gray-900 mb-2 truncate">
           Projects Management
         </h1>
-        <p class="text-sm text-gray-600 hidden sm:block">
+        <p class="text-[16px] text-gray-600 hidden sm:block">
           Manage and organize all your projects in one place
         </p>
       </div>
       <div class="flex gap-2 lg:gap-3 flex-wrap flex-shrink-0">
-        <button
+        <app-custom-button
           (click)="exportAll()"
-          class="flex items-center gap-2 px-3 lg:px-4 py-2.5 bg-white border border-gray-300 rounded-[2px] text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-        >
-          <span><img src="/images/export.svg" alt=""></span>
-          <span class="hidden sm:inline">Export All</span>
-          <span class="sm:hidden">Export</span>
-        </button>
-        <button
+          icon="/images/export.svg"
+          label="Export All"
+          shortLabel="Export"
+          bgClass="bg-white border border-gray-300 hover:bg-gray-50"
+          extraClasses=""
+        ></app-custom-button>
+        <app-custom-button
           (click)="importFromJira()"
-          class="flex items-center gap-2 px-3 lg:px-4 py-2.5 bg-white border border-gray-300 rounded-[2px] text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-        >
-          <span><img src="/images/import.svg" alt=""></span>
-          <span class="hidden sm:inline">Import from Jira</span>
-          <span class="sm:hidden">Import</span>
-        </button>
-        <button
+          icon="/images/import.svg"
+          label="Import from Jira"
+          shortLabel="Import"
+          bgClass="bg-white border border-gray-300 hover:bg-gray-50"
+          extraClasses=""
+        ></app-custom-button>
+        <app-custom-button
           (click)="createProject()"
-          class="flex items-center gap-2 px-3 lg:px-4 py-2.5 bg-blue-600 rounded-[2px] text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-        >
-          <span><img src="/images/plus.svg" alt=""></span>
-          <span class="hidden sm:inline">Create Project</span>
-          <span class="sm:hidden">Create</span>
-        </button>
+          icon="/images/plus.svg"
+          label="Create Project"
+          shortLabel="Create"
+          bgClass="border border-gray-300 text-white hover:bg-blue-700"
+          extraClasses="bg-blue-600"
+        ></app-custom-button>
       </div>
     </div>
 
     <!-- Search and Filter Section -->
-    <div class="flex flex-col sm:flex-row gap-3">
+    <div class="flex flex-col sm:flex-row gap-3 mb-6">
       <div class="flex-1 flex items-center bg-white border border-gray-300 rounded-[2px] px-3">
         <span class="text-gray-400 mr-2"><img src="/images/search.svg" alt=""></span>
         <input
           type="text"
           [(ngModel)]="searchQuery"
-          placeholder=" Search project name, key,description or manager name..."
-          class="text-gray-400 flex-1 py-2.5 text-sm outline-none"
+          (ngModelChange)="onSearchChange()"
+          placeholder="Search project name, key, description or manager name..."
+          class="text-gray-700 flex-1 py-2.5 text-sm outline-none"
         />
       </div>
+      
       <button
         (click)="toggleFilters()"
-        class="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-[2px] text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors whitespace-nowrap"
+        class="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-[2px] text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors whitespace-nowrap cursor-pointer"
       >
         <span><img src="/images/filter.svg" alt=""></span>
         <span class="hidden sm:inline">Advanced Filters</span>
         <span class="sm:hidden">Filters</span>
+        <span *ngIf="hasActiveFilters" class="ml-1 px-2 py-0.5 bg-blue-600 text-white rounded-full text-xs">
+          {{ selectedStatuses.length + selectedPriorities.length + selectedManagers.length }}
+        </span>
       </button>
     </div>
 
     <!-- Advanced Filters Panel -->
     <div
       *ngIf="showFilters"
-      class="bg-white border mt-6 border-gray-300 rounded-[2px]  lg:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+      class="bg-white text-sm border border-gray-300 rounded-[2px] p-5 mb-6 mt-6"
     >
-      <div>
-        <label class="block text-sm font-medium text-gray-900 mb-1.5">Status</label>
-        <select
-          [(ngModel)]="selectedStatus"
-          class="w-full px-3 py-2 border border-gray-300 rounded text-sm bg-white cursor-pointer"
-        >
-          <option value="all">All statuses</option>
-          <option value="Ongoing">Ongoing</option>
-          <option value="On Hold">On Hold</option>
-          <option value="Completed">Completed</option>
-          <option value="Planning">Planning</option>
-          <option value="Archived">Archived</option>
-        </select>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+        <!-- Status Filter -->
+        <div>
+          <label class="block font-semibold text-gray-900 mb-3">Status</label>
+          <div class="space-y-2.5">
+            <label *ngFor="let status of statusOptions" class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1.5 rounded transition-colors">
+              <input
+                type="checkbox"
+                [checked]="isStatusSelected(status)"
+                (change)="toggleStatusFilter(status)"
+                class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+              />
+              <span class="text-sm text-gray-700">{{ status }}</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Priority Filter -->
+        <div>
+          <label class="block font-semibold text-gray-900 mb-3">Priority</label>
+          <div class="space-y-2.5">
+            <label *ngFor="let priority of priorityOptions" class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1.5 rounded transition-colors">
+              <input
+                type="checkbox"
+                [checked]="isPrioritySelected(priority)"
+                (change)="togglePriorityFilter(priority)"
+                class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+              />
+              <span class="text-sm text-gray-700">{{ priority }}</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Project Manager Filter -->
+        <div>
+          <label class="block font-semibold text-gray-900 mb-3">Project Manager</label>
+          
+          <!-- Manager Search -->
+          <div class="mb-3">
+            <div class="flex items-center bg-gray-50 border border-gray-300 rounded px-2 py-1.5">
+              <svg class="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                [(ngModel)]="managerSearchQuery"
+                placeholder="Search managers..."
+                class="flex-1 text-sm outline-none bg-transparent text-gray-700"
+              />
+            </div>
+          </div>
+
+          <div class="space-y-2.5 max-h-48 overflow-y-auto">
+            <label *ngFor="let manager of filteredManagers" class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1.5 rounded transition-colors">
+              <input
+                type="checkbox"
+                [checked]="isManagerSelected(manager)"
+                (change)="toggleManagerFilter(manager)"
+                class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+              />
+              <span class="text-sm text-gray-700">{{ manager }}</span>
+            </label>
+            
+            <button
+              *ngIf="displayedManagerCount < totalManagerCount && !showAllManagers"
+              (click)="toggleShowAllManagers()"
+              class="w-full text-left text-sm text-blue-600 hover:text-blue-700 font-medium p-1.5 cursor-pointer"
+            >
+              + Show {{ totalManagerCount - displayedManagerCount }} more
+            </button>
+            
+            <button
+              *ngIf="showAllManagers && totalManagerCount > 4"
+              (click)="toggleShowAllManagers()"
+              class="w-full text-left text-sm text-blue-600 hover:text-blue-700 font-medium p-1.5 cursor-pointer"
+            >
+              - Show less
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div>
-        <label class="block text-sm font-medium text-gray-900 mb-1.5">Priority</label>
-        <select
-          [(ngModel)]="selectedPriority"
-          class="w-full px-3 py-2 border border-gray-300 rounded text-sm bg-white cursor-pointer"
-        >
-          <option value="all">All priorities</option>
-          <option value="Critical">Critical</option>
-          <option value="High">High</option>
-          <option value="Medium">Medium</option>
-          <option value="Low">Low</option>
-        </select>
-      </div>
+      <!-- Selected Filters Display -->
+      <div *ngIf="hasActiveFilters" class="mt-5 pt-5 border-t border-gray-200">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-sm font-semibold text-gray-900">Active Filters ({{ getActiveFilterCount() }})</span>
+          <button
+            (click)="clearAllFilters()"
+            class="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors cursor-pointer"
+          >
+            Clear All
+          </button>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <!-- Status filters -->
+          <span
+            *ngFor="let status of selectedStatuses"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-sm font-medium"
+          >
+            <span>{{ status }}</span>
+            <button
+              (click)="removeStatusFilter(status)"
+              class="hover:bg-blue-100 rounded-full p-0.5 transition-colors cursor-pointer"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </span>
 
-      <div>
-        <label class="block text-sm font-medium text-gray-900 mb-1.5">Project Manager</label>
-        <select
-          [(ngModel)]="selectedManager"
-          class="w-full px-3 py-2 border border-gray-300 rounded text-sm bg-white cursor-pointer"
-        >
-          <option value="all">All managers</option>
-          <option *ngFor="let manager of uniqueManagers" [value]="manager">{{ manager }}</option>
-        </select>
+          <!-- Priority filters -->
+          <span
+            *ngFor="let priority of selectedPriorities"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-full text-sm font-medium"
+          >
+            <span>{{ priority }}</span>
+            <button
+              (click)="removePriorityFilter(priority)"
+              class="hover:bg-purple-100 rounded-full p-0.5 transition-colors cursor-pointer"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </span>
+
+          <!-- Manager filters -->
+          <span
+            *ngFor="let manager of selectedManagers"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 border border-green-200 rounded-full text-sm font-medium"
+          >
+            <span>{{ manager }}</span>
+            <button
+              (click)="removeManagerFilter(manager)"
+              class="hover:bg-green-100 rounded-full p-0.5 transition-colors cursor-pointer"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </span>
+        </div>
       </div>
     </div>
 
     <!-- Project Count -->
-    <div class="text-sm text-gray-400 py-6">
-      Showing all projects • Total: {{ filteredProjects.length | number:'2.0-0' }} projects
+    <div class="text-sm text-gray-500 py-6">
+      Showing all projects • Total: {{ filteredProjects.length }} projects
     </div>
 
     <!-- Projects Table -->
@@ -131,39 +237,93 @@
                   class="w-4 h-4 rounded border-gray-300 cursor-pointer"
                 />
               </th>
-              <th
-                class="px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 min-w-[200px]"
-              >
-                <div class="flex items-center gap-1">
-                  Project Info
-                  <span class="text-gray-400 text-xs">↕</span>
+              <th class="px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 min-w-[200px]">
+                <div 
+                  class="flex items-center gap-2 select-none p-1 rounded transition-colors"
+                  [class.cursor-pointer]="tableHeaders[0].sortable"
+                  [class.hover:bg-gray-100]="tableHeaders[0].sortable"
+                  (click)="tableHeaders[0].sortable && tableHeaders[0].field ? sortBy(tableHeaders[0].field) : null"
+                >
+                  <span>{{ tableHeaders[0].label }}</span>
+                  <span *ngIf="tableHeaders[0].sortable" class="flex items-center justify-center w-4 h-4">
+                    <span *ngIf="sortField === tableHeaders[0].field && sortDirection === 'asc'" class="text-blue-600 font-bold">↑</span>
+                    <span *ngIf="sortField === tableHeaders[0].field && sortDirection === 'desc'" class="text-blue-600 font-bold">↓</span>
+                    <svg *ngIf="sortField !== tableHeaders[0].field" class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                    </svg>
+                  </span>
                 </div>
               </th>
-              <th
-                class="px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 min-w-[100px]"
-              >
-                <div class="flex items-center gap-1">
-                  Status
-                  <span class="text-gray-400 text-xs">↕</span>
+              <th class="px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 min-w-[100px]">
+                <div 
+                  class="flex items-center gap-2 select-none p-1 rounded transition-colors"
+                  [class.cursor-pointer]="tableHeaders[1].sortable"
+                  [class.hover:bg-gray-100]="tableHeaders[1].sortable"
+                  (click)="tableHeaders[1].sortable && tableHeaders[1].field ? sortBy(tableHeaders[1].field) : null"
+                >
+                  <span>{{ tableHeaders[1].label }}</span>
+                  <span *ngIf="tableHeaders[1].sortable" class="flex items-center justify-center w-4 h-4">
+                    <span *ngIf="sortField === tableHeaders[1].field && sortDirection === 'asc'" class="text-blue-600 font-bold">↑</span>
+                    <span *ngIf="sortField === tableHeaders[1].field && sortDirection === 'desc'" class="text-blue-600 font-bold">↓</span>
+                    <svg *ngIf="sortField !== tableHeaders[1].field" class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                    </svg>
+                  </span>
                 </div>
               </th>
-              <th
-                class="px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 min-w-[90px]"
-              >
-                Priority
+              <th class="px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 min-w-[90px]">
+                <div 
+                  class="flex items-center gap-2 select-none p-1 rounded transition-colors"
+                  [class.cursor-pointer]="tableHeaders[2].sortable"
+                  [class.hover:bg-gray-100]="tableHeaders[2].sortable"
+                  (click)="tableHeaders[2].sortable && tableHeaders[2].field ? sortBy(tableHeaders[2].field) : null"
+                >
+                  <span>{{ tableHeaders[2].label }}</span>
+                  <span *ngIf="tableHeaders[2].sortable" class="flex items-center justify-center w-4 h-4">
+                    <span *ngIf="sortField === tableHeaders[2].field && sortDirection === 'asc'" class="text-blue-600 font-bold">↑</span>
+                    <span *ngIf="sortField === tableHeaders[2].field && sortDirection === 'desc'" class="text-blue-600 font-bold">↓</span>
+                    <svg *ngIf="sortField !== tableHeaders[2].field" class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                    </svg>
+                  </span>
+                </div>
               </th>
-              <th
-                class="px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 min-w-[160px]"
-              >
-                Project Manager
+              <th class="px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 min-w-[160px]">
+                <div 
+                  class="flex items-center gap-2 select-none p-1 rounded transition-colors"
+                  [class.cursor-pointer]="tableHeaders[3].sortable"
+                  [class.hover:bg-gray-100]="tableHeaders[3].sortable"
+                  (click)="tableHeaders[3].sortable && tableHeaders[3].field ? sortBy(tableHeaders[3].field) : null"
+                >
+                  <span>{{ tableHeaders[3].label }}</span>
+                  <span *ngIf="tableHeaders[3].sortable" class="flex items-center justify-center w-4 h-4">
+                    <span *ngIf="sortField === tableHeaders[3].field && sortDirection === 'asc'" class="text-blue-600 font-bold">↑</span>
+                    <span *ngIf="sortField === tableHeaders[3].field && sortDirection === 'desc'" class="text-blue-600 font-bold">↓</span>
+                    <svg *ngIf="sortField !== tableHeaders[3].field" class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                    </svg>
+                  </span>
+                </div>
               </th>
-              <th
-                class="px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 min-w-[100px]"
-              >
-                Team Size
+              <th class="px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 min-w-[100px]">
+                <div 
+                  class="flex items-center gap-2 select-none p-1 rounded transition-colors"
+                  [class.cursor-pointer]="tableHeaders[4].sortable"
+                  [class.hover:bg-gray-100]="tableHeaders[4].sortable"
+                  (click)="tableHeaders[4].sortable && tableHeaders[4].field ? sortBy(tableHeaders[4].field) : null"
+                >
+                  <span>{{ tableHeaders[4].label }}</span>
+                  <span *ngIf="tableHeaders[4].sortable" class="flex items-center justify-center w-4 h-4">
+                    <span *ngIf="sortField === tableHeaders[4].field && sortDirection === 'asc'" class="text-blue-600 font-bold">↑</span>
+                    <span *ngIf="sortField === tableHeaders[4].field && sortDirection === 'desc'" class="text-blue-600 font-bold">↓</span>
+                    <svg *ngIf="sortField !== tableHeaders[4].field" class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                    </svg>
+                  </span>
+                </div>
               </th>
               <th class="px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 w-20">
-                Actions
+                {{ tableHeaders[5].label }}
               </th>
             </tr>
           </thead>
@@ -171,13 +331,12 @@
             <tr
               *ngFor="let project of paginatedProjects"
               [class.bg-blue-50]="project.selected"
-              class="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+              class="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
             >
               <td class="px-2 lg:px-4 py-4">
                 <input
                   type="checkbox"
                   [(ngModel)]="project.selected"
-                  (change)="toggleProject(project)"
                   (click)="$event.stopPropagation()"
                   class="w-4 h-4 rounded border-gray-300 cursor-pointer"
                 />
@@ -245,7 +404,7 @@
               <td class="px-2 lg:px-4 py-4 relative">
                 <button
                   (click)="toggleActionsMenu(project.id, $event)"
-                  class="text-gray-600 hover:text-gray-900 text-xl leading-none p-1 lg:p-2 hover:bg-gray-100 rounded transition-colors"
+                  class="text-gray-600 hover:text-gray-900 text-xl leading-none p-1 lg:p-2 hover:bg-gray-100 rounded transition-colors cursor-pointer"
                 >
                   ⋯
                 </button>
@@ -262,7 +421,7 @@
                   <div class="py-1">
                     <button
                       (click)="viewDetails(project.id)"
-                      class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+                      class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer"
                     >
                       <svg
                         class="w-5 h-5 text-gray-500"
@@ -287,7 +446,7 @@
                     </button>
                     <button
                       (click)="editProject(project.id)"
-                      class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+                      class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer"
                     >
                       <svg
                         class="w-5 h-5 text-gray-500"
@@ -306,7 +465,7 @@
                     </button>
                     <button
                       (click)="archiveProject(project.id)"
-                      class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+                      class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer"
                     >
                       <svg
                         class="w-5 h-5 text-gray-500"
@@ -326,7 +485,7 @@
                     <div class="border-t border-gray-200 my-1"></div>
                     <button
                       (click)="deleteProject(project.id)"
-                      class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+                      class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer"
                     >
                       <svg
                         class="w-5 h-5 text-gray-500"
@@ -354,7 +513,7 @@
 
     <!-- Footer with Pagination -->
     <div
-      class="flex flex-col lg:flex-row justify-between items-center px-3 lg:px-5 py-4 bg-white border border-gray-300 rounded-[2px] text-sm gap-4"
+      class="flex flex-col lg:flex-row justify-between items-center px-3 lg:px-5 py-4 bg-white border border-gray-300 rounded-[2px] text-sm gap-4 mt-4"
     >
       <div class="flex-1 text-center lg:text-left">
         <span class="text-gray-600"
@@ -368,39 +527,37 @@
         <select
           [(ngModel)]="rowsPerPage"
           (change)="onRowsPerPageChange()"
-          class="px-2 py-1 border border-gray-300 rounded text-sm cursor-pointer"
+          class="px-2 py-1 border border-gray-300 rounded text-sm cursor-pointer bg-white"
         >
-          <option [value]="10">10</option>
-          <option [value]="20">20</option>
-          <option [value]="30">30</option>
+          <option *ngFor="let option of rowsPerPageOptions" [value]="option">{{ option }}</option>
         </select>
         <span class="text-gray-600">Page {{ currentPage }} of {{ totalPages }}</span>
         <div class="flex gap-1">
           <button
             (click)="goToFirstPage()"
             [disabled]="currentPage === 1"
-            class="w-8 h-8 border border-gray-300 bg-white rounded flex items-center justify-center text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            class="w-8 h-8 border border-gray-300 bg-white rounded flex items-center justify-center text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             «
           </button>
           <button
             (click)="goToPreviousPage()"
             [disabled]="currentPage === 1"
-            class="w-8 h-8 border border-gray-300 bg-white rounded flex items-center justify-center text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            class="w-8 h-8 border border-gray-300 bg-white rounded flex items-center justify-center text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             ‹
           </button>
           <button
             (click)="goToNextPage()"
             [disabled]="currentPage === totalPages"
-            class="w-8 h-8 border border-gray-300 bg-white rounded flex items-center justify-center text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            class="w-8 h-8 border border-gray-300 bg-white rounded flex items-center justify-center text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             ›
           </button>
           <button
             (click)="goToLastPage()"
             [disabled]="currentPage === totalPages"
-            class="w-8 h-8 border border-gray-300 bg-white rounded flex items-center justify-center text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            class="w-8 h-8 border border-gray-300 bg-white rounded flex items-center justify-center text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             »
           </button>
@@ -418,13 +575,13 @@
     <span class="font-medium text-gray-900">{{ selectedProjects.length }} selected</span>
     <button
       (click)="archiveSelected()"
-      class="px-4 py-2 bg-gray-600 text-white rounded-md text-sm font-medium hover:bg-gray-700 transition-colors"
+      class="px-4 py-2 bg-gray-600 text-white rounded-md text-sm font-medium hover:bg-gray-700 transition-colors cursor-pointer"
     >
       Archive
     </button>
     <button
       (click)="deleteSelected()"
-      class="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 transition-colors"
+      class="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 transition-colors cursor-pointer"
     >
       Delete
     </button>

@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { CustomButton } from '../../../shared/custom-button/custom-button';
 
 interface Project {
   id: string;
@@ -14,10 +15,20 @@ interface Project {
   selected?: boolean;
 }
 
+interface TableHeader {
+  field: SortField | null;
+  label: string;
+  sortable: boolean;
+  minWidth: string;
+}
+
+type SortField = 'name' | 'status' | 'priority' | 'projectManager' | 'teamSize';
+type SortDirection = 'asc' | 'desc' | null;
+
 @Component({
   selector: 'app-projectslist',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CustomButton],
   templateUrl: './projectslist.html',
   styleUrl: './projectslist.css'
 })
@@ -26,58 +37,38 @@ export class Projectslist {
   searchQuery = '';
   showActionsMenu = false;
   activeProjectId: string | null = null;
-  sidebarCollapsed = false; // Add this property to track sidebar state
+  sidebarCollapsed = false;
   
-  // Filter options
-  selectedStatus = 'all';
-  selectedPriority = 'all';
-  selectedManager = 'all';
+  // Multi-select filter options
+  selectedStatuses: string[] = [];
+  selectedPriorities: string[] = [];
+  selectedManagers: string[] = [];
+  
+  // Manager search
+  managerSearchQuery = '';
+  showAllManagers = false;
+  
+  // Sorting
+  sortField: SortField | null = null;
+  sortDirection: SortDirection = null;
   
   rowsPerPage = 10;
   currentPage = 1;
+  rowsPerPageOptions = [10, 20, 30, 50, 100];
 
-  get paginatedProjects(): Project[] {
-    const start = (this.currentPage - 1) * this.rowsPerPage;
-    const end = start + this.rowsPerPage;
-    return this.filteredProjects.slice(start, end);
-  }
+  // Available filter options
+  statusOptions = ['Ongoing', 'On Hold', 'Completed', 'Planning', 'Archived'];
+  priorityOptions = ['Critical', 'High', 'Medium', 'Low'];
 
-  get totalPages(): number {
-    return Math.ceil(this.filteredProjects.length / this.rowsPerPage);
-  }
-
-  get startIndex(): number {
-    return (this.currentPage - 1) * this.rowsPerPage;
-  }
-
-  get endIndex(): number {
-    const end = this.startIndex + this.rowsPerPage;
-    return Math.min(end, this.filteredProjects.length);
-  }
-
-  onRowsPerPageChange(): void {
-    this.currentPage = 1; // Reset to first page when changing rows per page
-  }
-
-  goToFirstPage(): void {
-    this.currentPage = 1;
-  }
-
-  goToPreviousPage(): void {
-    if (this.currentPage > 1) {
-      this.currentPage--;
-    }
-  }
-
-  goToNextPage(): void {
-    if (this.currentPage < this.totalPages) {
-      this.currentPage++;
-    }
-  }
-
-  goToLastPage(): void {
-    this.currentPage = this.totalPages;
-  }
+  // Table headers configuration
+  tableHeaders = [
+    { field: 'name' as SortField, label: 'Project Info', sortable: true, minWidth: '200px' },
+    { field: 'status' as SortField, label: 'Status', sortable: true, minWidth: '100px' },
+    { field: 'priority' as SortField, label: 'Priority', sortable: true, minWidth: '90px' },
+    { field: 'projectManager' as SortField, label: 'Project Manager', sortable: true, minWidth: '160px' },
+    { field: 'teamSize' as SortField, label: 'Team Size', sortable: true, minWidth: '100px' },
+    { field: null, label: 'Actions', sortable: false, minWidth: '80px' }
+  ];
 
   projects: Project[] = [
     {
@@ -355,296 +346,396 @@ export class Projectslist {
       teamSize: 12,
       selected: false
     },
+    // 25 Additional Projects
     {
       id: '26',
-      name: 'Email Marketing Platform',
+      name: 'AI Chatbot Platform',
       projectCode: 'PROJ-026',
-      status: 'Planning',
-      priority: 'Medium',
-      projectManager: 'Brandon Lee',
-      managerInitials: 'BL',
-      teamSize: 9,
-      selected: false
-    },
-    {
-      id: '27',
-      name: 'Online Learning Platform',
-      projectCode: 'PROJ-027',
       status: 'Ongoing',
-      priority: 'High',
-      projectManager: 'Sophia Anderson',
-      managerInitials: 'SA',
+      priority: 'Critical',
+      projectManager: 'Benjamin Clarke',
+      managerInitials: 'BC',
       teamSize: 18,
       selected: false
     },
     {
-      id: '28',
-      name: 'Music Streaming App',
-      projectCode: 'PROJ-028',
-      status: 'On Hold',
-      priority: 'Medium',
-      projectManager: 'Jacob Martinez',
-      managerInitials: 'JM',
+      id: '27',
+      name: 'Blockchain Wallet',
+      projectCode: 'PROJ-027',
+      status: 'Planning',
+      priority: 'High',
+      projectManager: 'Sophia Williams',
+      managerInitials: 'SW',
       teamSize: 14,
+      selected: false
+    },
+    {
+      id: '28',
+      name: 'Supply Chain Management',
+      projectCode: 'PROJ-028',
+      status: 'Ongoing',
+      priority: 'Medium',
+      projectManager: 'Lucas Brown',
+      managerInitials: 'LB',
+      teamSize: 22,
       selected: false
     },
     {
       id: '29',
-      name: 'News Aggregator',
+      name: 'Virtual Event Platform',
       projectCode: 'PROJ-029',
-      status: 'Ongoing',
+      status: 'Completed',
       priority: 'Low',
-      projectManager: 'Mia Robinson',
-      managerInitials: 'MR',
-      teamSize: 6,
+      projectManager: 'Isabella Martinez',
+      managerInitials: 'IM',
+      teamSize: 9,
       selected: false
     },
     {
       id: '30',
-      name: 'Appointment Scheduler',
+      name: 'Code Review Automation',
       projectCode: 'PROJ-030',
-      status: 'Completed',
+      status: 'On Hold',
       priority: 'Medium',
-      projectManager: 'Ethan Clark',
-      managerInitials: 'EC',
-      teamSize: 8,
+      projectManager: 'Ethan Anderson',
+      managerInitials: 'EA',
+      teamSize: 7,
       selected: false
     },
     {
       id: '31',
-      name: 'Budget Tracking App',
+      name: 'Document Management System',
       projectCode: 'PROJ-031',
       status: 'Ongoing',
       priority: 'High',
-      projectManager: 'Ava Lewis',
-      managerInitials: 'AL',
-      teamSize: 7,
+      projectManager: 'Mia Thompson',
+      managerInitials: 'MT',
+      teamSize: 11,
       selected: false
     },
     {
       id: '32',
-      name: 'Recipe Sharing Platform',
+      name: 'Fleet Management App',
       projectCode: 'PROJ-032',
       status: 'Planning',
-      priority: 'Low',
-      projectManager: 'Noah Walker',
-      managerInitials: 'NW',
-      teamSize: 5,
-      selected: false
-    },
-    {
-      id: '33',
-      name: 'Freelance Marketplace',
-      projectCode: 'PROJ-033',
-      status: 'Ongoing',
-      priority: 'Critical',
-      projectManager: 'Isabella Hall',
-      managerInitials: 'IH',
-      teamSize: 20,
-      selected: false
-    },
-    {
-      id: '34',
-      name: 'Event Management System',
-      projectCode: 'PROJ-034',
-      status: 'On Hold',
       priority: 'Medium',
-      projectManager: 'Liam Young',
-      managerInitials: 'LY',
-      teamSize: 11,
-      selected: false
-    },
-    {
-      id: '35',
-      name: 'Survey Tool',
-      projectCode: 'PROJ-035',
-      status: 'Ongoing',
-      priority: 'Low',
-      projectManager: 'Charlotte King',
-      managerInitials: 'CK',
-      teamSize: 6,
-      selected: false
-    },
-    {
-      id: '36',
-      name: 'Document Collaboration',
-      projectCode: 'PROJ-036',
-      status: 'Completed',
-      priority: 'High',
-      projectManager: 'Mason Wright',
-      managerInitials: 'MW',
+      projectManager: 'Noah Garcia',
+      managerInitials: 'NG',
       teamSize: 13,
       selected: false
     },
     {
-      id: '37',
-      name: 'Photo Gallery App',
-      projectCode: 'PROJ-037',
+      id: '33',
+      name: 'Expense Tracking Tool',
+      projectCode: 'PROJ-033',
       status: 'Ongoing',
-      priority: 'Medium',
-      projectManager: 'Amelia Scott',
-      managerInitials: 'AS',
-      teamSize: 8,
-      selected: false
-    },
-    {
-      id: '38',
-      name: 'Password Manager',
-      projectCode: 'PROJ-038',
-      status: 'Planning',
-      priority: 'Critical',
-      projectManager: 'Lucas Green',
-      managerInitials: 'LG',
-      teamSize: 10,
-      selected: false
-    },
-    {
-      id: '39',
-      name: 'Podcast Platform',
-      projectCode: 'PROJ-039',
-      status: 'Ongoing',
-      priority: 'Medium',
-      projectManager: 'Harper Adams',
-      managerInitials: 'HA',
-      teamSize: 12,
-      selected: false
-    },
-    {
-      id: '40',
-      name: 'Delivery Tracking',
-      projectCode: 'PROJ-040',
-      status: 'On Hold',
       priority: 'Low',
-      projectManager: 'Elijah Baker',
-      managerInitials: 'EB',
-      teamSize: 9,
-      selected: false
-    },
-    {
-      id: '41',
-      name: 'Auction Platform',
-      projectCode: 'PROJ-041',
-      status: 'Ongoing',
-      priority: 'High',
-      projectManager: 'Evelyn Nelson',
-      managerInitials: 'EN',
-      teamSize: 16,
-      selected: false
-    },
-    {
-      id: '42',
-      name: 'Language Learning App',
-      projectCode: 'PROJ-042',
-      status: 'Completed',
-      priority: 'Medium',
-      projectManager: 'Alexander Carter',
-      managerInitials: 'AC',
-      teamSize: 11,
-      selected: false
-    },
-    {
-      id: '43',
-      name: 'Virtual Meeting Tool',
-      projectCode: 'PROJ-043',
-      status: 'Ongoing',
-      priority: 'Critical',
-      projectManager: 'Abigail Mitchell',
-      managerInitials: 'AM',
-      teamSize: 15,
-      selected: false
-    },
-    {
-      id: '44',
-      name: 'Pet Care App',
-      projectCode: 'PROJ-044',
-      status: 'Planning',
-      priority: 'Low',
-      projectManager: 'James Perez',
-      managerInitials: 'JP',
+      projectManager: 'Ava Rodriguez',
+      managerInitials: 'AR',
       teamSize: 6,
       selected: false
     },
     {
-      id: '45',
-      name: 'Charity Donation Platform',
-      projectCode: 'PROJ-045',
+      id: '34',
+      name: 'Network Monitoring System',
+      projectCode: 'PROJ-034',
       status: 'Ongoing',
+      priority: 'Critical',
+      projectManager: 'William Lee',
+      managerInitials: 'WL',
+      teamSize: 16,
+      selected: false
+    },
+    {
+      id: '35',
+      name: 'Content Management CMS',
+      projectCode: 'PROJ-035',
+      status: 'Archived',
       priority: 'Medium',
-      projectManager: 'Emily Roberts',
-      managerInitials: 'ER',
+      projectManager: 'Charlotte Davis',
+      managerInitials: 'CD',
       teamSize: 10,
       selected: false
     },
     {
-      id: '46',
-      name: 'Car Rental System',
-      projectCode: 'PROJ-046',
-      status: 'On Hold',
+      id: '36',
+      name: 'Recruitment Portal',
+      projectCode: 'PROJ-036',
+      status: 'Ongoing',
       priority: 'High',
-      projectManager: 'Benjamin Turner',
-      managerInitials: 'BT',
+      projectManager: 'James Miller',
+      managerInitials: 'JM',
       teamSize: 12,
       selected: false
     },
     {
-      id: '47',
-      name: 'Meditation App',
-      projectCode: 'PROJ-047',
-      status: 'Ongoing',
-      priority: 'Low',
-      projectManager: 'Madison Phillips',
-      managerInitials: 'MP',
-      teamSize: 7,
+      id: '37',
+      name: 'IoT Device Manager',
+      projectCode: 'PROJ-037',
+      status: 'Planning',
+      priority: 'Critical',
+      projectManager: 'Amelia Wilson',
+      managerInitials: 'AW',
+      teamSize: 19,
       selected: false
     },
     {
-      id: '48',
-      name: 'Job Board Platform',
-      projectCode: 'PROJ-048',
+      id: '38',
+      name: 'Email Marketing Suite',
+      projectCode: 'PROJ-038',
       status: 'Completed',
-      priority: 'High',
-      projectManager: 'Samuel Campbell',
-      managerInitials: 'SC',
-      teamSize: 14,
-      selected: false
-    },
-    {
-      id: '49',
-      name: 'Parking Management',
-      projectCode: 'PROJ-049',
-      status: 'Ongoing',
       priority: 'Medium',
-      projectManager: 'Victoria Parker',
-      managerInitials: 'VP',
+      projectManager: 'Oliver Moore',
+      managerInitials: 'OM',
       teamSize: 8,
       selected: false
     },
     {
-      id: '50',
-      name: 'Bike Sharing System',
-      projectCode: 'PROJ-050',
-      status: 'Planning',
+      id: '39',
+      name: 'Bug Tracking System',
+      projectCode: 'PROJ-039',
+      status: 'Ongoing',
+      priority: 'High',
+      projectManager: 'Emma Taylor',
+      managerInitials: 'ET',
+      teamSize: 14,
+      selected: false
+    },
+    {
+      id: '40',
+      name: 'Appointment Scheduler',
+      projectCode: 'PROJ-040',
+      status: 'On Hold',
       priority: 'Low',
-      projectManager: 'Henry Evans',
-      managerInitials: 'HE',
+      projectManager: 'Liam Anderson',
+      managerInitials: 'LA',
+      teamSize: 5,
+      selected: false
+    },
+    {
+      id: '41',
+      name: 'Digital Asset Management',
+      projectCode: 'PROJ-041',
+      status: 'Ongoing',
+      priority: 'Medium',
+      projectManager: 'Harper Thomas',
+      managerInitials: 'HT',
+      teamSize: 11,
+      selected: false
+    },
+    {
+      id: '42',
+      name: 'Knowledge Base System',
+      projectCode: 'PROJ-042',
+      status: 'Planning',
+      priority: 'High',
+      projectManager: 'Elijah Jackson',
+      managerInitials: 'EJ',
       teamSize: 9,
+      selected: false
+    },
+    {
+      id: '43',
+      name: 'Invoice Generator',
+      projectCode: 'PROJ-043',
+      status: 'Completed',
+      priority: 'Low',
+      projectManager: 'Abigail White',
+      managerInitials: 'AW',
+      teamSize: 4,
+      selected: false
+    },
+    {
+      id: '44',
+      name: 'Video Conference App',
+      projectCode: 'PROJ-044',
+      status: 'Ongoing',
+      priority: 'Critical',
+      projectManager: 'Alexander Harris',
+      managerInitials: 'AH',
+      teamSize: 21,
+      selected: false
+    },
+    {
+      id: '45',
+      name: 'Sales Forecasting Tool',
+      projectCode: 'PROJ-045',
+      status: 'Ongoing',
+      priority: 'High',
+      projectManager: 'Emily Martin',
+      managerInitials: 'EM',
+      teamSize: 15,
+      selected: false
+    },
+    {
+      id: '46',
+      name: 'Warehouse Management',
+      projectCode: 'PROJ-046',
+      status: 'On Hold',
+      priority: 'Medium',
+      projectManager: 'Daniel Thompson',
+      managerInitials: 'DT',
+      teamSize: 17,
+      selected: false
+    },
+    {
+      id: '47',
+      name: 'Learning Management System',
+      projectCode: 'PROJ-047',
+      status: 'Ongoing',
+      priority: 'High',
+      projectManager: 'Sofia Garcia',
+      managerInitials: 'SG',
+      teamSize: 20,
+      selected: false
+    },
+    {
+      id: '48',
+      name: 'API Gateway Service',
+      projectCode: 'PROJ-048',
+      status: 'Planning',
+      priority: 'Critical',
+      projectManager: 'Matthew Martinez',
+      managerInitials: 'MM',
+      teamSize: 13,
+      selected: false
+    },
+    {
+      id: '49',
+      name: 'Performance Analytics',
+      projectCode: 'PROJ-049',
+      status: 'Ongoing',
+      priority: 'Medium',
+      projectManager: 'Chloe Robinson',
+      managerInitials: 'CR',
+      teamSize: 10,
+      selected: false
+    },
+    {
+      id: '50',
+      name: 'Notification Service',
+      projectCode: 'PROJ-050',
+      status: 'Completed',
+      priority: 'Low',
+      projectManager: 'Jacob Clark',
+      managerInitials: 'JC',
+      teamSize: 6,
       selected: false
     }
   ];
 
+  get paginatedProjects(): Project[] {
+    const start = (this.currentPage - 1) * this.rowsPerPage;
+    const end = start + this.rowsPerPage;
+    return this.filteredProjects.slice(start, end);
+  }
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredProjects.length / this.rowsPerPage));
+  }
+
+  get startIndex(): number {
+    if (this.filteredProjects.length === 0) return 0;
+    return (this.currentPage - 1) * this.rowsPerPage;
+  }
+
+  get endIndex(): number {
+    const end = this.startIndex + this.rowsPerPage;
+    return Math.min(end, this.filteredProjects.length);
+  }
+
+  get hasActiveFilters(): boolean {
+    return this.selectedStatuses.length > 0 || 
+           this.selectedPriorities.length > 0 || 
+           this.selectedManagers.length > 0;
+  }
+
+  get uniqueManagers(): string[] {
+    return [...new Set(this.projects.map(p => p.projectManager))].sort();
+  }
+
+  get filteredManagers(): string[] {
+    if (!this.managerSearchQuery) {
+      return this.showAllManagers ? this.uniqueManagers : this.uniqueManagers.slice(0, 4);
+    }
+    const filtered = this.uniqueManagers.filter(manager =>
+      manager.toLowerCase().includes(this.managerSearchQuery.toLowerCase())
+    );
+    return this.showAllManagers ? filtered : filtered.slice(0, 4);
+  }
+
+  get displayedManagerCount(): number {
+    return this.filteredManagers.length;
+  }
+
+  get totalManagerCount(): number {
+    if (!this.managerSearchQuery) {
+      return this.uniqueManagers.length;
+    }
+    return this.uniqueManagers.filter(manager =>
+      manager.toLowerCase().includes(this.managerSearchQuery.toLowerCase())
+    ).length;
+  }
+
   get filteredProjects(): Project[] {
-    return this.projects.filter(project => {
-      const matchesSearch = !this.searchQuery || 
-        project.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        project.projectCode.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        project.projectManager.toLowerCase().includes(this.searchQuery.toLowerCase());
-      
-      const matchesStatus = this.selectedStatus === 'all' || project.status === this.selectedStatus;
-      const matchesPriority = this.selectedPriority === 'all' || project.priority === this.selectedPriority;
-      const matchesManager = this.selectedManager === 'all' || project.projectManager === this.selectedManager;
-      
-      return matchesSearch && matchesStatus && matchesPriority && matchesManager;
-    });
+    let filtered = [...this.projects];
+
+    // Apply search filter
+    if (this.searchQuery.trim()) {
+      const query = this.searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(project => 
+        project.name.toLowerCase().includes(query) ||
+        project.projectCode.toLowerCase().includes(query) ||
+        project.projectManager.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply status filter
+    if (this.selectedStatuses.length > 0) {
+      filtered = filtered.filter(project => 
+        this.selectedStatuses.includes(project.status)
+      );
+    }
+
+    // Apply priority filter
+    if (this.selectedPriorities.length > 0) {
+      filtered = filtered.filter(project => 
+        this.selectedPriorities.includes(project.priority)
+      );
+    }
+
+    // Apply manager filter
+    if (this.selectedManagers.length > 0) {
+      filtered = filtered.filter(project => 
+        this.selectedManagers.includes(project.projectManager)
+      );
+    }
+
+    // Apply sorting
+    if (this.sortField && this.sortDirection) {
+      filtered.sort((a, b) => {
+        let comparison = 0;
+        const field = this.sortField!;
+        
+        if (field === 'teamSize') {
+          comparison = a[field] - b[field];
+        } else if (field === 'priority') {
+          const priorityOrder: Record<string, number> = { 
+            'Critical': 4, 
+            'High': 3, 
+            'Medium': 2, 
+            'Low': 1 
+          };
+          comparison = priorityOrder[a[field]] - priorityOrder[b[field]];
+        } else {
+          comparison = String(a[field]).localeCompare(String(b[field]));
+        }
+        
+        return this.sortDirection === 'asc' ? comparison : -comparison;
+      });
+    }
+
+    return filtered;
   }
 
   get selectedProjects(): Project[] {
@@ -652,12 +743,54 @@ export class Projectslist {
   }
 
   get allSelected(): boolean {
-    return this.filteredProjects.length > 0 && 
-           this.filteredProjects.every(p => p.selected);
+    return this.paginatedProjects.length > 0 && 
+           this.paginatedProjects.every(p => p.selected);
   }
 
-  get uniqueManagers(): string[] {
-    return [...new Set(this.projects.map(p => p.projectManager))];
+  getActiveFilterCount(): number {
+    return this.selectedStatuses.length + 
+           this.selectedPriorities.length + 
+           this.selectedManagers.length;
+  }
+
+  onSearchChange(): void {
+    this.currentPage = 1;
+  }
+
+  onRowsPerPageChange(): void {
+    this.currentPage = 1;
+    this.scrollToTop();
+  }
+
+  goToFirstPage(): void {
+    this.currentPage = 1;
+    this.scrollToTop();
+  }
+
+  goToPreviousPage(): void {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.scrollToTop();
+    }
+  }
+
+  goToNextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.scrollToTop();
+    }
+  }
+
+  goToLastPage(): void {
+    this.currentPage = this.totalPages;
+    this.scrollToTop();
+  }
+
+  scrollToTop(): void {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
   }
 
   toggleFilters(): void {
@@ -666,18 +799,96 @@ export class Projectslist {
 
   toggleSelectAll(): void {
     const allSelected = this.allSelected;
-    this.filteredProjects.forEach(project => {
+    this.paginatedProjects.forEach(project => {
       project.selected = !allSelected;
     });
   }
 
-  toggleProject(project: Project): void {
-    project.selected = !project.selected;
+  isStatusSelected(status: string): boolean {
+    return this.selectedStatuses.includes(status);
+  }
+
+  isPrioritySelected(priority: string): boolean {
+    return this.selectedPriorities.includes(priority);
+  }
+
+  isManagerSelected(manager: string): boolean {
+    return this.selectedManagers.includes(manager);
+  }
+
+  toggleStatusFilter(status: string): void {
+    const index = this.selectedStatuses.indexOf(status);
+    if (index > -1) {
+      this.selectedStatuses.splice(index, 1);
+    } else {
+      this.selectedStatuses.push(status);
+    }
+    this.currentPage = 1;
+  }
+
+  togglePriorityFilter(priority: string): void {
+    const index = this.selectedPriorities.indexOf(priority);
+    if (index > -1) {
+      this.selectedPriorities.splice(index, 1);
+    } else {
+      this.selectedPriorities.push(priority);
+    }
+    this.currentPage = 1;
+  }
+
+  toggleManagerFilter(manager: string): void {
+    const index = this.selectedManagers.indexOf(manager);
+    if (index > -1) {
+      this.selectedManagers.splice(index, 1);
+    } else {
+      this.selectedManagers.push(manager);
+    }
+    this.currentPage = 1;
+  }
+
+  removeStatusFilter(status: string): void {
+    this.selectedStatuses = this.selectedStatuses.filter(s => s !== status);
+    this.currentPage = 1;
+  }
+
+  removePriorityFilter(priority: string): void {
+    this.selectedPriorities = this.selectedPriorities.filter(p => p !== priority);
+    this.currentPage = 1;
+  }
+
+  removeManagerFilter(manager: string): void {
+    this.selectedManagers = this.selectedManagers.filter(m => m !== manager);
+    this.currentPage = 1;
+  }
+
+  clearAllFilters(): void {
+    this.selectedStatuses = [];
+    this.selectedPriorities = [];
+    this.selectedManagers = [];
+    this.currentPage = 1;
+  }
+
+  toggleShowAllManagers(): void {
+    this.showAllManagers = !this.showAllManagers;
+  }
+
+  sortBy(field: SortField): void {
+    if (this.sortField === field) {
+      if (this.sortDirection === 'asc') {
+        this.sortDirection = 'desc';
+      } else if (this.sortDirection === 'desc') {
+        this.sortDirection = null;
+        this.sortField = null;
+      }
+    } else {
+      this.sortField = field;
+      this.sortDirection = 'asc';
+    }
   }
 
   toggleActionsMenu(projectId: string, event: Event): void {
     event.stopPropagation();
-    if (this.activeProjectId === projectId) {
+    if (this.activeProjectId === projectId && this.showActionsMenu) {
       this.showActionsMenu = false;
       this.activeProjectId = null;
     } else {
@@ -714,6 +925,9 @@ export class Projectslist {
     if (confirm('Are you sure you want to delete this project?')) {
       this.projects = this.projects.filter(p => p.id !== projectId);
       console.log('Project deleted:', projectId);
+      if (this.paginatedProjects.length === 0 && this.currentPage > 1) {
+        this.currentPage--;
+      }
     }
     this.closeActionsMenu();
   }
@@ -736,6 +950,9 @@ export class Projectslist {
     if (confirm(`Are you sure you want to delete ${this.selectedProjects.length} project(s)?`)) {
       this.projects = this.projects.filter(p => !p.selected);
       console.log('Projects deleted');
+      if (this.paginatedProjects.length === 0 && this.currentPage > 1) {
+        this.currentPage--;
+      }
     }
   }
 
@@ -747,30 +964,5 @@ export class Projectslist {
       project.selected = false;
     });
     console.log('Projects archived');
-  }
-
-  getStatusClass(status: string): string {
-    const statusMap: { [key: string]: string } = {
-      'Ongoing': 'status-ongoing',
-      'On Hold': 'status-onhold',
-      'Completed': 'status-completed',
-      'Planning': 'status-planning',
-      'Archived': 'status-archived'
-    };
-    return statusMap[status] || '';
-  }
-
-  getPriorityClass(priority: string): string {
-    const priorityMap: { [key: string]: string } = {
-      'High': 'priority-high',
-      'Medium': 'priority-medium',
-      'Low': 'priority-low',
-      'Critical': 'priority-critical'
-    };
-    return priorityMap[priority] || '';
-  }
-
-  getInitialsClass(initials: string): string {
-    return 'avatar-blue';
   }
 }
