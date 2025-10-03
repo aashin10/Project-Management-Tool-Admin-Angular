@@ -1,6 +1,6 @@
 <div class="create-project-container">
   <div class="header">
-    <div class="back-link">
+    <div class="back-link flex items-center gap-2 text-gray-500 text-sm cursor-pointer transition-colors duration-200 hover:text-gray-700">
       <i class="back-icon">←</i>
       <span>Back to Projects</span>
     </div>
@@ -34,11 +34,11 @@
     </div>
 
     <!-- Right Section - Project Preview Component -->
-    <!-- <app-project-preview
+    <app-project-preview
       [projectName]="projectName"
       [projectKey]="projectKey"
       (createProject)="onCreateProject()"
       (cancel)="onCancel()"
-    ></app-project-preview> -->
+    ></app-project-preview>
   </div>
 </div>

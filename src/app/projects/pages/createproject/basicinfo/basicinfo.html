@@ -7,7 +7,7 @@
   <p class="text-gray-500 text-sm mb-6">
     Essential project details and identification
   </p>
-  <div class="h-6"></div>
+  <!-- <div class="h-2"></div> -->
 
   <!-- Row: Project Name & Project Key -->
   <div class="flex gap-6 mb-6">
@@ -42,7 +42,7 @@
       </small>
     </div>
   </div>
-  <div class="h-3"></div>
+  <!-- <div class="h-3"></div> -->
 
   <!-- Project Description -->
   <div class="mb-6">
@@ -57,35 +57,62 @@
       class="w-full px-3 py-2 border border-gray-300 rounded text-sm min-h-[80px] resize-y focus:outline-none focus:ring-2 focus:ring-blue-200 placeholder:text-gray-400"
     ></textarea>
   </div>
-  <div class="h-5"></div>
+  <!-- <div class="h-5"></div> -->
 
   <!-- Row: Priority & Status -->
   <div class="flex gap-6">
     <div class="flex-1 min-w-[220px]">
-      <label for="priority" class="block text-sm font-medium text-gray-700 mb-1">
+      <label class="block text-sm font-medium text-gray-700 mb-1">
         Priority Level <span class="text-red-500">*</span>
       </label>
       <div class="h-2"></div>
-      <select 
-        id="priority" 
-        [(ngModel)]="priority"
-          class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
-          [ngClass]="priority === '' ? 'text-gray-400' : 'text-black'"
+      <div class="relative">
+        <button type="button"
+          class="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white"
+          (click)="togglePriorityDropdown()"
         >
-          <option value="" class="text-gray-400">Select priority</option>
-          <option value="high" class="text-black">High</option>
-          <option value="medium" class="text-black">Medium</option>
-          <option value="low" class="text-black">Low</option>
-        </select>
+          <span class="flex items-center gap-2" [ngClass]="selectedPriority.value === '' ? 'text-gray-400' : 'text-black'">
+            <span *ngIf="selectedPriority.value" class="inline-block w-2 h-2 rounded-full" [ngStyle]="{background: selectedPriority.color}"></span>
+            {{ selectedPriority.label }}
+          </span>
+          <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+        </button>
+        <ul *ngIf="priorityDropdownOpen" class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded shadow-lg">
+          <li *ngFor="let opt of priorityOptions" (click)="selectPriority(opt.value)"
+            class="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-gray-100 text-sm"
+            [ngClass]="opt.value === '' ? 'text-gray-400' : 'text-black'"
+          >
+            <span *ngIf="opt.value" class="inline-block w-2 h-2 rounded-full" [ngStyle]="{background: opt.color}"></span>
+            {{ opt.label }}
+          </li>
+        </ul>
+      </div>
     </div>
     <div class="flex-1 min-w-[220px]">
-      <label for="status" class="block text-sm font-medium text-gray-700 mb-1">
+      <label class="block text-sm font-medium text-gray-700 mb-1">
         Initial Status
       </label>
       <div class="h-2"></div>
-      <div class="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded bg-gray-50 text-sm text-gray-700">
-        <span class="inline-block w-2 h-2 rounded-full bg-green-500"></span>
-        <span>Ongoing</span>
+      <div class="relative">
+        <button type="button"
+          class="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white"
+          (click)="toggleStatusDropdown()"
+        >
+          <span class="flex items-center gap-2" [ngClass]="selectedStatus.value === '' ? 'text-gray-400' : 'text-black'">
+            <span *ngIf="selectedStatus.value" class="inline-block w-2 h-2 rounded-full" [ngStyle]="{background: selectedStatus.color}"></span>
+            {{ selectedStatus.label }}
+          </span>
+          <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+        </button>
+        <ul *ngIf="statusDropdownOpen" class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded shadow-lg">
+          <li *ngFor="let opt of statusOptions" (click)="selectStatus(opt.value)"
+            class="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-gray-100 text-sm"
+            [ngClass]="opt.value === '' ? 'text-gray-400' : 'text-black'"
+          >
+            <span *ngIf="opt.value" class="inline-block w-2 h-2 rounded-full" [ngStyle]="{background: opt.color}"></span>
+            {{ opt.label }}
+          </li>
+        </ul>
       </div>
     </div>
   </div>

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
 import { BasicInformationComponent } from './basicinfo/basicinfo';
 import { TeamOrganizationComponent } from './teaminfo/teaminfo';
+import { ProjectPreviewComponent } from './projectpreview/projectpreview';
 @Component({
   selector: 'app-createproject',
   standalone: true,
@@ -10,7 +11,8 @@ import { TeamOrganizationComponent } from './teaminfo/teaminfo';
     CommonModule, 
     Sectiontitle,
     BasicInformationComponent,
-    TeamOrganizationComponent
+    TeamOrganizationComponent,
+    ProjectPreviewComponent
   ],
   templateUrl: './createproject.html',
   styleUrl: './createproject.css'
