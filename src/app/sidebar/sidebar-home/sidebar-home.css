@@ -13,14 +13,6 @@
     font-weight: 600;
 }
 
-/* Active parent styling when a child is active */
-.active-parent {
-    background-color: rgba(0, 82, 204, 0.08);
-    color: #0052CC;
-    font-weight: 600;
-    border-left: 4px solid #0052CC;
-}
-
 /* Inactive state */
 .inactive {
     color: #6B7280;
@@ -48,4 +40,17 @@ nav::-webkit-scrollbar-thumb {
 
 nav::-webkit-scrollbar-thumb:hover {
     background: #9CA3AF;
+}
+
+.sidebar-text {
+    font-size: 0.79rem;
+    /* 12px */
+    line-height: 1.25rem;
+    /* 20px */
+    font-weight: 500;
+    color: rgb(0, 0, 0, 0.7);
+}
+
+.font-custom {
+    font-weight: 550;
 }
