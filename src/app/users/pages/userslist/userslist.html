@@ -40,7 +40,12 @@
 </div>
 
 <div class="flex">
-  <app-search-bar placeholder="Search users..." class="w-full max-w-md"></app-search-bar>
+  <app-search-bar
+    placeholder="Search users..."
+    class="w-10/12 p-0 ml-1"
+    [width]="'w-full'"
+    [backgroundColor]="'bg-white'"
+  ></app-search-bar>
   <app-custom-button
     label="Advanced Filter"
     (click)="onAdvancedFilter()"
@@ -150,4 +155,13 @@
   </div>
 </div>
 
-
+<div class="mt-6">
+  <div class="overflow-x-auto">
+    <app-table 
+      [data]="paginatedUsers" 
+      [columns]="tableColumns" 
+      [showCheckbox]="true"
+      (actionClick)="onActionClick($event)">
+    </app-table>
+  </div>
+</div>
