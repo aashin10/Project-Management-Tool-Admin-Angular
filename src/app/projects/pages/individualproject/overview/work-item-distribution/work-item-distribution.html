@@ -1,0 +1,126 @@
+<div class="chart-container">
+  <!-- Header -->
+  <div class="chart-header">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+      class="header-icon">
+      <path d="M3 3v16a2 2 0 0 0 2 2h16"></path>
+      <path d="M18 17V9"></path>
+      <path d="M13 17V5"></path>
+      <path d="M8 17v-3"></path>
+    </svg>
+    <h2 class="chart-title">Work Item Distribution</h2>
+  </div>
+
+  <!-- Donut Chart Container -->
+  <div class="donut-container" [class.has-hover]="hoveredSegment !== -1">
+    <div class="chart-wrapper">
+      <svg width="240" height="240" viewBox="0 0 240 240" class="donut-chart">
+        <!-- Background circle -->
+        <circle cx="120" cy="120" r="85" fill="none" stroke="#f5f5f5" stroke-width="30"></circle>
+        
+        <!-- Completed segment (green) - 68% -->
+        <circle 
+          cx="120" 
+          cy="120" 
+          r="85" 
+          fill="none" 
+          [attr.stroke]="workItemDistribution[2].color"
+          stroke-width="30"
+          [attr.stroke-dasharray]="getStrokeDasharray(workItemDistribution[2].percentage)"
+          [attr.stroke-dashoffset]="getStrokeDashoffset(0)"
+          class="chart-segment"
+          [class.segment-hovered]="hoveredSegment === 2"
+          [class.segment-dimmed]="hoveredSegment !== -1 && hoveredSegment !== 2"
+          (mouseenter)="setHoveredSegment(2)"
+          (mouseleave)="setHoveredSegment(-1)">
+        </circle>
+        
+        <!-- In Progress segment (orange) - 8% -->
+        <circle 
+          cx="120" 
+          cy="120" 
+          r="85" 
+          fill="none" 
+          [attr.stroke]="workItemDistribution[1].color"
+          stroke-width="30"
+          [attr.stroke-dasharray]="getStrokeDasharray(workItemDistribution[1].percentage)"
+          [attr.stroke-dashoffset]="getStrokeDashoffset(workItemDistribution[2].percentage)"
+          class="chart-segment"
+          [class.segment-hovered]="hoveredSegment === 1"
+          [class.segment-dimmed]="hoveredSegment !== -1 && hoveredSegment !== 1"
+          (mouseenter)="setHoveredSegment(1)"
+          (mouseleave)="setHoveredSegment(-1)">
+        </circle>
+        
+        <!-- To Do segment (blue) - 24% -->
+        <circle 
+          cx="120" 
+          cy="120" 
+          r="85" 
+          fill="none" 
+          [attr.stroke]="workItemDistribution[0].color"
+          stroke-width="30"
+          [attr.stroke-dasharray]="getStrokeDasharray(workItemDistribution[0].percentage)"
+          [attr.stroke-dashoffset]="getStrokeDashoffset(workItemDistribution[2].percentage + workItemDistribution[1].percentage)"
+          class="chart-segment"
+          [class.segment-hovered]="hoveredSegment === 0"
+          [class.segment-dimmed]="hoveredSegment !== -1 && hoveredSegment !== 0"
+          (mouseenter)="setHoveredSegment(0)"
+          (mouseleave)="setHoveredSegment(-1)">
+        </circle>
+      </svg>
+      
+      <!-- Center text -->
+      <div class="center-text">
+        <p class="center-value" [class.text-dimmed]="hoveredSegment !== -1">
+          {{ hoveredSegment !== -1 ? workItemDistribution[hoveredSegment].value : totalItems }}
+        </p>
+        <p class="center-label" [class.text-dimmed]="hoveredSegment !== -1">
+          {{ hoveredSegment !== -1 ? workItemDistribution[hoveredSegment].label : 'Completed' }}
+        </p>
+      </div>
+
+      <!-- Tooltip -->
+      <div 
+        *ngIf="hoveredSegment !== -1" 
+        class="chart-tooltip"
+        [style.top.px]="getTooltipPosition().y"
+        [style.left.px]="getTooltipPosition().x">
+        <div class="tooltip-content">
+          {{ workItemDistribution[hoveredSegment].label }} : {{ workItemDistribution[hoveredSegment].value }} items ({{ workItemDistribution[hoveredSegment].percentage }}%)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend-container">
+    <div 
+      *ngFor="let item of workItemDistribution; let i = index" 
+      class="legend-item"
+      (mouseenter)="setHoveredSegment(i)"
+      (mouseleave)="setHoveredSegment(-1)"
+      [class.legend-hovered]="hoveredSegment === i">
+      <div class="legend-left">
+        <div 
+          class="legend-dot"
+          [style.background-color]="item.color">
+        </div>
+        <span class="legend-label">{{ item.label }}</span>
+      </div>
+      <div class="legend-right">
+        <span class="legend-value">{{ item.value }}</span>
+        <span class="legend-percentage">({{ item.percentage }}%)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Total Work Items -->
+  <div class="total-container">
+    <div class="total-row">
+      <span class="total-label">Total Work Items</span>
+      <span class="total-value">{{ totalItems }}</span>
+    </div>
+  </div>
+</div>  
