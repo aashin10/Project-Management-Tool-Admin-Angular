@@ -1,0 +1,12 @@
+select:focus {
+  outline: none;
+}
+
+button:focus {
+  outline: none;
+}
+
+select,
+button {
+  transition: all 0.2s ease-in-out;
+}

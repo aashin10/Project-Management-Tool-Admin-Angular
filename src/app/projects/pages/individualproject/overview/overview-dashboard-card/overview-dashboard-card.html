@@ -1,0 +1,17 @@
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+      <div class="flex items-start justify-between mb-4">
+        <h3 class="text-sm font-medium text-gray-600">{{ title }}</h3>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+             class="text-gray-400"
+             [innerHTML]="icon">
+        </svg>
+      </div>
+      <div class="flex items-end justify-between">
+        <div>
+          <p class="text-3xl font-bold text-gray-900">{{ value }}</p>
+          <p class="text-xs text-gray-500 mt-1">{{ subtitle }}</p>
+        </div>
+      </div>
+    </div>
