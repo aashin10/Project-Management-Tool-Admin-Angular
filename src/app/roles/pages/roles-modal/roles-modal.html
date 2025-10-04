@@ -1,0 +1,57 @@
+<div *ngIf="isOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg shadow-lg w-full max-w-lg">
+    
+    <!-- Header -->
+    <div class="flex justify-between items-center border-b p-4">
+      <h2 class="text-lg font-semibold">Create New Role</h2>
+      <button (click)="close.emit()" class="text-gray-500 hover:text-gray-800">&times;</button>
+    </div>
+
+    <!-- Body -->
+    <div class="p-6 space-y-4">
+      <!-- Role Name -->
+      <div>
+        <label class="block text-sm font-medium">Role Name *</label>
+        <input [(ngModel)]="role.name" type="text" placeholder="e.g., Project Manager, Developer"
+          class="w-full mt-1 border rounded px-3 py-2" />
+      </div>
+
+      <!-- Description -->
+      <div>
+        <label class="block text-sm font-medium">Description</label>
+        <textarea [(ngModel)]="role.description" placeholder="Describe the role's responsibilities..."
+          class="w-full mt-1 border rounded px-3 py-2"></textarea>
+      </div>
+
+      <!-- Clone From -->
+      <div>
+        <label class="block text-sm font-medium">Clone from Existing Role (Optional)</label>
+        <select [(ngModel)]="role.cloneFrom" class="w-full mt-1 border rounded px-3 py-2">
+          <option value="">-- Select Role --</option>
+          <option>Administrator</option>
+          <option>Developer</option>
+          <option>Viewer</option>
+        </select>
+      </div>
+
+      <!-- Permissions -->
+      <div>
+        <label class="block text-sm font-medium">Permissions</label>
+        <div class="space-y-2 mt-2">
+          <div *ngFor="let perm of permissionsList" class="flex items-center space-x-2">
+            <input type="checkbox" [checked]="role.permissions.includes(perm)"
+              (change)="togglePermission(perm)" />
+            <span>{{ perm }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="flex justify-end gap-2 border-t p-4">
+      <button (click)="close.emit()" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Cancel</button>
+      <button (click)="submit()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Create Role</button>
+    </div>
+
+  </div>
+</div>

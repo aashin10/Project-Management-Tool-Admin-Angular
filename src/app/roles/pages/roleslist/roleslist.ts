@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
 import { NgFor } from '@angular/common';
 import { SearchBar } from '../../../shared/components/search-bar/search-bar';
+import { table } from 'console';
+import { Table,TableColumn} from '../../../shared/table/table';
 
 interface Role {
   name: string;
@@ -12,23 +14,38 @@ interface Role {
 
 @Component({
   selector: 'app-roleslist',
-  imports: [Sectiontitle,NgFor,SearchBar],
+  imports: [Sectiontitle,NgFor,SearchBar,Table],
   templateUrl: './roleslist.html',
   styleUrl: './roleslist.css'
 })
 export class Roleslist {
-  roles: Role[] = [
-    { name: 'Administrator', description: 'Full system access and control', users: 2, created: 'Jan 15, 2024' },
-    { name: 'Customer Support', description: 'Support team with customer management access', users: 6, created: 'Jan 15, 2024' },
-    { name: 'Developer', description: 'Development team member with project access', users: 8, created: 'Jan 15, 2024' },
-    { name: 'Project Manager', description: 'Manage projects and team members', users: 5, created: 'Jan 15, 2024' },
-    { name: 'Viewer', description: 'Read-only access to most system areas', users: 12, created: 'Jan 15, 2024' },
+   roles = [
+    { name: 'Admin', description: 'Full access to system', users: 10, created: '2024-01-05' },
+    { name: 'Manager', description: 'Manage teams and projects', users: 6, created: '2024-02-12' },
+    { name: 'Employee', description: 'Basic access', users: 20, created: '2024-03-21' }
   ];
 
-  onSearch(query: string): void {
-  this.roles = this.roles.filter(role =>
-    role.name.toLowerCase().includes(query.toLowerCase()) ||
-    role.description.toLowerCase().includes(query.toLowerCase())
-  );
-}
+  columns: TableColumn[] = [
+    { header: 'Role Name', field: 'name', type: 'text' },
+    { header: 'Description', field: 'description', type: 'text' },
+    { header: 'Users', field: 'users', type: 'text' },
+    { header: 'Created', field: 'created', type: 'text' },
+    {
+      header: 'Actions',
+      field: 'actions',
+      type: 'actions',
+      actions: [
+        { label: 'Edit', action: 'edit', icon: '✏️' },
+        { label: 'Delete', action: 'delete', icon: '🗑️', class: 'danger' }
+      ]
+    }
+  ];
+
+  onSearch(term: string) {
+    console.log('Search:', term);
+  }
+
+  handleTableAction(event: { action: string; row: any }) {
+    console.log('Action clicked:', event);
+  }
 }
