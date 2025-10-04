@@ -1,0 +1,41 @@
+Smooth transitions for all interactive elements
+:host {
+  display: block;
+}
+
+/* Card hover effects */
+.hover\:shadow-md {
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+/* Progress bar animations */
+@keyframes progressLoad {
+  from {
+    width: 0;
+  }
+}
+
+/* SVG icon styling */
+svg {
+  flex-shrink: 0;
+}
+
+/* Work type icon containers */
+[style*="background-color"] svg {
+  color: white;
+}
+
+/* Custom scale utilities for donut chart interaction */
+.scale-105 {
+  transform: scale(1.05);
+}
+
+/* Smooth transitions for all interactive elements */
+.transition-all {
+  transition: all 0.3s ease;
+}
+
+/* Ensure proper scaling for donut chart segments */
+circle {
+  transform-origin: center;
+}
