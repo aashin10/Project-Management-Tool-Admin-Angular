@@ -1,0 +1,15 @@
+<ng-container>
+  <label for="jira-url" class="font-medium">Jira Instance URL *</label>
+  <input
+    id="jira-url"
+    type="text"
+    placeholder="https://yourcompany.atlassian.net"
+    class="border rounded p-2 placeholder-gray-500"
+  />
+  <app-custom-button
+    label="Authorize with JIRA"
+    shortLabel="Authorize"
+    bgClass="bg-blue-300 border border-gray-300 hover:bg-gray-50 w-full"
+    (action)="onAuthorize()"
+  ></app-custom-button>
+</ng-container>

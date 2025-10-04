@@ -1,0 +1,24 @@
+<div class="flex flex-col items-center text-center space-y-4 w-full">
+  <!-- Icon, Title, and Description -->
+  <img [src]="icon" class="h-16 w-16 text-gray-500" />
+  <h3 class="text-2xl font-semibold text-gray-800 mt-4">{{ title }}</h3>
+  <p class="text-sm text-gray-600 mt-2">{{ description }}</p>
+  <!-- Section Content -->
+  <ng-container [ngSwitch]="stepNumber">
+    <ng-container *ngSwitchCase="1">
+      <app-import-users-section
+        class="flex flex-col items-center justify-center w-full mt-4"
+      ></app-import-users-section>
+    </ng-container>
+    <ng-container *ngSwitchCase="2">
+      <app-authorize-with-jira-section
+        class="flex flex-col space-y-4 w-full"
+      ></app-authorize-with-jira-section>
+    </ng-container>
+    <ng-container *ngSwitchCase="3">
+      <app-select-projects-section
+        class="flex flex-col items-center w-full space-y-6"
+      ></app-select-projects-section>
+    </ng-container>
+  </ng-container>
+</div>

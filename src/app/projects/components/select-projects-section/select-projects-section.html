@@ -1,0 +1,18 @@
+<ng-container>
+  <div class="flex w-full justify-between">
+    <app-search-bar class="w-full" [placeholder]="'Select Projects..'"></app-search-bar>
+    <app-custom-button
+      label="Select All"
+      shortLabel="Select All"
+      bgClass="bg-blue-300 border border-gray-300 hover:bg-gray-50 ml-4"
+    ></app-custom-button>
+  </div>
+
+  <app-importprojectslist class="w-full"></app-importprojectslist>
+
+  <app-custom-button
+    label="Import"
+    shortLabel="Import"
+    bgClass="bg-blue-300 border border-gray-300 hover:bg-gray-50"
+  ></app-custom-button>
+</ng-container>
