@@ -8,6 +8,8 @@ import { IndividualprojectComponent } from './pages/individualproject/individual
 
 const routes: Routes = [
   { path: '', component: Projectslist },
+  // { path: 'projects/:id', component:  },
+  // { path: 'projects/:id/edit', component: ProjectDetailsComponent },
   { path: 'create', component: Createproject },
   { path: 'importfromjira', component: Importfromjira },
   { path: 'individualproject', component: IndividualprojectComponent }

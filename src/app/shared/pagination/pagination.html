@@ -1,0 +1,72 @@
+<!-- pagination.component.html -->
+<div
+  class="flex flex-col lg:flex-row justify-between items-center px-3 lg:px-5 py-4 bg-white border border-gray-300 rounded-[2px] text-sm gap-4"
+>
+  <!-- Items count -->
+  <div class="flex-1 text-center lg:text-left">
+    <span class="text-gray-600">
+      Showing {{ startIndex + 1 }}-{{ endIndex }} of {{ totalItems }} {{ itemLabel }}
+    </span>
+  </div>
+
+  <!-- Pagination controls -->
+  <div class="flex items-center gap-3 flex-wrap justify-center lg:justify-end">
+    <!-- Rows per page selector -->
+    <span class="text-gray-600 hidden sm:inline">Rows per page</span>
+    <select
+      [(ngModel)]="rowsPerPage"
+      (change)="onRowsPerPageChange()"
+      class="px-2 py-1 border border-gray-300 rounded text-sm cursor-pointer bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      <option *ngFor="let option of rowsPerPageOptions" [value]="option">
+        {{ option }}
+      </option>
+    </select>
+
+    <!-- Page info -->
+    <span class="text-gray-600">Page {{ currentPage }} of {{ totalPages }}</span>
+
+    <!-- Navigation buttons -->
+    <div class="flex gap-1">
+      <!-- First page button -->
+      <button
+        (click)="onFirstPage()"
+        [disabled]="isFirstPage"
+        [title]="'Go to first page'"
+        class="w-8 h-8 border border-gray-300 bg-white rounded flex items-center justify-center text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+      >
+        «
+      </button>
+
+      <!-- Previous page button -->
+      <button
+        (click)="onPreviousPage()"
+        [disabled]="isFirstPage"
+        [title]="'Go to previous page'"
+        class="w-8 h-8 border border-gray-300 bg-white rounded flex items-center justify-center text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+      >
+        ‹
+      </button>
+
+      <!-- Next page button -->
+      <button
+        (click)="onNextPage()"
+        [disabled]="isLastPage"
+        [title]="'Go to next page'"
+        class="w-8 h-8 border border-gray-300 bg-white rounded flex items-center justify-center text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+      >
+        ›
+      </button>
+
+      <!-- Last page button -->
+      <button
+        (click)="onLastPage()"
+        [disabled]="isLastPage"
+        [title]="'Go to last page'"
+        class="w-8 h-8 border border-gray-300 bg-white rounded flex items-center justify-center text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+      >
+        »
+      </button>
+    </div>
+  </div>
+</div>
