@@ -1,0 +1,23 @@
+<div *ngIf="isOpen" class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto">
+  <!-- Backdrop - lighter shade for visibility -->
+  <div 
+    class="fixed inset-0 bg-[rgba(0,0,0,0.3)] transition-opacity"
+    (click)="onBackdropClick($event)"
+  ></div>
+  
+  <!-- Modal Content -->
+  <div class="relative bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 z-10">
+    <!-- Close Button -->
+    <button 
+      (click)="onClose()"
+      class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors z-20"
+    >
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
+    
+    <!-- Content Slot -->
+    <ng-content></ng-content>
+  </div>
+</div>

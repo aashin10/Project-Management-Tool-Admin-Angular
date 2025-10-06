@@ -1,0 +1,48 @@
+
+<div class="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+  <!-- Header -->
+  <div class="flex items-center gap-2 mb-2">
+    <span class="text-blue-600 text-sm">●</span>
+    <h2 class="text-lg font-semibold text-gray-900">Team & Organization</h2>
+  </div>
+  <p class="text-gray-500 text-sm mb-6">Assign leadership and organizational structure</p>
+  <!-- <div class="h-6"></div> -->
+  <div class="flex gap-6 mb-6">
+    <div class="flex-1 min-w-[220px]">
+      <label for="manager" class="block text-sm font-medium text-gray-700 mb-1">
+        Project Manager <span class="text-red-500">*</span>
+      </label>
+      <div class="h-2"></div>
+      <select 
+        id="manager" 
+        [(ngModel)]="manager" 
+        (ngModelChange)="managerChange.emit($event)"
+        class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+        [ngClass]="manager === '' ? 'text-gray-400' : 'text-black'"
+      >
+        <option value="" class="text-gray-400">Select project manager</option>
+        <option value="manager1" class="text-black">John Doe</option>
+        <option value="manager2" class="text-black">Jane Smith</option>
+        <option value="manager3" class="text-black">Mike Johnson</option>
+      </select>
+    </div>
+    <div class="flex-1 min-w-[220px]">
+      <label for="deliveryUnit" class="block text-sm font-medium text-gray-700 mb-1">
+        Delivery Unit <span class="text-red-500">*</span>
+      </label>
+      <div class="h-2"></div>
+      <select 
+        id="deliveryUnit" 
+        [(ngModel)]="deliveryUnit" 
+        (ngModelChange)="deliveryUnitChange.emit($event)"
+        class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+        [ngClass]="deliveryUnit === '' ? 'text-gray-400' : 'text-black'"
+      >
+        <option value="" class="text-gray-400">Select delivery unit</option>
+        <option value="unit1" class="text-black">Development Team A</option>
+        <option value="unit2" class="text-black">Development Team B</option>
+        <option value="unit3" class="text-black">QA Team</option>
+      </select>
+    </div>
+  </div>
+</div>
