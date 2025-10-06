@@ -25,6 +25,10 @@ export interface ActionItem {
   styleUrl: './table.css'
 })
 export class Table {
+ isLastRows(index: number): boolean {
+  // Show dropdown above only for the last row
+  return index === this.paginatedData.length - 1;
+}
 
   @Input() columns: TableColumn[] = [];
   @Input() data: any[] = [];
@@ -102,6 +106,8 @@ export class Table {
     if (column.badgeColors && column.badgeColors[value]) {
       return `${baseClasses} ${column.badgeColors[value]}`;
     }
+
+   
     
     // Default colors
     const colorMap: { [key: string]: string } = {
@@ -140,4 +146,8 @@ export class Table {
     }
     return 'text-gray-700';
   }
+}
+
+function isLastRows(index: any, number: any) {
+  throw new Error('Function not implemented.');
 }
