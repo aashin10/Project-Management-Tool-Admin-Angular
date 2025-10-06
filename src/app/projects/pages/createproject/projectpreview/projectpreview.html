@@ -19,7 +19,27 @@
 
   <!-- Action Buttons -->
   <div class="flex flex-col gap-2 mt-auto">
-    <button class="w-full py-2 px-4 bg-blue-600 text-white rounded font-semibold shadow hover:bg-blue-700 transition-colors" (click)="createProject.emit()">Create Project</button>
-    <button class="w-full py-2 px-4 bg-transparent text-gray-500 rounded font-semibold hover:text-gray-700 transition-colors" (click)="cancel.emit()">Cancel</button>
+    <app-custom-button
+      [label]="'Create Project'"
+      [bgClass]="'bg-blue-600'"
+      [textColor]="'text-white'"
+      [fontWeight]="'font-semibold'"
+      [rounded]="'rounded'"
+      [extraClasses]="'w-full shadow'"
+      [hoverClass]="'hover:bg-blue-700'"
+      [padding]="'py-2 px-4'"
+      (action)="createProject.emit()"
+    ></app-custom-button>
+    <app-custom-button
+      [label]="'Cancel'"
+      [bgClass]="'bg-transparent'"
+      [textColor]="'text-gray-500'"
+      [fontWeight]="'font-semibold'"
+      [rounded]="'rounded'"
+      [extraClasses]="'w-full border border-gray-300'"
+      [hoverClass]="'hover:text-gray-700 hover:bg-gray-50'"
+      [padding]="'py-2 px-4'"
+      (action)="cancel.emit()"
+    ></app-custom-button>
   </div>
 </div>

@@ -4,6 +4,8 @@ import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
 import { BasicInformationComponent } from './basicinfo/basicinfo';
 import { TeamOrganizationComponent } from './teaminfo/teaminfo';
 import { ProjectPreviewComponent } from './projectpreview/projectpreview';
+import { CustomButton } from '../../../shared/custom-button/custom-button';
+import { Additionalinfo } from './additionalinfo/additionalinfo';
 @Component({
   selector: 'app-createproject',
   standalone: true,
@@ -12,7 +14,9 @@ import { ProjectPreviewComponent } from './projectpreview/projectpreview';
     Sectiontitle,
     BasicInformationComponent,
     TeamOrganizationComponent,
-    ProjectPreviewComponent
+    ProjectPreviewComponent,
+    CustomButton,
+    Additionalinfo
   ],
   templateUrl: './createproject.html',
   styleUrl: './createproject.css'
@@ -25,6 +29,7 @@ export class Createproject {
   priority: string = '';
   manager: string = '';
   deliveryUnit: string = '';
+  additionalFields: Array<{name: string, value: string}> = [];
 
   onProjectNameChange(name: string) {
     this.projectName = name;
@@ -59,6 +64,7 @@ export class Createproject {
       priority: this.priority,
       manager: this.manager,
       deliveryUnit: this.deliveryUnit
+      , additionalFields: this.additionalFields
     });
   }
 

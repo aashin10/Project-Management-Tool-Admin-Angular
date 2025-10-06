@@ -1,10 +1,12 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { CustomButton } from '../../../../shared/custom-button/custom-button';
+
 
 @Component({
   selector: 'app-project-preview',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, CustomButton],
   templateUrl: './projectpreview.html',
   styleUrl: './projectpreview.css'
 })

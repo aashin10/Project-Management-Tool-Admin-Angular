@@ -1,1 +1,30 @@
-<p>deliveryunitslist works!</p>
+<div class="header">
+  <div
+    class="back-link flex items-center gap-2 text-gray-500 text-sm cursor-pointer transition-colors duration-200 hover:text-gray-700"
+  >
+    <i class="back-icon">←</i>
+    <span>Back to Projects</span>
+  </div>
+  <div class="header-content">
+    <app-sectiontitle
+      title="DU Management"
+      description="Manage Delivery Units and organizational structure"
+    ></app-sectiontitle>
+    <app-custom-button
+      [icon]="'assets/icons/back-icon.svg'"
+      label="Back to Projects"
+      shortLabel="Back"
+      [bgClass]="'bg-transparent'"
+      [extraClasses]="'text-gray-500 hover:text-gray-700'"
+    ></app-custom-button>
+  </div>
+</div>
+
+<app-table
+  [columns]="columns"
+  [data]="deliveryUnits"
+  [showCheckbox]="true"
+  [itemsPerPage]="10"
+  (actionClick)="onActionClick($event)"
+>
+</app-table>
