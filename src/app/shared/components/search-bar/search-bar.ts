@@ -25,11 +25,13 @@ export class SearchBar {
   @Input() borderColor: string = 'border-[#DFE1E6]';
 
   @Output() search = new EventEmitter<string>();
+  @Output() searchChange = new EventEmitter<string>();
 
   searchQuery: string = '';
 
   onInputChange() {
     this.search.emit(this.searchQuery);
+    this.searchChange.emit(this.searchQuery);
   }
 
   get inputClasses(): string {

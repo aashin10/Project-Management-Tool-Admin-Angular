@@ -1,4 +1,4 @@
-<div class="space-y-6 ">
+<div class="space-y-0 ">
   
   <!-- Stats Cards Row - Unchanged -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -12,7 +12,7 @@
   </div>
 
   <!-- 2x2 Grid Layout -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6  p-6">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6  pt-3">
     
     
     <!-- Top Left - Sprint Analytics -->
@@ -25,39 +25,24 @@
 
     <app-work-types [workTypes]="workTypes" class="h-full"></app-work-types>
 
-    <!-- Bottom Left - Work Item Distribution -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <!-- Bottom Left - Work Item Distribution -->   
       <app-work-item-distribution
         [workItemDistribution]="workItemDistribution"
         [totalItems]="workItemsData.total"
         class="w-full h-full">
       </app-work-item-distribution>
-    </div>
+    
 
     <!-- Bottom Right - Team Members -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <div class="flex items-center justify-between mb-6">
-        <div class="flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" 
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
-            class="text-gray-700">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-            <circle cx="9" cy="7" r="4"></circle>
-            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-          </svg>
-          <h2 class="text-lg font-semibold text-gray-900">Team Members</h2>
-        </div>
-        <span class="text-sm text-blue-600 cursor-pointer">View All →</span>
-      </div>
-
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <app-team-members 
         [teamMembers]="teamMembers"
+        [showViewAll]="true"
+        (viewAllClicked)="onTeamMembersViewAll()"
         class="w-full h-full">
       </app-team-members>
     </div>
-    </div>
+    
 
   </div>
 

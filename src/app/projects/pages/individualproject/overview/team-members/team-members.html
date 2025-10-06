@@ -11,12 +11,13 @@
       </svg>
       <h2 class="text-lg font-semibold text-gray-900">Team Members</h2>
     </div>
-    @if (showViewAll) {
-      <span class="text-sm text-blue-600 cursor-pointer hover:text-blue-700 transition-colors" 
-            (click)="onViewAll()">
-        View All →
-      </span>
-    }
+    
+      <ng-container *ngIf="showViewAll">
+        <span class="text-sm font-semibold text-blue-600 cursor-pointer hover:text-blue-700 transition-colors"
+              (click)="onViewAll()">
+          View All →
+        </span>
+      </ng-container>
   </div>
 
   <div class="space-y-4">

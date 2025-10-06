@@ -60,27 +60,24 @@ export class SidebarHome {
       icon: this.buildingIcon,
       expanded: false,
       children: [
-        { label: 'View All DUs', route: '/deliveryunits' },
-        { label: 'Add new DU', route: '/deliveryunits/add' }
-      ]
+      ],
+      route: '/deliveryunits'
     },
     {
       label: 'User Management',
       icon: this.userIcon,
       expanded: false,
       children: [
-        { label: 'All Users', route: '/users' },
-        { label: 'Create User', route: '/users/create' }
-      ]
+      ],
+      route: '/users'
     },
     {
       label: 'Roles and Permissions',
       icon: this.shieldIcon,
       expanded: false,
       children: [
-        { label: 'All Roles', route: '/roles' },
-        { label: 'Create Role', route: '/roles/create' }
-      ]
+      ],
+      route: '/roles'
     },
     {
       label: 'Reports',

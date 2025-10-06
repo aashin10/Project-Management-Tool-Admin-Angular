@@ -1,0 +1,40 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center"
+	 style="background-color: rgba(0,0,0,0.8);"
+	 (click)="onCancel()"
+>
+	<div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md" (click)="$event.stopPropagation()">
+		<h2 class="text-lg font-semibold text-gray-900 mb-4">Add Additional Info</h2>
+		<form>
+			<div class="mb-4">
+				<label for="fieldName" class="block text-sm font-medium text-gray-600 mb-1">Field Name</label>
+				<input id="fieldName" [(ngModel)]="fieldName" name="fieldName" type="text" class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 custom-input" placeholder="Enter field name">
+			</div>
+			<div class="mb-6">
+				<label for="fieldValue" class="block text-sm font-medium text-gray-700 mb-1">Field Value</label>
+				<input id="fieldValue" [(ngModel)]="fieldValue" name="fieldValue" type="text" class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 custom-input" placeholder="Enter value">
+			</div>
+			<div class="flex gap-3 justify-end">
+				<app-custom-button
+					[label]="'Add'"
+					[bgClass]="'bg-blue-600'"
+					[textColor]="'text-white'"
+					[fontWeight]="'font-semibold'"
+					[rounded]="'rounded-lg'"
+					[extraClasses]="'px-4 py-2 shadow'"
+					[hoverClass]="'hover:bg-blue-700'"
+					(action)="onAdd()"
+				></app-custom-button>
+				<app-custom-button
+					[label]="'Cancel'"
+					[bgClass]="'bg-gray-100'"
+					[textColor]="'text-gray-700'"
+					[fontWeight]="'font-semibold'"
+					[rounded]="'rounded-lg'"
+					[extraClasses]="'px-4 py-2 border border-gray-300'"
+					[hoverClass]="'hover:bg-gray-200'"
+					(action)="onCancel()"
+				></app-custom-button>
+			</div>
+		</form>
+	</div>
+</div>

@@ -8,6 +8,8 @@ export interface TableColumn {
   type?: 'text' | 'badge' | 'avatar' | 'user' | 'actions';
   sortable?: boolean;
   width?: string;
+  align?: 'left' | 'center' | 'right'; // Text alignment
+  icon?: string; // Icon path for text type
   badgeColors?: { [key: string]: string }; // For different badge colors
   actions?:ActionItem [];
 }
@@ -25,6 +27,11 @@ export interface ActionItem {
   styleUrl: './table.css'
 })
 export class Table {
+  
+ isLastRows(index: number): boolean {
+  // Show dropdown above only for the last row
+  return index === this.paginatedData.length - 1;
+}
 
   @Input() columns: TableColumn[] = [];
   @Input() data: any[] = [];
@@ -33,10 +40,13 @@ export class Table {
   
   @Output() rowSelect = new EventEmitter<any>();
   @Output() actionClick = new EventEmitter<{action: string, row: any}>();
+  @Output() selectionChange = new EventEmitter<any[]>();
   
   currentPage: number = 1;
   selectedRows: Set<number> = new Set();
   openActionMenuIndex: number | null = null;
+
+  
 
   get paginatedData() {
     const start = (this.currentPage - 1) * this.itemsPerPage;
@@ -75,6 +85,7 @@ export class Table {
       this.selectedRows.add(i);
     }
   }
+  this.emitSelectionChange();
 }
   previousPage() {
     this.goToPage(this.currentPage - 1);
@@ -90,10 +101,16 @@ export class Table {
     } else {
       this.selectedRows.add(index);
     }
+    this.emitSelectionChange();
   }
 
   isRowSelected(index: number): boolean {
     return this.selectedRows.has(index);
+  }
+  
+  emitSelectionChange() {
+    const selectedData = Array.from(this.selectedRows).map(index => this.paginatedData[index]);
+    this.selectionChange.emit(selectedData);
   }
 
   getBadgeClass(value: string, column: TableColumn): string {
@@ -102,6 +119,8 @@ export class Table {
     if (column.badgeColors && column.badgeColors[value]) {
       return `${baseClasses} ${column.badgeColors[value]}`;
     }
+
+   
     
     // Default colors
     const colorMap: { [key: string]: string } = {
@@ -140,4 +159,9 @@ export class Table {
     }
     return 'text-gray-700';
   }
+}
+
+function isLastRows(index: any, number: any) {
+  throw new Error('Function not implemented.');
+
 }

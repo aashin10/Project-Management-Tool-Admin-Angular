@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Pagination } from './pagination';
+import { RolesModal } from './roles-modal';
 
-describe('Pagination', () => {
-  let component: Pagination;
-  let fixture: ComponentFixture<Pagination>;
+describe('RolesModal', () => {
+  let component: RolesModal;
+  let fixture: ComponentFixture<RolesModal>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Pagination]
+      imports: [RolesModal]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(Pagination);
+    fixture = TestBed.createComponent(RolesModal);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
