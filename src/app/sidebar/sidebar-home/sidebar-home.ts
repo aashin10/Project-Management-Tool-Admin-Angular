@@ -90,7 +90,7 @@ export class SidebarHome {
       icon: this.settingsIcon,
       expanded: false,
       children: [
-        { label: 'System Settings', route: '/settings/system' },
+        { label: 'Add Access', route: '/settings/add-access' },
         { label: 'Import/Export', route: '/importexport' }
       ]
     }
@@ -113,7 +113,12 @@ export class SidebarHome {
   }
 
   toggleSection(item: MenuItem): void {
-    item.expanded = !item.expanded;
+    if (this.isCollapsed) {
+      this.isCollapsed = false;
+      item.expanded = true;
+    } else {
+      item.expanded = !item.expanded;
+    }
   }
 
   toggleCollapse(): void {
