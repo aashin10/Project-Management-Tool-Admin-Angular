@@ -1,12 +1,12 @@
 <app-importprojectcard
   *ngFor="let project of paginatedProjects"
-  [title]="project.title"
-  [description]="project.description"
-  [issuesCount]="project.issuesCount"
+  [title]="project.name"
+  [description]="project.key"
+  [issuesCount]="project.id"
   class="w-full"
 ></app-importprojectcard>
 
-<div class="flex w-full justify-center flex-row">
+<div class="flex w-full justify-center flex-row mt-6">
   <app-custom-button
     (action)="goToPage(currentPage - 1)"
     [label]="'Previous'"
