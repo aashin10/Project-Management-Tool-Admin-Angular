@@ -17,26 +17,28 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer } from '@angular/platform-browser';
 import { OverviewComponent } from './overview/overview';
 import { TeamsAndRoles } from './teams-and-roles/teams-and-roles';
+import { SharedModule } from '../../../shared/shared-module';
+import { TeamMembersComponent } from './overview/team-members/team-members';
 
 @Component({
   selector: 'app-individualproject',
   standalone: true,
-  imports: [CommonModule,OverviewComponent,TeamsAndRoles],
+  imports: [CommonModule,OverviewComponent,TeamsAndRoles,SharedModule,TeamMembersComponent],
   templateUrl: './individualproject.html',
   styleUrl: './individualproject.css'
 })
 export class IndividualprojectComponent implements OnInit {
-  activeTab: 'overview' | 'sprints' | 'team' = 'overview';
+  activeTab: 'overview'  | 'team' = 'overview';
   projectId: string = '';
   
   // Project data (this would typically come from a service)
   project = {
-    name: 'Atlas App',
+    name: 'Atlasss App',
     code: 'PROJ-001',
     status: 'Ongoing',
     description: 'Mobile application for atlas navigation and mapping',
     avatar: 'AA',
-    avatarColor: '#0052CC'
+    avatarColor: '#cc4700ff'
   };
 
   // Overview component reference (lazy loaded)
@@ -58,16 +60,13 @@ export class IndividualprojectComponent implements OnInit {
     this.loadOverviewComponent();
   }
 
-  selectTab(tab: 'overview' | 'sprints' | 'team'): void {
+  selectTab(tab: 'overview'  | 'team'): void {
     this.activeTab = tab;
     
     // Lazy load components based on selected tab
     switch(tab) {
       case 'overview':
         this.loadOverviewComponent();
-        break;
-      case 'sprints':
-        this.loadSprintsComponent();
         break;
       case 'team':
         this.loadTeamComponent();
@@ -83,14 +82,7 @@ export class IndividualprojectComponent implements OnInit {
     }
   }
 
-  private async loadSprintsComponent(): Promise<void> {
-    if (!this.sprintsComponent) {
-      // Lazy load the sprints component (to be implemented)
-      // const { SprintsComponent } = await import('./sprints/sprints.component');
-      // this.sprintsComponent = SprintsComponent;
-      console.log('Sprints component to be loaded');
-    }
-  }
+
 
   private async loadTeamComponent(): Promise<void> {
     if (!this.teamComponent) {
