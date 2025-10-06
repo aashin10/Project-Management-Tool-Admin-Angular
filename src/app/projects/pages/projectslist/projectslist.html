@@ -257,10 +257,10 @@
     <!-- Projects Table -->
     <div class="bg-white border border-gray-300 rounded-[2px] overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="w-full min-w-[900px]">
+        <table class="w-full min-w-[900px] table-fixed">
           <thead class="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th class="w-10 px-2 lg:px-4 py-3">
+              <th class="w-9">
                 <input
                   type="checkbox"
                   [checked]="allSelected"
@@ -268,30 +268,25 @@
                   class="w-4 h-4 rounded border-gray-300 cursor-pointer"
                 />
               </th>
-              <th
-                *ngFor="let header of tableHeaders; let i = index"
-                [class]="header.sortable ? 'px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700' : 'px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 w-20'"
-                [style.min-width]="header.minWidth"
-              >
+              <th class="w-64 px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700">
                 <div
-                  *ngIf="header.sortable"
                   class="flex items-center gap-2 select-none p-1 rounded transition-colors cursor-pointer hover:bg-gray-100"
-                  (click)="header.field ? sortBy(header.field) : null"
+                  (click)="sortBy('name')"
                 >
-                  <span>{{ header.label }}</span>
+                  <span>Project Info</span>
                   <span class="flex items-center justify-center w-4 h-4">
                     <span
-                      *ngIf="sortField === header.field && sortDirection === 'asc'"
+                      *ngIf="sortField === 'name' && sortDirection === 'asc'"
                       class="text-blue-600 font-bold"
                       >↑</span
                     >
                     <span
-                      *ngIf="sortField === header.field && sortDirection === 'desc'"
+                      *ngIf="sortField === 'name' && sortDirection === 'desc'"
                       class="text-blue-600 font-bold"
                       >↓</span
                     >
                     <svg
-                      *ngIf="sortField !== header.field"
+                      *ngIf="sortField !== 'name'"
                       class="w-4 h-4 text-gray-400"
                       fill="none"
                       stroke="currentColor"
@@ -306,7 +301,83 @@
                     </svg>
                   </span>
                 </div>
-                <span *ngIf="!header.sortable">{{ header.label }}</span>
+              </th>
+              <th class="w-28 px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                <span>Status</span>
+              </th>
+              <th class="w-24 px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                <span>Priority</span>
+              </th>
+              <th class="w-48 px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                <div
+                  class="flex items-center gap-2 select-none p-1 rounded transition-colors cursor-pointer hover:bg-gray-100"
+                  (click)="sortBy('projectManager')"
+                >
+                  <span>Project Manager</span>
+                  <span class="flex items-center justify-center w-4 h-4">
+                    <span
+                      *ngIf="sortField === 'projectManager' && sortDirection === 'asc'"
+                      class="text-blue-600 font-bold"
+                      >↑</span
+                    >
+                    <span
+                      *ngIf="sortField === 'projectManager' && sortDirection === 'desc'"
+                      class="text-blue-600 font-bold"
+                      >↓</span
+                    >
+                    <svg
+                      *ngIf="sortField !== 'projectManager'"
+                      class="w-4 h-4 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                      />
+                    </svg>
+                  </span>
+                </div>
+              </th>
+              <th class="w-28 px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                <div
+                  class="flex items-center gap-2 select-none p-1 rounded transition-colors cursor-pointer hover:bg-gray-100"
+                  (click)="sortBy('teamSize')"
+                >
+                  <span>Team Size</span>
+                  <span class="flex items-center justify-center w-4 h-4">
+                    <span
+                      *ngIf="sortField === 'teamSize' && sortDirection === 'asc'"
+                      class="text-blue-600 font-bold"
+                      >↑</span
+                    >
+                    <span
+                      *ngIf="sortField === 'teamSize' && sortDirection === 'desc'"
+                      class="text-blue-600 font-bold"
+                      >↓</span
+                    >
+                    <svg
+                      *ngIf="sortField !== 'teamSize'"
+                      class="w-4 h-4 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                      />
+                    </svg>
+                  </span>
+                </div>
+              </th>
+              <th class="w-20 px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                <span>Actions</span>
               </th>
             </tr>
           </thead>
@@ -317,7 +388,7 @@
               (click)="viewProjectDetails(project.id)"
               class="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
             >
-              <td class="px-2 lg:px-4 py-4">
+              <td class="w-12 px-2 lg:px-4 py-4">
                 <input
                   type="checkbox"
                   [(ngModel)]="project.selected"
@@ -325,22 +396,22 @@
                   class="w-4 h-4 rounded border-gray-300 cursor-pointer"
                 />
               </td>
-              <td class="px-2 lg:px-4 py-4">
+              <td class="w-64 px-2 lg:px-4 py-4">
                 <div class="flex items-center gap-2 lg:gap-3">
                   <div
                     class="w-8 h-8 lg:w-10 lg:h-10 rounded-[2px] bg-blue-600 flex items-center justify-center text-white text-xs lg:text-sm font-semibold flex-shrink-0"
                   >
-                    {{ project.managerInitials }}
+                    {{ project.name.substring(0, 2).toUpperCase() }}
                   </div>
-                  <div class="flex flex-col min-w-0">
-                    <div class="font-medium text-gray-900 truncate text-sm lg:text-base">
+                  <div class="flex flex-col min-w-0 overflow-hidden">
+                    <div class="font-medium text-gray-900 text-sm lg:text-base break-words">
                       {{ project.name }}
                     </div>
                     <div class="text-xs text-gray-600 mt-0.5">{{ project.projectCode }}</div>
                   </div>
                 </div>
               </td>
-              <td class="px-2 lg:px-4 py-4">
+              <td class="w-28 px-2 lg:px-4 py-4">
                 <span
                   [ngClass]="{
                     'bg-green-100 text-green-800': project.status === 'Ongoing',
@@ -354,7 +425,7 @@
                   {{ project.status }}
                 </span>
               </td>
-              <td class="px-2 lg:px-4 py-4">
+              <td class="w-24 px-2 lg:px-4 py-4">
                 <span
                   [ngClass]="{
                     'bg-red-100 text-red-800':
@@ -367,8 +438,8 @@
                   {{ project.priority }}
                 </span>
               </td>
-              <td class="px-2 lg:px-4 py-4">
-                <div class="flex items-center gap-2">
+              <td class="w-48 px-2 lg:px-4 py-4">
+                <div class="flex items-center gap-2 overflow-hidden">
                   <span
                     class="inline-flex items-center justify-center w-5 h-5 lg:w-6 lg:h-6 rounded-full bg-gray-200 text-gray-700 text-xs font-semibold flex-shrink-0"
                   >
@@ -379,13 +450,13 @@
                   }}</span>
                 </div>
               </td>
-              <td class="px-2 lg:px-4 py-4">
+              <td class="w-28 px-2 lg:px-4 py-4">
                 <div class="flex items-center gap-2">
-                  <img src="/images/team-size.svg" alt="" class="w-4 h-4" />
+                  <img src="/images/team-size.svg" alt="" class="w-4 h-4 flex-shrink-0" />
                   <span class="text-xs lg:text-sm text-gray-900">{{ project.teamSize }}</span>
                 </div>
               </td>
-              <td class="px-2 lg:px-4 py-4 relative">
+              <td class="w-20 px-2 lg:px-4 py-4 relative">
                 <button
                   (click)="toggleActionsMenu(project.id, $event)"
                   class="text-gray-600 hover:text-gray-900 text-xl leading-none p-1 lg:p-2 hover:bg-gray-100 rounded transition-colors cursor-pointer"
@@ -495,54 +566,106 @@
       </div>
     </div>
 
-    <!-- Pagination Component -->
-    <app-pagination
-      [currentPage]="currentPage"
-      [totalPages]="totalPages"
-      [totalItems]="filteredProjects.length"
-      [startIndex]="startIndex"
-      [endIndex]="endIndex"
-      [rowsPerPage]="rowsPerPage"
-      [rowsPerPageOptions]="rowsPerPageOptions"
-      [itemLabel]="'projects'"
-      (rowsPerPageChange)="handleRowsPerPageChange($event)"
-      (firstPage)="handleFirstPage()"
-      (previousPage)="handlePreviousPage()"
-      (nextPage)="handleNextPage()"
-      (lastPage)="handleLastPage()"
-      class="mt-4"
-    ></app-pagination>
+    <!-- Integrated Pagination -->
+    <div class="flex flex-col lg:flex-row justify-between items-center px-3 lg:px-5 py-4 bg-white border border-gray-300 rounded-[2px] text-sm gap-4 mt-4">
+      <!-- Items count -->
+      <div class="flex-1 text-center lg:text-left">
+        <span class="text-gray-600">
+          Showing {{ startIndex + 1 }}-{{ endIndex }} of {{ filteredProjects.length }} projects
+        </span>
+      </div>
+
+      <!-- Pagination controls -->
+      <div class="flex items-center gap-3 flex-wrap justify-center lg:justify-end">
+        <!-- Rows per page selector -->
+        <span class="text-gray-600 hidden sm:inline">Rows per page</span>
+        <select
+          [(ngModel)]="rowsPerPage"
+          (change)="handleRowsPerPageChange(rowsPerPage)"
+          class="px-2 py-1 border border-gray-300 rounded text-sm cursor-pointer bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option *ngFor="let option of rowsPerPageOptions" [value]="option">
+            {{ option }}
+          </option>
+        </select>
+
+        <!-- Page info -->
+        <span class="text-gray-600">Page {{ currentPage }} of {{ totalPages }}</span>
+
+        <!-- Navigation buttons -->
+        <div class="flex gap-1">
+          <!-- First page button -->
+          <button
+            (click)="handleFirstPage()"
+            [disabled]="currentPage === 1"
+            [title]="'Go to first page'"
+            class="w-8 h-8 border border-gray-300 bg-white rounded flex items-center justify-center text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          >
+            «
+          </button>
+
+          <!-- Previous page button -->
+          <button
+            (click)="handlePreviousPage()"
+            [disabled]="currentPage === 1"
+            [title]="'Go to previous page'"
+            class="w-8 h-8 border border-gray-300 bg-white rounded flex items-center justify-center text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          >
+            ‹
+          </button>
+
+          <!-- Next page button -->
+          <button
+            (click)="handleNextPage()"
+            [disabled]="currentPage === totalPages"
+            [title]="'Go to next page'"
+            class="w-8 h-8 border border-gray-300 bg-white rounded flex items-center justify-center text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          >
+            ›
+          </button>
+
+          <!-- Last page button -->
+          <button
+            (click)="handleLastPage()"
+            [disabled]="currentPage === totalPages"
+            [title]="'Go to last page'"
+            class="w-8 h-8 border border-gray-300 bg-white rounded flex items-center justify-center text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          >
+            »
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Bulk Actions Popup at Bottom Center -->
-  <!-- Bulk Actions Popup at Bottom Center -->
-<div
-  *ngIf="selectedProjects.length > 0"
-  (click)="$event.stopPropagation()"
-  class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white rounded-[2px] shadow-2xl border border-gray-300 px-6 py-4 flex items-center gap-4 z-50"
->
-  <span class="font-medium text-gray-900">{{ selectedProjects.length }} selected</span>
-  
-  <app-custom-button
-    (action)="archiveSelected()"
-    label="Archive"
-    bgClass="bg-gray-600"
-    textColor="text-white"
-    hoverClass="hover:bg-gray-700"
-    borderClass="border-none"
-    height="h-9"
-    padding="px-4"
-  />
-  
-  <app-custom-button
-    (action)="deleteSelected()"
-    label="Delete"
-    bgClass="bg-red-600"
-    textColor="text-white"
-    hoverClass="hover:bg-red-700"
-    borderClass="border-none"
-    height="h-9"
-    padding="px-4"
-  />
-</div>
+  <div
+    *ngIf="selectedProjects.length > 0"
+    (click)="$event.stopPropagation()"
+    class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white rounded-[2px] shadow-2xl border border-gray-300 px-6 py-4 flex items-center gap-4 z-50"
+  >
+    <span class="font-medium text-gray-900">{{ selectedProjects.length }} selected</span>
+    
+    <app-custom-button
+      (action)="archiveSelected()"
+      label="Archive"
+      bgClass="bg-gray-600"
+      textColor="text-white"
+      hoverClass="hover:bg-gray-700"
+      borderClass="border-none"
+      height="h-9"
+      padding="px-4"
+    />
+    
+    <app-custom-button
+      (action)="deleteSelected()"
+      label="Delete"
+      bgClass="bg-red-600"
+      textColor="text-white"
+      hoverClass="hover:bg-red-700"
+      borderClass="border-none"
+      height="h-9"
+      padding="px-4"
+    />
+  </div>
 </div>

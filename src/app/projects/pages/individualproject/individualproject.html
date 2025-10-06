@@ -1,8 +1,8 @@
 <!-- Main Container - Adapts to sidebar state -->
-<div class="min-h-screen bg-gray-50 transition-all duration-300">
+<div class="min-h-screen  transition-all duration-300">
   
   <!-- Back to Projects Button -->
-  <div class="bg-white border-b border-gray-200 px-6 py-4">
+  <div class="bg-white border-b border-gray-200 py-4">
     <button 
       (click)="goBackToProjects()"
       class="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors">
@@ -15,7 +15,7 @@
   </div>
 
   <!-- Project Header Section - Fixed for all tabs -->
-  <div class="bg-white border-b border-gray-200 mx-6 mt-6 rounded-lg shadow-sm">
+  <div class="bg-white border-b border-gray-200 mt-6 rounded-lg shadow-sm">
     <div class="px-8 py-6">
       <div class="flex items-start justify-between">
         
@@ -87,7 +87,7 @@
 
     <!-- Tab Navigation -->
     <div class="border-t border-gray-200">
-      <nav class="flex px-8 -mb-px">
+      <nav class="flex -mb-px">
         <button 
           (click)="selectTab('overview')"
           [class.border-blue-600]="activeTab === 'overview'"
@@ -96,16 +96,6 @@
           [class.text-gray-600]="activeTab !== 'overview'"
           class="px-6 py-4 text-sm font-medium border-b-2 hover:text-blue-600 hover:border-blue-400 transition-colors">
           Overview
-        </button>
-        
-        <button 
-          (click)="selectTab('sprints')"
-          [class.border-blue-600]="activeTab === 'sprints'"
-          [class.text-blue-600]="activeTab === 'sprints'"
-          [class.border-transparent]="activeTab !== 'sprints'"
-          [class.text-gray-600]="activeTab !== 'sprints'"
-          class="px-6 py-4 text-sm font-medium border-b-2 hover:text-blue-600 hover:border-blue-400 transition-colors">
-          Sprints & Reports
         </button>
         
         <button 
@@ -122,26 +112,18 @@
   </div>
 
   <!-- Tab Content Area - Lazy Loaded Components -->
-  <div class="px-6 py-6">
+  <div class="">
     
     <!-- Overview Tab Content -->
     <div *ngIf="activeTab === 'overview'" class="animate-fadeIn">
       <app-overview></app-overview>
     </div>
 
-    <!-- Sprints & Reports Tab Content -->
-    <div *ngIf="activeTab === 'sprints'" class="animate-fadeIn">
-      <!-- <app-sprints></app-sprints> -->
-      <div class="bg-white rounded-lg shadow-sm p-8 text-center text-gray-500">
-        Sprints & Reports component will be loaded here
-      </div>
-    </div>
 
     <!-- Team & Roles Tab Content -->
     <div *ngIf="activeTab === 'team'" class="animate-fadeIn">
-      <!-- <app-team></app-team> -->
-      <div class="bg-white rounded-lg shadow-sm p-8 text-center text-gray-500">
-        Team & Roles component will be loaded here
+      <div class="bg-white">
+        <app-teams-and-roles/>
       </div>
     </div>
 

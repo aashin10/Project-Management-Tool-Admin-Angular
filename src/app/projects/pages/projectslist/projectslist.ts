@@ -4,7 +4,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CustomButton } from '../../../shared/custom-button/custom-button';
-import { Pagination } from '../../../shared/pagination/pagination';
 import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
 
 interface Project {
@@ -32,7 +31,7 @@ type SortDirection = 'asc' | 'desc' | null;
 @Component({
   selector: 'app-projectslist',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomButton, Pagination,Sectiontitle],
+  imports: [CommonModule, FormsModule, CustomButton, Sectiontitle],
   templateUrl: './projectslist.html',
   styleUrl: './projectslist.css'
 })
