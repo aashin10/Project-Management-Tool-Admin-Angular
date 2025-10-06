@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OverviewDashboardCard } from './overview-dashboard-card/overview-dashboard-card';
 import { WorkItemDistributionComponent, WorkItemDistributionItem } from './work-item-distribution/work-item-distribution';
@@ -36,6 +36,14 @@ interface WorkItemsData {
 })
 export class OverviewComponent implements OnInit {
   
+  @Output() viewAllClicked = new EventEmitter<void>();
+
+  onTeamMembersViewAll() {
+  this.viewAllClicked.emit();
+}
+
+
+
   sprintData: SprintData = {
     totalIterations: 8,
     active: 2,

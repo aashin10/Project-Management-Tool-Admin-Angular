@@ -133,7 +133,7 @@
     
     <!-- Overview Tab Content -->
     <div *ngIf="activeTab === 'overview'" class="animate-fadeIn">
-      <app-overview></app-overview>
+      <app-overview  (viewAllClicked)="selectTab('team')"></app-overview>
     </div>
 
     <!-- Team & Roles Tab Content -->

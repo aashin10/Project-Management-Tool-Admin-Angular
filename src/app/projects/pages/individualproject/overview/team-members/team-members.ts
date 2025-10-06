@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -23,9 +23,10 @@ export class TeamMembersComponent {
   ) {}
   @Input() teamMembers: TeamMember[] = [];
   @Input() showViewAll: boolean = true;
-
+ @Output() viewAllClicked = new EventEmitter<void>();
+ 
   onViewAll() {
-    this.router.navigate(['/teams-and-roles']);
+    this.viewAllClicked.emit(); // notify parent component
   }
 
   getColorClasses(color: string): string {

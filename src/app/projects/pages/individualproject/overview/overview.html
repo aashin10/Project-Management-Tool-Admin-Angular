@@ -37,6 +37,8 @@
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <app-team-members 
         [teamMembers]="teamMembers"
+        [showViewAll]="true"
+        (viewAllClicked)="onTeamMembersViewAll()"
         class="w-full h-full">
       </app-team-members>
     </div>
