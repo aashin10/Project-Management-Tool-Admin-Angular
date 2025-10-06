@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { SharedRoutingModule } from './shared-routing-module';
 
 import { Table } from './table/table';
+import { CustomButton } from './custom-button/custom-button';
 
 
 @NgModule({
@@ -11,8 +12,8 @@ import { Table } from './table/table';
   imports: [
     CommonModule,
     SharedRoutingModule,
-    Table
+    Table,CustomButton
   ],
-  exports:[Table]
+  exports:[Table,CustomButton]
 })
 export class SharedModule { }

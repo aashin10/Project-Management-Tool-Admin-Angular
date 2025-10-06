@@ -16,11 +16,13 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer } from '@angular/platform-browser';
 import { OverviewComponent } from './overview/overview';
+import { TeamsAndRoles } from './teams-and-roles/teams-and-roles';
+import { SharedModule } from '../../../shared/shared-module';
 
 @Component({
   selector: 'app-individualproject',
   standalone: true,
-  imports: [CommonModule,OverviewComponent],
+  imports: [CommonModule,OverviewComponent,TeamsAndRoles,SharedModule],
   templateUrl: './individualproject.html',
   styleUrl: './individualproject.css'
 })

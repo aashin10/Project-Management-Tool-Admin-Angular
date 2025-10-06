@@ -1,35 +1,28 @@
+<!-- projectslist.html -->
 <div
   class="min-h-screen transition-all duration-300"
   [class]="'ml-' + (sidebarCollapsed ? '16' : '64')"
   (click)="closeActionsMenu()"
 >
-  <div class="transition-all duration-300 px-4 lg:px-6 py-6">
+  <div class="transition-all duration-300 px-4 lg:px-6">
     <!-- Header Section -->
-    <div class="flex flex-col lg:flex-row justify-between items-start gap-4 pb-6">
-      <div class="flex-1 min-w-0">
-        <h1 class="text-3xl lg:text-3xl font-bold text-gray-900 mb-2 truncate">
-          Projects Management
-        </h1>
-        <p class="text-[16px] text-gray-600 hidden sm:block">
-          Manage and organize all your projects in one place
-        </p>
-      </div>
+    <div class="flex flex-col lg:flex-row justify-between items-start gap-4">
+      <app-sectiontitle title="Projects Management" description="Manage and organize all your projects in one place"></app-sectiontitle>
       <div class="flex gap-2 lg:gap-3 flex-wrap flex-shrink-0">
         <app-custom-button
-          (click)="exportAll()"
+          (action)="exportAll()"
           icon="/images/export.svg"
           label="Export All"
           shortLabel="Export"
         />
         <app-custom-button
-          (click)="importFromJira()"
+          (action)="importFromJira()"
           icon="/images/import.svg"
           label="Import from Jira"
           shortLabel="Import"
         />
-
         <app-custom-button
-          (click)="createProject()"
+          (action)="createProject()"
           icon="/images/plus.svg"
           label="Create Project"
           shortLabel="Create"
@@ -264,10 +257,10 @@
     <!-- Projects Table -->
     <div class="bg-white border border-gray-300 rounded-[2px] overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="w-full min-w-[900px]">
+        <table class="w-full min-w-[900px] table-fixed">
           <thead class="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th class="w-10 px-2 lg:px-4 py-3">
+              <th class="w-9">
                 <input
                   type="checkbox"
                   [checked]="allSelected"
@@ -275,36 +268,25 @@
                   class="w-4 h-4 rounded border-gray-300 cursor-pointer"
                 />
               </th>
-              <th
-                class="px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 min-w-[200px]"
-              >
+              <th class="w-64 px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700">
                 <div
-                  class="flex items-center gap-2 select-none p-1 rounded transition-colors"
-                  [class.cursor-pointer]="tableHeaders[0].sortable"
-                  [class.hover:bg-gray-100]="tableHeaders[0].sortable"
-                  (click)="
-                    tableHeaders[0].sortable && tableHeaders[0].field
-                      ? sortBy(tableHeaders[0].field)
-                      : null
-                  "
+                  class="flex items-center gap-2 select-none p-1 rounded transition-colors cursor-pointer hover:bg-gray-100"
+                  (click)="sortBy('name')"
                 >
-                  <span>{{ tableHeaders[0].label }}</span>
-                  <span
-                    *ngIf="tableHeaders[0].sortable"
-                    class="flex items-center justify-center w-4 h-4"
-                  >
+                  <span>Project Info</span>
+                  <span class="flex items-center justify-center w-4 h-4">
                     <span
-                      *ngIf="sortField === tableHeaders[0].field && sortDirection === 'asc'"
+                      *ngIf="sortField === 'name' && sortDirection === 'asc'"
                       class="text-blue-600 font-bold"
                       >↑</span
                     >
                     <span
-                      *ngIf="sortField === tableHeaders[0].field && sortDirection === 'desc'"
+                      *ngIf="sortField === 'name' && sortDirection === 'desc'"
                       class="text-blue-600 font-bold"
                       >↓</span
                     >
                     <svg
-                      *ngIf="sortField !== tableHeaders[0].field"
+                      *ngIf="sortField !== 'name'"
                       class="w-4 h-4 text-gray-400"
                       fill="none"
                       stroke="currentColor"
@@ -320,36 +302,31 @@
                   </span>
                 </div>
               </th>
-              <th
-                class="px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 min-w-[100px]"
-              >
+              <th class="w-28 px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                <span>Status</span>
+              </th>
+              <th class="w-24 px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                <span>Priority</span>
+              </th>
+              <th class="w-48 px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700">
                 <div
-                  class="flex items-center gap-2 select-none p-1 rounded transition-colors"
-                  [class.cursor-pointer]="tableHeaders[1].sortable"
-                  [class.hover:bg-gray-100]="tableHeaders[1].sortable"
-                  (click)="
-                    tableHeaders[1].sortable && tableHeaders[1].field
-                      ? sortBy(tableHeaders[1].field)
-                      : null
-                  "
+                  class="flex items-center gap-2 select-none p-1 rounded transition-colors cursor-pointer hover:bg-gray-100"
+                  (click)="sortBy('projectManager')"
                 >
-                  <span>{{ tableHeaders[1].label }}</span>
-                  <span
-                    *ngIf="tableHeaders[1].sortable"
-                    class="flex items-center justify-center w-4 h-4"
-                  >
+                  <span>Project Manager</span>
+                  <span class="flex items-center justify-center w-4 h-4">
                     <span
-                      *ngIf="sortField === tableHeaders[1].field && sortDirection === 'asc'"
+                      *ngIf="sortField === 'projectManager' && sortDirection === 'asc'"
                       class="text-blue-600 font-bold"
                       >↑</span
                     >
                     <span
-                      *ngIf="sortField === tableHeaders[1].field && sortDirection === 'desc'"
+                      *ngIf="sortField === 'projectManager' && sortDirection === 'desc'"
                       class="text-blue-600 font-bold"
                       >↓</span
                     >
                     <svg
-                      *ngIf="sortField !== tableHeaders[1].field"
+                      *ngIf="sortField !== 'projectManager'"
                       class="w-4 h-4 text-gray-400"
                       fill="none"
                       stroke="currentColor"
@@ -365,36 +342,25 @@
                   </span>
                 </div>
               </th>
-              <th
-                class="px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 min-w-[90px]"
-              >
+              <th class="w-28 px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700">
                 <div
-                  class="flex items-center gap-2 select-none p-1 rounded transition-colors"
-                  [class.cursor-pointer]="tableHeaders[2].sortable"
-                  [class.hover:bg-gray-100]="tableHeaders[2].sortable"
-                  (click)="
-                    tableHeaders[2].sortable && tableHeaders[2].field
-                      ? sortBy(tableHeaders[2].field)
-                      : null
-                  "
+                  class="flex items-center gap-2 select-none p-1 rounded transition-colors cursor-pointer hover:bg-gray-100"
+                  (click)="sortBy('teamSize')"
                 >
-                  <span>{{ tableHeaders[2].label }}</span>
-                  <span
-                    *ngIf="tableHeaders[2].sortable"
-                    class="flex items-center justify-center w-4 h-4"
-                  >
+                  <span>Team Size</span>
+                  <span class="flex items-center justify-center w-4 h-4">
                     <span
-                      *ngIf="sortField === tableHeaders[2].field && sortDirection === 'asc'"
+                      *ngIf="sortField === 'teamSize' && sortDirection === 'asc'"
                       class="text-blue-600 font-bold"
                       >↑</span
                     >
                     <span
-                      *ngIf="sortField === tableHeaders[2].field && sortDirection === 'desc'"
+                      *ngIf="sortField === 'teamSize' && sortDirection === 'desc'"
                       class="text-blue-600 font-bold"
                       >↓</span
                     >
                     <svg
-                      *ngIf="sortField !== tableHeaders[2].field"
+                      *ngIf="sortField !== 'teamSize'"
                       class="w-4 h-4 text-gray-400"
                       fill="none"
                       stroke="currentColor"
@@ -410,98 +376,8 @@
                   </span>
                 </div>
               </th>
-              <th
-                class="px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 min-w-[160px]"
-              >
-                <div
-                  class="flex items-center gap-2 select-none p-1 rounded transition-colors"
-                  [class.cursor-pointer]="tableHeaders[3].sortable"
-                  [class.hover:bg-gray-100]="tableHeaders[3].sortable"
-                  (click)="
-                    tableHeaders[3].sortable && tableHeaders[3].field
-                      ? sortBy(tableHeaders[3].field)
-                      : null
-                  "
-                >
-                  <span>{{ tableHeaders[3].label }}</span>
-                  <span
-                    *ngIf="tableHeaders[3].sortable"
-                    class="flex items-center justify-center w-4 h-4"
-                  >
-                    <span
-                      *ngIf="sortField === tableHeaders[3].field && sortDirection === 'asc'"
-                      class="text-blue-600 font-bold"
-                      >↑</span
-                    >
-                    <span
-                      *ngIf="sortField === tableHeaders[3].field && sortDirection === 'desc'"
-                      class="text-blue-600 font-bold"
-                      >↓</span
-                    >
-                    <svg
-                      *ngIf="sortField !== tableHeaders[3].field"
-                      class="w-4 h-4 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
-                      />
-                    </svg>
-                  </span>
-                </div>
-              </th>
-              <th
-                class="px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 min-w-[100px]"
-              >
-                <div
-                  class="flex items-center gap-2 select-none p-1 rounded transition-colors"
-                  [class.cursor-pointer]="tableHeaders[4].sortable"
-                  [class.hover:bg-gray-100]="tableHeaders[4].sortable"
-                  (click)="
-                    tableHeaders[4].sortable && tableHeaders[4].field
-                      ? sortBy(tableHeaders[4].field)
-                      : null
-                  "
-                >
-                  <span>{{ tableHeaders[4].label }}</span>
-                  <span
-                    *ngIf="tableHeaders[4].sortable"
-                    class="flex items-center justify-center w-4 h-4"
-                  >
-                    <span
-                      *ngIf="sortField === tableHeaders[4].field && sortDirection === 'asc'"
-                      class="text-blue-600 font-bold"
-                      >↑</span
-                    >
-                    <span
-                      *ngIf="sortField === tableHeaders[4].field && sortDirection === 'desc'"
-                      class="text-blue-600 font-bold"
-                      >↓</span
-                    >
-                    <svg
-                      *ngIf="sortField !== tableHeaders[4].field"
-                      class="w-4 h-4 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
-                      />
-                    </svg>
-                  </span>
-                </div>
-              </th>
-              <th class="px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700 w-20">
-                {{ tableHeaders[5].label }}
+              <th class="w-20 px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                <span>Actions</span>
               </th>
             </tr>
           </thead>
@@ -509,9 +385,10 @@
             <tr
               *ngFor="let project of paginatedProjects"
               [class.bg-blue-50]="project.selected"
+              (click)="viewProjectDetails(project.id)"
               class="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
             >
-              <td class="px-2 lg:px-4 py-4">
+              <td class="w-12 px-2 lg:px-4 py-4">
                 <input
                   type="checkbox"
                   [(ngModel)]="project.selected"
@@ -519,22 +396,22 @@
                   class="w-4 h-4 rounded border-gray-300 cursor-pointer"
                 />
               </td>
-              <td class="px-2 lg:px-4 py-4">
+              <td class="w-64 px-2 lg:px-4 py-4">
                 <div class="flex items-center gap-2 lg:gap-3">
                   <div
                     class="w-8 h-8 lg:w-10 lg:h-10 rounded-[2px] bg-blue-600 flex items-center justify-center text-white text-xs lg:text-sm font-semibold flex-shrink-0"
                   >
-                    {{ project.managerInitials }}
+                    {{ project.name.substring(0, 2).toUpperCase() }}
                   </div>
-                  <div class="flex flex-col min-w-0">
-                    <div class="font-medium text-gray-900 truncate text-sm lg:text-base">
+                  <div class="flex flex-col min-w-0 overflow-hidden">
+                    <div class="font-medium text-gray-900 text-sm lg:text-base break-words">
                       {{ project.name }}
                     </div>
                     <div class="text-xs text-gray-600 mt-0.5">{{ project.projectCode }}</div>
                   </div>
                 </div>
               </td>
-              <td class="px-2 lg:px-4 py-4">
+              <td class="w-28 px-2 lg:px-4 py-4">
                 <span
                   [ngClass]="{
                     'bg-green-100 text-green-800': project.status === 'Ongoing',
@@ -548,7 +425,7 @@
                   {{ project.status }}
                 </span>
               </td>
-              <td class="px-2 lg:px-4 py-4">
+              <td class="w-24 px-2 lg:px-4 py-4">
                 <span
                   [ngClass]="{
                     'bg-red-100 text-red-800':
@@ -561,8 +438,8 @@
                   {{ project.priority }}
                 </span>
               </td>
-              <td class="px-2 lg:px-4 py-4">
-                <div class="flex items-center gap-2">
+              <td class="w-48 px-2 lg:px-4 py-4">
+                <div class="flex items-center gap-2 overflow-hidden">
                   <span
                     class="inline-flex items-center justify-center w-5 h-5 lg:w-6 lg:h-6 rounded-full bg-gray-200 text-gray-700 text-xs font-semibold flex-shrink-0"
                   >
@@ -573,13 +450,13 @@
                   }}</span>
                 </div>
               </td>
-              <td class="px-2 lg:px-4 py-4">
+              <td class="w-28 px-2 lg:px-4 py-4">
                 <div class="flex items-center gap-2">
-                  <img src="/images/team-size.svg" alt="" class="w-4 h-4" />
+                  <img src="/images/team-size.svg" alt="" class="w-4 h-4 flex-shrink-0" />
                   <span class="text-xs lg:text-sm text-gray-900">{{ project.teamSize }}</span>
                 </div>
               </td>
-              <td class="px-2 lg:px-4 py-4 relative">
+              <td class="w-20 px-2 lg:px-4 py-4 relative">
                 <button
                   (click)="toggleActionsMenu(project.id, $event)"
                   class="text-gray-600 hover:text-gray-900 text-xl leading-none p-1 lg:p-2 hover:bg-gray-100 rounded transition-colors cursor-pointer"
@@ -689,52 +566,69 @@
       </div>
     </div>
 
-    <!-- Footer with Pagination -->
-    <div
-      class="flex flex-col lg:flex-row justify-between items-center px-3 lg:px-5 py-4 bg-white border border-gray-300 rounded-[2px] text-sm gap-4 mt-4"
-    >
+    <!-- Integrated Pagination -->
+    <div class="flex flex-col lg:flex-row justify-between items-center px-3 lg:px-5 py-4 bg-white border border-gray-300 rounded-[2px] text-sm gap-4 mt-4">
+      <!-- Items count -->
       <div class="flex-1 text-center lg:text-left">
-        <span class="text-gray-600"
-          >Showing {{ startIndex + 1 }}-{{ endIndex }} of
-          {{ filteredProjects.length }} projects</span
-        >
+        <span class="text-gray-600">
+          Showing {{ startIndex + 1 }}-{{ endIndex }} of {{ filteredProjects.length }} projects
+        </span>
       </div>
 
+      <!-- Pagination controls -->
       <div class="flex items-center gap-3 flex-wrap justify-center lg:justify-end">
+        <!-- Rows per page selector -->
         <span class="text-gray-600 hidden sm:inline">Rows per page</span>
         <select
           [(ngModel)]="rowsPerPage"
-          (change)="onRowsPerPageChange()"
-          class="px-2 py-1 border border-gray-300 rounded text-sm cursor-pointer bg-white"
+          (change)="handleRowsPerPageChange(rowsPerPage)"
+          class="px-2 py-1 border border-gray-300 rounded text-sm cursor-pointer bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <option *ngFor="let option of rowsPerPageOptions" [value]="option">{{ option }}</option>
+          <option *ngFor="let option of rowsPerPageOptions" [value]="option">
+            {{ option }}
+          </option>
         </select>
+
+        <!-- Page info -->
         <span class="text-gray-600">Page {{ currentPage }} of {{ totalPages }}</span>
+
+        <!-- Navigation buttons -->
         <div class="flex gap-1">
+          <!-- First page button -->
           <button
-            (click)="goToFirstPage()"
+            (click)="handleFirstPage()"
             [disabled]="currentPage === 1"
+            [title]="'Go to first page'"
             class="w-8 h-8 border border-gray-300 bg-white rounded flex items-center justify-center text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             «
           </button>
+
+          <!-- Previous page button -->
           <button
-            (click)="goToPreviousPage()"
+            (click)="handlePreviousPage()"
             [disabled]="currentPage === 1"
+            [title]="'Go to previous page'"
             class="w-8 h-8 border border-gray-300 bg-white rounded flex items-center justify-center text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             ‹
           </button>
+
+          <!-- Next page button -->
           <button
-            (click)="goToNextPage()"
+            (click)="handleNextPage()"
             [disabled]="currentPage === totalPages"
+            [title]="'Go to next page'"
             class="w-8 h-8 border border-gray-300 bg-white rounded flex items-center justify-center text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             ›
           </button>
+
+          <!-- Last page button -->
           <button
-            (click)="goToLastPage()"
+            (click)="handleLastPage()"
             [disabled]="currentPage === totalPages"
+            [title]="'Go to last page'"
             class="w-8 h-8 border border-gray-300 bg-white rounded flex items-center justify-center text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             »
@@ -751,17 +645,27 @@
     class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white rounded-[2px] shadow-2xl border border-gray-300 px-6 py-4 flex items-center gap-4 z-50"
   >
     <span class="font-medium text-gray-900">{{ selectedProjects.length }} selected</span>
-    <button
-      (click)="archiveSelected()"
-      class="px-4 py-2 bg-gray-600 text-white rounded-md text-sm font-medium hover:bg-gray-700 transition-colors cursor-pointer"
-    >
-      Archive
-    </button>
-    <button
-      (click)="deleteSelected()"
-      class="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 transition-colors cursor-pointer"
-    >
-      Delete
-    </button>
+    
+    <app-custom-button
+      (action)="archiveSelected()"
+      label="Archive"
+      bgClass="bg-gray-600"
+      textColor="text-white"
+      hoverClass="hover:bg-gray-700"
+      borderClass="border-none"
+      height="h-9"
+      padding="px-4"
+    />
+    
+    <app-custom-button
+      (action)="deleteSelected()"
+      label="Delete"
+      bgClass="bg-red-600"
+      textColor="text-white"
+      hoverClass="hover:bg-red-700"
+      borderClass="border-none"
+      height="h-9"
+      padding="px-4"
+    />
   </div>
 </div>

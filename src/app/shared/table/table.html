@@ -82,7 +82,7 @@
 
             <!-- Actions type -->
             <!-- Actions type -->
-            <div *ngIf="column.type === 'actions'" class="text-right relative">
+            <div *ngIf="column.type === 'actions'" class="relative">
               <button
                 (click)="toggleActionsMenu(i); $event.stopPropagation()"
                 class="text-gray-400 hover:text-gray-600 p-2"
@@ -91,10 +91,14 @@
               </button>
 
               <!-- Dropdown Menu -->
-              <div
-                *ngIf="openActionMenuIndex === i"
-                class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50"
-              >
+              <!-- Dropdown Menu -->
+<div
+  *ngIf="openActionMenuIndex === i"
+  [class.bottom-full]="isLastRows(i)"
+  [class.mb-2]="isLastRows(i)"
+  [class.mt-2]="!isLastRows(i)"
+  class="absolute right-0 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50"
+>
                 <div class="py-1">
                   <button
                     *ngFor="let actionItem of column.actions"
