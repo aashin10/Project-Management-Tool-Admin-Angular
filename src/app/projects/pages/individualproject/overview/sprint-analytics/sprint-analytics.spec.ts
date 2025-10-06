@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Pagination } from './pagination';
+import { SprintAnalytics } from './sprint-analytics';
 
-describe('Pagination', () => {
-  let component: Pagination;
-  let fixture: ComponentFixture<Pagination>;
+describe('SprintAnalytics', () => {
+  let component: SprintAnalytics;
+  let fixture: ComponentFixture<SprintAnalytics>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Pagination]
+      imports: [SprintAnalytics]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(Pagination);
+    fixture = TestBed.createComponent(SprintAnalytics);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

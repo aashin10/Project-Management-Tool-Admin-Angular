@@ -1,0 +1,144 @@
+<!-- teams-and-roles.html -->
+<div class="w-full pt-6">
+  
+  <!-- Header Section -->
+  <div class="mb-4">
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+      
+      <!-- Title and Description -->
+      <div>
+        <h1 class="text-xl font-bold text-gray-900">Team Members</h1>
+        <p class="text-sm text-gray-600 mt-1">Manage project team members and their roles</p>
+      </div>
+
+      <!-- Role Filter and Add Member Button -->
+      <div class="flex items-center gap-3">
+        <select
+          [(ngModel)]="selectedRole"
+          (ngModelChange)="onRoleFilterChange()"
+          class="px-4 py-2 border border-gray-300 rounded-[2px] text-sm bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+        >
+          <option *ngFor="let role of roleOptions" [value]="role.value">
+            {{ role.label }}
+          </option>
+        </select>
+
+        <!-- Custom Button -->
+        <app-custom-button
+          label="Add Member"
+          icon = "/images/plus.svg"
+          shortLabel="Add"
+          [bgClass]="'bg-blue-600'"
+          [hoverClass]="'hover:bg-blue-700'"
+          [textColor]="'text-white'"
+          [rounded]="'rounded'"
+          [height]="'h-9'"
+          [gap]="'gap-2'"
+          [extraClasses]="'transition-colors font-medium'"
+          (action)="addMember()"
+        >
+        </app-custom-button>
+      </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="mt-4">
+      <div class="flex items-center bg-gray-50 border border-gray-300 rounded px-3 py-2">
+        <svg class="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input
+          type="text"
+          [(ngModel)]="searchQuery"
+          (ngModelChange)="onSearchChange()"
+          placeholder="Search by name, email, role, or department..."
+          class="flex-1 text-sm outline-none bg-transparent text-gray-700"
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- Bulk Actions Bar (shown when items are selected) -->
+  <div *ngIf="selectedCount > 0" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 flex items-center justify-between">
+    <span class="text-sm font-medium text-blue-900">
+      {{ selectedCount }} member{{ selectedCount > 1 ? 's' : '' }} selected
+    </span>
+    
+    <div class="flex items-center gap-3">
+      <app-custom-button
+        label="Change Role"
+        [bgClass]="'bg-white'"
+        [borderClass]="'border border-blue-300'"
+        [textColor]="'text-blue-700'"
+        [hoverClass]="'hover:bg-blue-50'"
+        (action)="changeRoleSelected()"
+      >
+      </app-custom-button>
+      
+      <app-custom-button
+        label="Remove"
+        [bgClass]="'bg-red-600'"
+        [hoverClass]="'hover:bg-red-700'"
+        [textColor]="'text-white'"
+        (action)="removeSelected()"
+      >
+      </app-custom-button>
+    </div>
+  </div>
+
+  <!-- Table Component -->
+  <div class="bg-white rounded-lg shadow-sm">
+    <app-table
+      [columns]="tableColumns"
+      [data]="tableData"
+      [showCheckbox]="true"
+      [itemsPerPage]="10"
+      (actionClick)="handleTableAction($event)"
+    ></app-table>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="filteredMembers.length === 0" class="bg-white rounded-lg shadow-sm p-12 text-center">
+    <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+    </svg>
+    <h3 class="text-lg font-medium text-gray-900 mb-2">No team members found</h3>
+    <p class="text-sm text-gray-500 mb-4">
+      {{ searchQuery || selectedRole !== 'all' ? 'Try adjusting your filters' : 'Get started by adding team members to this project' }}
+    </p>
+
+    <app-custom-button
+      *ngIf="!searchQuery && selectedRole === 'all'"
+      label="Add First Member"
+      [bgClass]="'bg-blue-600'"
+      [hoverClass]="'hover:bg-blue-700'"
+      [textColor]="'text-white'"
+      [rounded]="'rounded'"
+      [height]="'h-9'"
+      [gap]="'gap-2'"
+      [extraClasses]="'transition-colors font-medium'"
+      (action)="addMember()"
+    >
+      <svg
+        button-icon
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+        <circle cx="9" cy="7" r="4"></circle>
+        <line x1="19" x2="19" y1="8" y2="14"></line>
+        <line x1="22" x2="16" y1="11" y2="11"></line>
+      </svg>
+    </app-custom-button>
+  </div>
+
+</div>
