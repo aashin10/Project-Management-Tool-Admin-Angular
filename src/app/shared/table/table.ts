@@ -33,6 +33,7 @@ export class Table {
   
   @Output() rowSelect = new EventEmitter<any>();
   @Output() actionClick = new EventEmitter<{action: string, row: any}>();
+  @Output() selectionChange = new EventEmitter<any[]>();
   
   currentPage: number = 1;
   selectedRows: Set<number> = new Set();
@@ -75,6 +76,7 @@ export class Table {
       this.selectedRows.add(i);
     }
   }
+  this.emitSelectionChange();
 }
   previousPage() {
     this.goToPage(this.currentPage - 1);
@@ -90,10 +92,16 @@ export class Table {
     } else {
       this.selectedRows.add(index);
     }
+    this.emitSelectionChange();
   }
 
   isRowSelected(index: number): boolean {
     return this.selectedRows.has(index);
+  }
+  
+  emitSelectionChange() {
+    const selectedData = Array.from(this.selectedRows).map(index => this.paginatedData[index]);
+    this.selectionChange.emit(selectedData);
   }
 
   getBadgeClass(value: string, column: TableColumn): string {

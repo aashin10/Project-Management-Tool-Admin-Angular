@@ -32,13 +32,31 @@ export class Userslist {
         break;
     }
   }
+  
+  onSelectionChange(selectedRows: any[]) {
+    this.selectedUsers = selectedRows;
+    console.log('Selected users:', selectedRows);
+  }
   showTypeDropdown = false;
   showStatusDropdown = false;
   showAdvancedFilter = false;
   showImportModal = false;
+  showAddUserModal = false;
   filterType: string = '';
   filterStatus: string = '';
   searchQuery: string = '';
+  selectedFileName: string = '';
+  isDragging: boolean = false;
+  selectedUsers: any[] = [];
+  
+  // Add User form fields
+  newUser = {
+    fullName: '',
+    email: '',
+    jiraId: '',
+    type: '',
+    status: ''
+  };
 
   typeOptions = [
     { label: 'Internal', value: 'internal' },
@@ -47,13 +65,38 @@ export class Userslist {
   ];
   statusOptions = [
     { label: 'Active', value: 'active' },
-    { label: 'Inactive', value: 'inactive' },
-    { label: 'Suspended', value: 'suspended' }
+    { label: 'Inactive', value: 'inactive' }
   ];
 
   onAddUser() {
-    // Logic to add a new user
-    console.log('Add User button clicked');
+    // Show add user modal
+    this.showAddUserModal = true;
+  }
+  
+  closeAddUserModal() {
+    this.showAddUserModal = false;
+    // Reset form
+    this.newUser = {
+      fullName: '',
+      email: '',
+      jiraId: '',
+      type: '',
+      status: ''
+    };
+  }
+  
+  submitNewUser() {
+    // Validate required fields
+    if (!this.newUser.fullName || !this.newUser.email || !this.newUser.type || !this.newUser.status) {
+      alert('Please fill all required fields');
+      return;
+    }
+    
+    // Add user logic here
+    console.log('New user:', this.newUser);
+    
+    // Close modal and reset form
+    this.closeAddUserModal();
   }
   onImport() {
     // Show import modal
@@ -67,13 +110,46 @@ export class Userslist {
   onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
+      this.selectedFileName = file.name;
       console.log('File selected:', file.name);
       // Add your CSV import logic here
+    }
+  }
+  
+  onDragOver(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging = true;
+  }
+  
+  onDragLeave(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging = false;
+  }
+  
+  onDrop(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging = false;
+    
+    const files = event.dataTransfer?.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
+        this.selectedFileName = file.name;
+        console.log('File dropped:', file.name);
+        // Add your CSV import logic here
+      } else {
+        alert('Please upload a CSV file');
+      }
     }
   }
 
   closeImportModal() {
     this.showImportModal = false;
+    this.selectedFileName = '';
+    this.isDragging = false;
   }
 
   onSearchChange(query: string) {
@@ -82,11 +158,14 @@ export class Userslist {
   }
 
   exportToCSV() {
+    // Determine which users to export
+    const usersToExport = this.selectedUsers.length > 0 ? this.selectedUsers : this.filteredUsers;
+    
     // Prepare CSV headers
     const headers = ['User', 'Type', 'Status', 'Created On', 'Last Activity'];
     
     // Prepare CSV rows
-    const rows = this.users.map(user => [
+    const rows = usersToExport.map(user => [
       user.user,
       user.type,
       user.status,
@@ -106,7 +185,8 @@ export class Userslist {
     const url = URL.createObjectURL(blob);
     
     link.setAttribute('href', url);
-    link.setAttribute('download', `users_export_${new Date().toISOString().split('T')[0]}.csv`);
+    const exportType = this.selectedUsers.length > 0 ? 'selected' : 'all';
+    link.setAttribute('download', `users_export_${exportType}_${new Date().toISOString().split('T')[0]}.csv`);
     link.style.visibility = 'hidden';
     
     document.body.appendChild(link);
