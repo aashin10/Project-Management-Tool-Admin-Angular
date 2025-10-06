@@ -3,22 +3,21 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Table, TableColumn } from '../../../../shared/table/table';
 import { CustomButton } from '../../../../shared/custom-button/custom-button';
+import { AddMemberModal } from './add-member-modal/add-member-modal';
 
 interface TeamMember {
   id: string;
   name: string;
   department: string;
-  initials: string;
-  avatarColor: string;
+  status?: string;
   role: string;
   email: string;
-  issuesCount: number;
 }
 
 @Component({
   selector: 'app-teams-and-roles',
   standalone: true,
-  imports: [CommonModule, FormsModule, Table, CustomButton],
+  imports: [CommonModule, FormsModule, Table, CustomButton, AddMemberModal],
   templateUrl: './teams-and-roles.html',
   styleUrls: ['./teams-and-roles.css']
 })
@@ -42,81 +41,97 @@ export class TeamsAndRoles {
       id: '1',
       name: 'Asha Varma',
       department: 'Engineering',
-      initials: 'AV',
-      avatarColor: '#E9D5FF',
       role: 'Project Manager',
       email: 'asha.varma@company.com',
-      issuesCount: 8,
+      status: 'Active'
     },
     {
       id: '2',
       name: 'Pranav Iyer',
       department: 'Engineering',
-      initials: 'PI',
-      avatarColor: '#BFDBFE',
       role: 'Tech Lead',
       email: 'pranav.iyer@company.com',
-      issuesCount: 12,
+      status: 'Active'
     },
     {
       id: '3',
       name: 'Sarah Chen',
       department: 'Design',
-      initials: 'SC',
-      avatarColor: '#FBCFE8',
       role: 'UI/UX Designer',
       email: 'sarah.chen@company.com',
-      issuesCount: 6,
+      status: 'Inactive'
     },
     {
       id: '4',
       name: 'Mike Johnson',
       department: 'Engineering',
-      initials: 'MJ',
-      avatarColor: '#BBF7D0',
       role: 'Senior Developer',
       email: 'mike.johnson@company.com',
-      issuesCount: 10,
+      status: 'Active'
     },
     {
       id: '5',
       name: 'Lisa Wong',
       department: 'Quality Assurance',
-      initials: 'LW',
-      avatarColor: '#FED7AA',
       role: 'QA Engineer',
       email: 'lisa.wong@company.com',
-      issuesCount: 7,
+      status: 'Active'
     },
     {
       id: '6',
       name: 'David Kumar',
       department: 'Engineering',
-      initials: 'DK',
-      avatarColor: '#DDD6FE',
       role: 'DevOps Engineer',
       email: 'david.kumar@company.com',
-      issuesCount: 5,
+      status: 'Active'
     },
     {
       id: '7',
       name: 'Emma Thompson',
       department: 'Business',
-      initials: 'ET',
-      avatarColor: '#FEF08A',
       role: 'Business Analyst',
       email: 'emma.thompson@company.com',
-      issuesCount: 4,
+      status: 'Inactive'
     },
     {
       id: '8',
       name: 'James Wilson',
       department: 'Engineering',
-      initials: 'JW',
-      avatarColor: '#A5F3FC',
       role: 'Senior Developer',
       email: 'james.wilson@company.com',
-      issuesCount: 9,
+      status: 'Suspended'
+    },
+    {
+      id: '9',
+      name: 'Olivia Martinez',
+      department: 'Design',
+      role: 'UI/UX Designer',
+      email: 'olivia.martinez@company.com',
+      status: 'Inactive'
+    },
+    {
+      id: '10',
+      name: 'Ethan Brown',
+      department: 'Quality Assurance',
+      role: 'QA Engineer',
+      email: 'ethan.brown@company.com',
+      status: 'Active'
+    },
+    {
+      id: '11',
+      name: 'Sophia Davis',
+      department: 'Business',
+      role: 'Business Analyst',
+      email: 'sophia.davis@company.com',
+      status: 'Inactive'
+    },
+    {
+      id: '12',
+      name: 'Liam Smith',
+      department: 'Engineering',
+      role: 'Senior Developer',
+      email: 'liam.smith@company.com',
+      status: 'Active'
     }
   ];
 
@@ -145,18 +160,23 @@ export class TeamsAndRoles {
       }
     },
     {
-      header: 'Contact',
+      header: 'Email',
       field: 'email',
       type: 'text',
       sortable: false,
       width: '25%'
     },
     {
-      header: 'Assigned Issues',
-      field: 'issues',
-      type: 'text',
-      sortable: true,
-      width: '15%'
+      header: 'Status',
+      field: 'status',
+      type: 'badge',
+      sortable: false,
+      width: '25%',
+      badgeColors: {
+        'Active': 'bg-green-100 text-green-800',
+        'Inactive': 'bg-gray-100 text-gray-800',
+        'Suspended': 'bg-red-100 text-red-800',
+      }
     },
     {
       header: 'Actions',
@@ -165,9 +185,6 @@ export class TeamsAndRoles {
       sortable: false,
       width: '10%',
       actions: [
-        { label: 'Change Role', icon: '🔄', action: 'change-role' },
-        { label: 'View Profile', icon: '👤', action: 'view-profile' },
-        { label: 'Send Message', icon: '✉️', action: 'send-message' },
         { label: 'Remove from Project', icon: '🗑️', action: 'remove', class: 'danger' }
       ]
     }
@@ -183,7 +200,8 @@ export class TeamsAndRoles {
         member.name.toLowerCase().includes(query) ||
         member.email.toLowerCase().includes(query) ||
         member.role.toLowerCase().includes(query) ||
-        member.department.toLowerCase().includes(query)
+        member.department.toLowerCase().includes(query) ||
+        (member.status && member.status.toLowerCase().startsWith(query))
       );
     }
 
@@ -199,13 +217,11 @@ export class TeamsAndRoles {
     return this.filteredMembers.map(member => ({
       member: {
         name: member.name,
-        email: member.department,
-        avatar: member.initials,
-        color: member.avatarColor
+        avatar: member.name.slice(0,2).toUpperCase(),
       },
       role: member.role,
       email: member.email,
-      issues: `${member.issuesCount} issues`,
+      status: member.status,
       actions: member.id
     }));
   }
@@ -225,57 +241,20 @@ export class TeamsAndRoles {
   handleTableAction(event: { action: string; row: any }): void {
     const member = this.teamMembers.find(m => m.id === event.row.actions);
     
-    switch (event.action) {
-      case 'change-role':
-        this.changeRole(member);
-        break;
-      case 'view-profile':
-        this.viewProfile(member);
-        break;
-      case 'send-message':
-        this.sendMessage(member);
-        break;
-      case 'remove':
+    if (event.action) {
+      if (event.action === 'remove') {
         this.removeMember(member);
-        break;
+      }
     }
   }
 
-  addMember(): void {
-    console.log('Add new member');
-    // Open modal or navigate to add member page
-  }
-
-  changeRoleSelected(): void {
-    console.log('Change role for selected members');
-    // Open role change modal
-  }
 
   removeSelected(): void {
     console.log('Remove selected members');
     // Show confirmation and remove
   }
 
-  private changeRole(member: TeamMember | undefined): void {
-    if (member) {
-      console.log('Change role for:', member.name);
-      // Open role selection modal
-    }
-  }
 
-  private viewProfile(member: TeamMember | undefined): void {
-    if (member) {
-      console.log('View profile for:', member.name);
-      // Navigate to member profile
-    }
-  }
-
-  private sendMessage(member: TeamMember | undefined): void {
-    if (member) {
-      console.log('Send message to:', member.name);
-      // Open messaging interface
-    }
-  }
 
   private removeMember(member: TeamMember | undefined): void {
     if (member && confirm(`Are you sure you want to remove ${member.name} from this project?`)) {
@@ -283,4 +262,23 @@ export class TeamsAndRoles {
       console.log('Removed member:', member.name);
     }
   }
+  showAddModal: boolean = false;
+  addMember(): void {
+  this.showAddModal = true;
 }
+
+handleMemberAdded(newMember: any): void {
+  const newId = (this.teamMembers.length + 1).toString();
+  this.teamMembers.push({
+    id: newId,
+    name: newMember.name,
+    department: newMember.department,
+    role: newMember.role,
+    email: newMember.email,
+    status: newMember.status || 'Active'
+  });
+  this.showAddModal = false;
+}
+
+}
+

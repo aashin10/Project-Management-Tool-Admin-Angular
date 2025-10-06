@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { AdvancedFilterSection } from './advanced-filter-section';
+import { AddMemberModal } from './add-member-modal';
 
-describe('AdvancedFilterSection', () => {
-  let component: AdvancedFilterSection;
-  let fixture: ComponentFixture<AdvancedFilterSection>;
+describe('AddMemberModal', () => {
+  let component: AddMemberModal;
+  let fixture: ComponentFixture<AddMemberModal>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AdvancedFilterSection]
+      imports: [AddMemberModal]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(AdvancedFilterSection);
+    fixture = TestBed.createComponent(AddMemberModal);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -26,7 +26,7 @@
         <!-- Custom Button -->
         <app-custom-button
           label="Add Member"
-          icon = "/`images/plus.svg"
+          icon = "/images/plus.svg"
           shortLabel="Add"
           [bgClass]="'bg-blue-600'"
           [hoverClass]="'hover:bg-blue-700'"
@@ -66,15 +66,6 @@
     </span>
     
     <div class="flex items-center gap-3">
-      <app-custom-button
-        label="Change Role"
-        [bgClass]="'bg-white'"
-        [borderClass]="'border border-blue-300'"
-        [textColor]="'text-blue-700'"
-        [hoverClass]="'hover:bg-blue-50'"
-        (action)="changeRoleSelected()"
-      >
-      </app-custom-button>
       
       <app-custom-button
         label="Remove"
@@ -86,6 +77,8 @@
       </app-custom-button>
     </div>
   </div>
+
+
 
   <!-- Table Component -->
   <div class="bg-white rounded-lg shadow-sm">
@@ -140,5 +133,11 @@
       </svg>
     </app-custom-button>
   </div>
+      <app-add-member-modal
+  *ngIf="showAddModal"
+  (close)="showAddModal = false"
+  (memberAdded)="handleMemberAdded($event)"
+></app-add-member-modal>
 
 </div>
+
