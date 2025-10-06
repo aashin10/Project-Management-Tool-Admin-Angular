@@ -4,39 +4,42 @@
     description="Manage user accounts and permissions"
   ></app-sectiontitle>
 
-  <app-custom-button
-    label="Export"
-    (click)="onExport()"
-    [bgClass]="'bg-white'"
-    [hoverClass]="'hover:bg-gray-100'"
-    class="ml-auto"
-    [extraClasses]="'mr-2 mt-4'"
-    [icon]="'images/export.svg'"
-    [fontSize]="'text-[14px]'"
-  ></app-custom-button>
+  <div class="mr-2 mt-4 ml-auto">
+    <app-custom-button
+      label="Export"
+      (click)="onExport()"
+      [bgClass]="'bg-white'"
+      [hoverClass]="'hover:bg-gray-100'"
+      [icon]="'images/export.svg'"
+      [fontSize]="'text-[14px]'"
+    ></app-custom-button>
+  </div>
 
-  <app-custom-button
-    label="Bulk Import"
-    (click)="onImport()"
-    [bgClass]="'bg-white'"
-    [hoverClass]="'hover:bg-gray-100'"
-    [fontSize]="'text-base'"
-    [icon]="'images/import.svg'"
-    [extraClasses]="'mr-2 mt-4'"
-    [fontSize]="'text-[14px]'"
-  ></app-custom-button>
+  <div class="mr-2 mt-4">
+    <app-custom-button
+      label="Bulk Import"
+      (click)="onImport()"
+      [bgClass]="'bg-white'"
+      [hoverClass]="'hover:bg-gray-100'"
+      [fontSize]="'text-base'"
+      [icon]="'images/import.svg'"
+      [fontSize]="'text-[14px]'"
+    ></app-custom-button>
+  </div>
 
-  <app-custom-button
-    label="Add User"
-    (click)="onAddUser()"
-    [bgClass]="'bg-[#0052CC]'"
-    [hoverClass]="'hover:bg-[#0052cce6]'"
-    [textColor]="'text-white'"
-    [extraClasses]="'font-bold mt-4'"
-    [fontSize]="'text-base'"
-    [icon]="'images/plus.svg'"
-    [fontSize]="'text-[14px]'"
-  ></app-custom-button>
+  <div class="mr-2 mt-4">
+    <app-custom-button
+      label="Add User"
+      (click)="onAddUser()"
+      [bgClass]="'bg-[#0052CC]'"
+      [hoverClass]="'hover:bg-[#0052cce6]'"
+      [textColor]="'text-white'"
+      [extraClasses]="'font-bold'"
+      [fontSize]="'text-base'"
+      [icon]="'images/plus.svg'"
+      [fontSize]="'text-[14px]'"
+    ></app-custom-button>
+  </div>
 </div>
 
 <div class="flex">
@@ -45,6 +48,7 @@
     class="w-10/12 p-0 ml-1"
     [width]="'w-full'"
     [backgroundColor]="'bg-white'"
+    (searchChange)="onSearchChange($event)"
   ></app-search-bar>
   <app-custom-button
     label="Advanced Filter"
@@ -52,9 +56,9 @@
     [bgClass]="'bg-white'"
     [hoverClass]="'hover:bg-gray-100'"
     class="ml-auto"
-    [extraClasses]="'mt-0.5'"
     [icon]="'images/filter.svg'"
     [fontSize]="'text-[14px]'"
+    [height]="'h-[38px]'"
   ></app-custom-button>
 </div>
 
@@ -157,11 +161,53 @@
 
 <div class="mt-6">
   <div class="overflow-x-auto">
-    <app-table 
-      [data]="paginatedUsers" 
-      [columns]="tableColumns" 
+    <app-table
+      [data]="paginatedUsers"
+      [columns]="tableColumns"
       [showCheckbox]="true"
-      (actionClick)="onActionClick($event)">
+      (actionClick)="onActionClick($event)"
+    >
     </app-table>
   </div>
 </div>
+
+<!-- Import Modal -->
+<app-modal *ngIf="showImportModal" [isOpen]="showImportModal" (close)="closeImportModal()">
+  <div class="p-6">
+    <h2 class="text-xl font-semibold mb-4">Import Users from CSV</h2>
+    <p class="text-sm text-gray-600 mb-4">
+      Upload a CSV file containing user data to bulk import users.
+    </p>
+
+    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-4">
+      <input
+        type="file"
+        accept=".csv"
+        (change)="onFileSelected($event)"
+        class="hidden"
+        #fileInput
+      />
+      <button
+        (click)="fileInput.click()"
+        class="px-4 py-2 bg-[#0052CC] hover:bg-[#0052cce6] text-white rounded-md font-medium transition-colors"
+      >
+        Choose CSV File
+      </button>
+      <p class="text-sm text-gray-500 mt-2">or drag and drop</p>
+    </div>
+
+    <div class="flex justify-end gap-3">
+      <button
+        (click)="closeImportModal()"
+        class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+      >
+        Cancel
+      </button>
+      <button
+        class="px-4 py-2 bg-[#0052CC] hover:bg-[#0052cce6] text-white rounded-md font-medium transition-colors"
+      >
+        Import
+      </button>
+    </div>
+  </div>
+</app-modal>
