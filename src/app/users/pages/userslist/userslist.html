@@ -1,1 +1,351 @@
-<app-sectiontitle title="User Management" description="Manage user accounts and permissions"></app-sectiontitle>
+<div class="flex">
+  <app-sectiontitle
+    title="User Management"
+    description="Manage user accounts and permissions"
+  ></app-sectiontitle>
+
+  <div class="mr-2 mt-4 ml-auto">
+    <app-custom-button
+      label="Export"
+      (click)="onExport()"
+      [bgClass]="'bg-white'"
+      [hoverClass]="'hover:bg-gray-100'"
+      [icon]="'images/export.svg'"
+      [fontSize]="'text-[14px]'"
+    ></app-custom-button>
+  </div>
+
+  <div class="mr-2 mt-4">
+    <app-custom-button
+      label="Bulk Import"
+      (click)="onImport()"
+      [bgClass]="'bg-white'"
+      [hoverClass]="'hover:bg-gray-100'"
+      [fontSize]="'text-base'"
+      [icon]="'images/import.svg'"
+      [fontSize]="'text-[14px]'"
+    ></app-custom-button>
+  </div>
+
+  <div class="mr-2 mt-4">
+    <app-custom-button
+      label="Add User"
+      (click)="onAddUser()"
+      [bgClass]="'bg-[#0052CC]'"
+      [hoverClass]="'hover:bg-[#0052cce6]'"
+      [textColor]="'text-white'"
+      [extraClasses]="'font-bold'"
+      [fontSize]="'text-base'"
+      [icon]="'images/plus.svg'"
+      [fontSize]="'text-[14px]'"
+    ></app-custom-button>
+  </div>
+</div>
+
+<div class="flex">
+  <app-search-bar
+    placeholder="Search users..."
+    class="w-10/12 p-0 ml-1"
+    [width]="'w-full'"
+    [backgroundColor]="'bg-white'"
+    (searchChange)="onSearchChange($event)"
+  ></app-search-bar>
+  <app-custom-button
+    label="Advanced Filter"
+    (click)="onAdvancedFilter()"
+    [bgClass]="'bg-white'"
+    [hoverClass]="'hover:bg-gray-100'"
+    class="ml-auto"
+    [icon]="'images/filter.svg'"
+    [fontSize]="'text-[14px]'"
+    [height]="'h-[38px]'"
+  ></app-custom-button>
+</div>
+
+<!-- Advanced Filter Panel -->
+<div
+  *ngIf="showAdvancedFilter"
+  class="w-full bg-[rgba(220,224,231,0.05)] border border-gray-200 rounded-md p-4 mt-4 flex flex-col gap-4 animate-fade-in"
+>
+  <div class="flex flex-wrap gap-6">
+    <!-- Type Filter -->
+    <div class="flex flex-col space-y-2">
+      <label class="text-sm font-medium">Type</label>
+      <div class="relative w-48">
+        <button
+          type="button"
+          (click)="showTypeDropdown = !showTypeDropdown"
+          class="flex w-full items-center justify-between gap-2 border border-gray-300 bg-white px-3 py-2 text-sm whitespace-nowrap transition-colors outline-none focus:ring-2 focus:ring-[#0052CC] focus:border-[#0052CC] rounded-none h-9"
+        >
+          <span>{{ getTypeLabel() }}</span>
+          <svg
+            class="w-4 h-4 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            viewBox="0 0 24 24"
+          >
+            <path d="m6 9 6 6 6-6"></path>
+          </svg>
+        </button>
+        <div
+          *ngIf="showTypeDropdown"
+          class="absolute z-10 mt-1 w-full bg-white border border-gray-200 shadow-lg rounded-none"
+        >
+          <div
+            (click)="selectType('')"
+            [ngClass]="{ 'bg-[#0052CC] text-white': filterType === '' }"
+            class="px-3 py-2 text-sm cursor-pointer hover:bg-[#0052CC] hover:text-white transition-colors select-none"
+          >
+            All Types
+          </div>
+          <div
+            *ngFor="let opt of typeOptions"
+            (click)="selectType(opt.value)"
+            [ngClass]="{ 'bg-[#0052CC] text-white': filterType === opt.value }"
+            class="px-3 py-2 text-sm cursor-pointer hover:bg-[#0052CC] hover:text-white transition-colors select-none"
+          >
+            {{ opt.label }}
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Status Filter -->
+    <div class="flex flex-col space-y-2">
+      <label class="text-sm font-medium">Status</label>
+      <div class="relative w-48">
+        <button
+          type="button"
+          (click)="showStatusDropdown = !showStatusDropdown"
+          class="flex w-full items-center justify-between gap-2 border border-gray-300 bg-white px-3 py-2 text-sm whitespace-nowrap transition-colors outline-none focus:ring-2 focus:ring-[#0052CC] focus:border-[#0052CC] rounded-none h-9"
+        >
+          <span>{{ getStatusLabel() }}</span>
+          <svg
+            class="w-4 h-4 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            viewBox="0 0 24 24"
+          >
+            <path d="m6 9 6 6 6-6"></path>
+          </svg>
+        </button>
+        <div
+          *ngIf="showStatusDropdown"
+          class="absolute z-10 mt-1 w-full bg-white border border-gray-200 shadow-lg rounded-none"
+        >
+          <div
+            (click)="selectStatus('')"
+            [ngClass]="{ 'bg-[#0052CC] text-white': filterStatus === '' }"
+            class="px-3 py-2 text-sm cursor-pointer hover:bg-[#0052CC] hover:text-white transition-colors select-none"
+          >
+            All Status
+          </div>
+          <div
+            *ngFor="let opt of statusOptions"
+            (click)="selectStatus(opt.value)"
+            [ngClass]="{ 'bg-[#0052CC] text-white': filterStatus === opt.value }"
+            class="px-3 py-2 text-sm cursor-pointer hover:bg-[#0052CC] hover:text-white transition-colors select-none"
+          >
+            {{ opt.label }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mt-6">
+  <div class="overflow-x-auto">
+    <app-table
+      [data]="paginatedUsers"
+      [columns]="tableColumns"
+      [showCheckbox]="true"
+      (actionClick)="onActionClick($event)"
+      (selectionChange)="onSelectionChange($event)"
+    >
+    </app-table>
+  </div>
+</div>
+
+<!-- Add User Modal -->
+<app-modal *ngIf="showAddUserModal" [isOpen]="showAddUserModal" (close)="closeAddUserModal()">
+  <div class="p-6">
+    <h2 class="text-xl font-semibold mb-2">Create New User</h2>
+    <p class="text-sm text-gray-600 mb-6">
+      Add a new user to the system. Required fields are marked with an asterisk (*).
+    </p>
+
+    <form (ngSubmit)="submitNewUser()" class="space-y-4">
+      <!-- Full Name -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Full Name <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="newUser.fullName"
+          name="fullName"
+          placeholder="Full Name"
+          required
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0052CC] focus:border-[#0052CC]"
+        />
+      </div>
+
+      <!-- Email -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Email <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="email"
+          [(ngModel)]="newUser.email"
+          name="email"
+          placeholder="Use Jira Email Id if you are an existing user"
+          required
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0052CC] focus:border-[#0052CC]"
+        />
+      </div>
+
+      <!-- Jira ID -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Jira ID
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="newUser.jiraId"
+          name="jiraId"
+          placeholder="Enter Jira ID if applicable"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0052CC] focus:border-[#0052CC]"
+        />
+      </div>
+
+      <!-- Type Dropdown -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Type <span class="text-red-500">*</span>
+        </label>
+        <select
+          [(ngModel)]="newUser.type"
+          name="type"
+          required
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0052CC] focus:border-[#0052CC]"
+        >
+          <option value="" disabled selected>Select Type</option>
+          <option value="internal">Internal</option>
+          <option value="external">External</option>
+          <option value="customer">Customer</option>
+        </select>
+      </div>
+
+      <!-- Status Dropdown -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Status <span class="text-red-500">*</span>
+        </label>
+        <select
+          [(ngModel)]="newUser.status"
+          name="status"
+          required
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0052CC] focus:border-[#0052CC]"
+        >
+          <option value="" disabled selected>Select Status</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex justify-end gap-3 mt-6">
+        <button
+          type="button"
+          (click)="closeAddUserModal()"
+          class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="px-4 py-2 bg-[#0052CC] hover:bg-[#0052cce6] text-white rounded-md font-medium transition-colors"
+        >
+          Create User
+        </button>
+      </div>
+    </form>
+  </div>
+</app-modal>
+
+<!-- Import Modal -->
+<app-modal *ngIf="showImportModal" [isOpen]="showImportModal" (close)="closeImportModal()">
+  <div class="p-6">
+    <h2 class="text-xl font-semibold mb-4">Import Users from CSV</h2>
+    <p class="text-sm text-gray-600 mb-4">
+      Upload a CSV file containing user data to bulk import users.
+    </p>
+
+    <div 
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)"
+      [ngClass]="{'border-[#0052CC] bg-blue-50': isDragging}"
+      class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-4 transition-colors"
+    >
+      <input
+        type="file"
+        accept=".csv"
+        (change)="onFileSelected($event)"
+        class="hidden"
+        #fileInput
+      />
+      
+      <div *ngIf="!selectedFileName">
+        <svg class="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+        </svg>
+        <button
+          (click)="fileInput.click()"
+          class="px-4 py-2 bg-[#0052CC] hover:bg-[#0052cce6] text-white rounded-md font-medium transition-colors"
+        >
+          Choose CSV File
+        </button>
+        <p class="text-sm text-gray-500 mt-2">or drag and drop</p>
+      </div>
+      
+      <div *ngIf="selectedFileName" class="flex items-center justify-center gap-2">
+        <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        <span class="text-sm font-medium text-gray-700">{{ selectedFileName }}</span>
+        <button
+          (click)="selectedFileName = ''; fileInput.value = ''"
+          class="ml-2 text-red-500 hover:text-red-700"
+        >
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-3">
+      <button
+        (click)="closeImportModal()"
+        class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+      >
+        Cancel
+      </button>
+      <button
+        [disabled]="!selectedFileName"
+        [ngClass]="{'opacity-50 cursor-not-allowed': !selectedFileName}"
+        class="px-4 py-2 bg-[#0052CC] hover:bg-[#0052cce6] text-white rounded-md font-medium transition-colors"
+      >
+        Import
+      </button>
+    </div>
+  </div>
+</app-modal>
