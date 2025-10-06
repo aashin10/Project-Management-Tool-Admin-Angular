@@ -98,7 +98,7 @@
           Overview
         </button>
         
-        <button 
+        <!-- <button 
           (click)="selectTab('sprints')"
           [class.border-blue-600]="activeTab === 'sprints'"
           [class.text-blue-600]="activeTab === 'sprints'"
@@ -106,7 +106,7 @@
           [class.text-gray-600]="activeTab !== 'sprints'"
           class="px-6 py-4 text-sm font-medium border-b-2 hover:text-blue-600 hover:border-blue-400 transition-colors">
           Sprints & Reports
-        </button>
+        </button> -->
         
         <button 
           (click)="selectTab('team')"
@@ -135,7 +135,7 @@
       <div class="bg-white rounded-lg shadow-sm p-8 text-center text-gray-500">
         Sprints & Reports component will be loaded here
       </div>
-    </div>
+    </div> 
 
     <!-- Team & Roles Tab Content -->
     <div *ngIf="activeTab === 'team'" class="animate-fadeIn">

@@ -30,12 +30,12 @@ export class IndividualprojectComponent implements OnInit {
   
   // Project data (this would typically come from a service)
   project = {
-    name: 'Atlas App',
+    name: 'Atlasss App',
     code: 'PROJ-001',
     status: 'Ongoing',
     description: 'Mobile application for atlas navigation and mapping',
     avatar: 'AA',
-    avatarColor: '#0052CC'
+    avatarColor: '#cc4700ff'
   };
 
   // Overview component reference (lazy loaded)

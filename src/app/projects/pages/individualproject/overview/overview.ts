@@ -163,7 +163,8 @@ export class OverviewComponent implements OnInit {
     { name: 'Pranav Iyer', role: 'Tech Lead', initials: 'PI', color: 'green' },
     { name: 'Sarah Chen', role: 'UX/UI Designer', initials: 'SC', color: 'purple' },
     { name: 'Mike Johnson', role: 'Senior Developer', initials: 'MJ', color: 'orange' },
-    { name: 'Lisa Wong', role: 'QA Engineer', initials: 'LW', color: 'pink' }
+    { name: 'Lisa Wong', role: 'QA Engineer', initials: 'LW', color: 'pink' },
+    { name: 'Fuhad', role: 'AI Engineer', initials: 'FS', color: 'blue' },
   ];
 
   ngOnInit(): void {

@@ -1,18 +1,18 @@
+
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { WorkItemDistributionComponent } from './work-item-distribution';
 
-import { WorkItemDistribution } from './work-item-distribution';
 
-describe('WorkItemDistribution', () => {
-  let component: WorkItemDistribution;
-  let fixture: ComponentFixture<WorkItemDistribution>;
+describe('WorkItemDistributionComponent', () => {
+  let component: WorkItemDistributionComponent;
+  let fixture: ComponentFixture<WorkItemDistributionComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [WorkItemDistribution]
-    })
-    .compileComponents();
+      imports: [WorkItemDistributionComponent] 
+    }).compileComponents();
 
-    fixture = TestBed.createComponent(WorkItemDistribution);
+    fixture = TestBed.createComponent(WorkItemDistributionComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
