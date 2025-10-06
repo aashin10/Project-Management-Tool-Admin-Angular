@@ -1,7 +1,11 @@
+// projectslist.component.ts
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { CustomButton } from '../../../shared/custom-button/custom-button';
+import { Pagination } from '../../../shared/pagination/pagination';
+import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
 
 interface Project {
   id: string;
@@ -28,7 +32,7 @@ type SortDirection = 'asc' | 'desc' | null;
 @Component({
   selector: 'app-projectslist',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomButton],
+  imports: [CommonModule, FormsModule, CustomButton, Pagination,Sectiontitle],
   templateUrl: './projectslist.html',
   styleUrl: './projectslist.css'
 })
@@ -38,6 +42,8 @@ export class Projectslist {
   showActionsMenu = false;
   activeProjectId: string | null = null;
   sidebarCollapsed = false;
+  
+  constructor(private router: Router) {}
   
   // Multi-select filter options
   selectedStatuses: string[] = [];
@@ -61,569 +67,69 @@ export class Projectslist {
   priorityOptions = ['Critical', 'High', 'Medium', 'Low'];
 
   // Table headers configuration
-  tableHeaders = [
+  tableHeaders: TableHeader[] = [
     { field: 'name' as SortField, label: 'Project Info', sortable: true, minWidth: '200px' },
-    { field: 'status' as SortField, label: 'Status', sortable: true, minWidth: '100px' },
-    { field: 'priority' as SortField, label: 'Priority', sortable: true, minWidth: '90px' },
+    { field: 'status' as SortField, label: 'Status', sortable: false, minWidth: '100px' },
+    { field: 'priority' as SortField, label: 'Priority', sortable: false, minWidth: '90px' },
     { field: 'projectManager' as SortField, label: 'Project Manager', sortable: true, minWidth: '160px' },
     { field: 'teamSize' as SortField, label: 'Team Size', sortable: true, minWidth: '100px' },
     { field: null, label: 'Actions', sortable: false, minWidth: '80px' }
   ];
 
   projects: Project[] = [
-    {
-      id: '1',
-      name: 'Atlas App',
-      projectCode: 'PROJ-001',
-      status: 'Ongoing',
-      priority: 'High',
-      projectManager: 'Asha Varma',
-      managerInitials: 'AV',
-      teamSize: 12,
-      selected: false
-    },
-    {
-      id: '2',
-      name: 'RoadSim',
-      projectCode: 'PROJ-002',
-      status: 'On Hold',
-      priority: 'Medium',
-      projectManager: 'Pranav Iyer',
-      managerInitials: 'PI',
-      teamSize: 8,
-      selected: false
-    },
-    {
-      id: '3',
-      name: 'CloudSync Pro',
-      projectCode: 'PROJ-003',
-      status: 'Completed',
-      priority: 'High',
-      projectManager: 'Sarah Chen',
-      managerInitials: 'SC',
-      teamSize: 15,
-      selected: false
-    },
-    {
-      id: '4',
-      name: 'DataViz Dashboard',
-      projectCode: 'PROJ-004',
-      status: 'Ongoing',
-      priority: 'Medium',
-      projectManager: 'Michael Rodriguez',
-      managerInitials: 'MR',
-      teamSize: 6,
-      selected: false
-    },
-    {
-      id: '5',
-      name: 'SecureAuth API',
-      projectCode: 'PROJ-005',
-      status: 'Ongoing',
-      priority: 'Critical',
-      projectManager: 'Emma Thompson',
-      managerInitials: 'ET',
-      teamSize: 9,
-      selected: false
-    },
-    {
-      id: '6',
-      name: 'E-Learning Hub',
-      projectCode: 'PROJ-006',
-      status: 'Planning',
-      priority: 'Low',
-      projectManager: 'James Wilson',
-      managerInitials: 'JW',
-      teamSize: 11,
-      selected: false
-    },
-    {
-      id: '7',
-      name: 'MarketPlace Connect',
-      projectCode: 'PROJ-007',
-      status: 'Archived',
-      priority: 'Medium',
-      projectManager: 'Lisa Anderson',
-      managerInitials: 'LA',
-      teamSize: 18,
-      selected: false
-    },
-    {
-      id: '8',
-      name: 'Mobile Banking App',
-      projectCode: 'PROJ-008',
-      status: 'Ongoing',
-      priority: 'Critical',
-      projectManager: 'David Kumar',
-      managerInitials: 'DK',
-      teamSize: 20,
-      selected: false
-    },
-    {
-      id: '9',
-      name: 'Healthcare Portal',
-      projectCode: 'PROJ-009',
-      status: 'Planning',
-      priority: 'High',
-      projectManager: 'Rachel Green',
-      managerInitials: 'RG',
-      teamSize: 14,
-      selected: false
-    },
-    {
-      id: '10',
-      name: 'Inventory Management',
-      projectCode: 'PROJ-010',
-      status: 'On Hold',
-      priority: 'Medium',
-      projectManager: 'Tom Harris',
-      managerInitials: 'TH',
-      teamSize: 7,
-      selected: false
-    },
-    {
-      id: '11',
-      name: 'Social Media Platform',
-      projectCode: 'PROJ-011',
-      status: 'Ongoing',
-      priority: 'High',
-      projectManager: 'Nina Patel',
-      managerInitials: 'NP',
-      teamSize: 25,
-      selected: false
-    },
-    {
-      id: '12',
-      name: 'CRM System',
-      projectCode: 'PROJ-012',
-      status: 'Completed',
-      priority: 'Medium',
-      projectManager: 'Alex Johnson',
-      managerInitials: 'AJ',
-      teamSize: 10,
-      selected: false
-    },
-    {
-      id: '13',
-      name: 'Analytics Dashboard',
-      projectCode: 'PROJ-013',
-      status: 'Ongoing',
-      priority: 'High',
-      projectManager: 'Sophie Turner',
-      managerInitials: 'ST',
-      teamSize: 8,
-      selected: false
-    },
-    {
-      id: '14',
-      name: 'Payment Gateway',
-      projectCode: 'PROJ-014',
-      status: 'Planning',
-      priority: 'Critical',
-      projectManager: 'Robert Chen',
-      managerInitials: 'RC',
-      teamSize: 12,
-      selected: false
-    },
-    {
-      id: '15',
-      name: 'Logistics Tracker',
-      projectCode: 'PROJ-015',
-      status: 'Ongoing',
-      priority: 'Medium',
-      projectManager: 'Maria Garcia',
-      managerInitials: 'MG',
-      teamSize: 9,
-      selected: false
-    },
-    {
-      id: '16',
-      name: 'Video Streaming Service',
-      projectCode: 'PROJ-016',
-      status: 'On Hold',
-      priority: 'Low',
-      projectManager: 'Kevin Lee',
-      managerInitials: 'KL',
-      teamSize: 16,
-      selected: false
-    },
-    {
-      id: '17',
-      name: 'Smart Home App',
-      projectCode: 'PROJ-017',
-      status: 'Ongoing',
-      priority: 'High',
-      projectManager: 'Laura Martinez',
-      managerInitials: 'LM',
-      teamSize: 11,
-      selected: false
-    },
-    {
-      id: '18',
-      name: 'Restaurant Management',
-      projectCode: 'PROJ-018',
-      status: 'Completed',
-      priority: 'Medium',
-      projectManager: 'Chris Brown',
-      managerInitials: 'CB',
-      teamSize: 6,
-      selected: false
-    },
-    {
-      id: '19',
-      name: 'Fitness Tracking App',
-      projectCode: 'PROJ-019',
-      status: 'Ongoing',
-      priority: 'Low',
-      projectManager: 'Amanda White',
-      managerInitials: 'AW',
-      teamSize: 8,
-      selected: false
-    },
-    {
-      id: '20',
-      name: 'Real Estate Platform',
-      projectCode: 'PROJ-020',
-      status: 'Planning',
-      priority: 'High',
-      projectManager: 'Daniel Kim',
-      managerInitials: 'DK',
-      teamSize: 13,
-      selected: false
-    },
-    {
-      id: '21',
-      name: 'Travel Booking System',
-      projectCode: 'PROJ-021',
-      status: 'Ongoing',
-      priority: 'Medium',
-      projectManager: 'Jessica Wang',
-      managerInitials: 'JW',
-      teamSize: 15,
-      selected: false
-    },
-    {
-      id: '22',
-      name: 'HR Management Portal',
-      projectCode: 'PROJ-022',
-      status: 'On Hold',
-      priority: 'Low',
-      projectManager: 'Michael Smith',
-      managerInitials: 'MS',
-      teamSize: 7,
-      selected: false
-    },
-    {
-      id: '23',
-      name: 'Customer Support Chat',
-      projectCode: 'PROJ-023',
-      status: 'Ongoing',
-      priority: 'Critical',
-      projectManager: 'Olivia Davis',
-      managerInitials: 'OD',
-      teamSize: 10,
-      selected: false
-    },
-    {
-      id: '24',
-      name: 'Weather Forecast App',
-      projectCode: 'PROJ-024',
-      status: 'Completed',
-      priority: 'Low',
-      projectManager: 'Ryan Taylor',
-      managerInitials: 'RT',
-      teamSize: 5,
-      selected: false
-    },
-    {
-      id: '25',
-      name: 'Task Management Tool',
-      projectCode: 'PROJ-025',
-      status: 'Ongoing',
-      priority: 'High',
-      projectManager: 'Emily Wilson',
-      managerInitials: 'EW',
-      teamSize: 12,
-      selected: false
-    },
-    // 25 Additional Projects
-    {
-      id: '26',
-      name: 'AI Chatbot Platform',
-      projectCode: 'PROJ-026',
-      status: 'Ongoing',
-      priority: 'Critical',
-      projectManager: 'Benjamin Clarke',
-      managerInitials: 'BC',
-      teamSize: 18,
-      selected: false
-    },
-    {
-      id: '27',
-      name: 'Blockchain Wallet',
-      projectCode: 'PROJ-027',
-      status: 'Planning',
-      priority: 'High',
-      projectManager: 'Sophia Williams',
-      managerInitials: 'SW',
-      teamSize: 14,
-      selected: false
-    },
-    {
-      id: '28',
-      name: 'Supply Chain Management',
-      projectCode: 'PROJ-028',
-      status: 'Ongoing',
-      priority: 'Medium',
-      projectManager: 'Lucas Brown',
-      managerInitials: 'LB',
-      teamSize: 22,
-      selected: false
-    },
-    {
-      id: '29',
-      name: 'Virtual Event Platform',
-      projectCode: 'PROJ-029',
-      status: 'Completed',
-      priority: 'Low',
-      projectManager: 'Isabella Martinez',
-      managerInitials: 'IM',
-      teamSize: 9,
-      selected: false
-    },
-    {
-      id: '30',
-      name: 'Code Review Automation',
-      projectCode: 'PROJ-030',
-      status: 'On Hold',
-      priority: 'Medium',
-      projectManager: 'Ethan Anderson',
-      managerInitials: 'EA',
-      teamSize: 7,
-      selected: false
-    },
-    {
-      id: '31',
-      name: 'Document Management System',
-      projectCode: 'PROJ-031',
-      status: 'Ongoing',
-      priority: 'High',
-      projectManager: 'Mia Thompson',
-      managerInitials: 'MT',
-      teamSize: 11,
-      selected: false
-    },
-    {
-      id: '32',
-      name: 'Fleet Management App',
-      projectCode: 'PROJ-032',
-      status: 'Planning',
-      priority: 'Medium',
-      projectManager: 'Noah Garcia',
-      managerInitials: 'NG',
-      teamSize: 13,
-      selected: false
-    },
-    {
-      id: '33',
-      name: 'Expense Tracking Tool',
-      projectCode: 'PROJ-033',
-      status: 'Ongoing',
-      priority: 'Low',
-      projectManager: 'Ava Rodriguez',
-      managerInitials: 'AR',
-      teamSize: 6,
-      selected: false
-    },
-    {
-      id: '34',
-      name: 'Network Monitoring System',
-      projectCode: 'PROJ-034',
-      status: 'Ongoing',
-      priority: 'Critical',
-      projectManager: 'William Lee',
-      managerInitials: 'WL',
-      teamSize: 16,
-      selected: false
-    },
-    {
-      id: '35',
-      name: 'Content Management CMS',
-      projectCode: 'PROJ-035',
-      status: 'Archived',
-      priority: 'Medium',
-      projectManager: 'Charlotte Davis',
-      managerInitials: 'CD',
-      teamSize: 10,
-      selected: false
-    },
-    {
-      id: '36',
-      name: 'Recruitment Portal',
-      projectCode: 'PROJ-036',
-      status: 'Ongoing',
-      priority: 'High',
-      projectManager: 'James Miller',
-      managerInitials: 'JM',
-      teamSize: 12,
-      selected: false
-    },
-    {
-      id: '37',
-      name: 'IoT Device Manager',
-      projectCode: 'PROJ-037',
-      status: 'Planning',
-      priority: 'Critical',
-      projectManager: 'Amelia Wilson',
-      managerInitials: 'AW',
-      teamSize: 19,
-      selected: false
-    },
-    {
-      id: '38',
-      name: 'Email Marketing Suite',
-      projectCode: 'PROJ-038',
-      status: 'Completed',
-      priority: 'Medium',
-      projectManager: 'Oliver Moore',
-      managerInitials: 'OM',
-      teamSize: 8,
-      selected: false
-    },
-    {
-      id: '39',
-      name: 'Bug Tracking System',
-      projectCode: 'PROJ-039',
-      status: 'Ongoing',
-      priority: 'High',
-      projectManager: 'Emma Taylor',
-      managerInitials: 'ET',
-      teamSize: 14,
-      selected: false
-    },
-    {
-      id: '40',
-      name: 'Appointment Scheduler',
-      projectCode: 'PROJ-040',
-      status: 'On Hold',
-      priority: 'Low',
-      projectManager: 'Liam Anderson',
-      managerInitials: 'LA',
-      teamSize: 5,
-      selected: false
-    },
-    {
-      id: '41',
-      name: 'Digital Asset Management',
-      projectCode: 'PROJ-041',
-      status: 'Ongoing',
-      priority: 'Medium',
-      projectManager: 'Harper Thomas',
-      managerInitials: 'HT',
-      teamSize: 11,
-      selected: false
-    },
-    {
-      id: '42',
-      name: 'Knowledge Base System',
-      projectCode: 'PROJ-042',
-      status: 'Planning',
-      priority: 'High',
-      projectManager: 'Elijah Jackson',
-      managerInitials: 'EJ',
-      teamSize: 9,
-      selected: false
-    },
-    {
-      id: '43',
-      name: 'Invoice Generator',
-      projectCode: 'PROJ-043',
-      status: 'Completed',
-      priority: 'Low',
-      projectManager: 'Abigail White',
-      managerInitials: 'AW',
-      teamSize: 4,
-      selected: false
-    },
-    {
-      id: '44',
-      name: 'Video Conference App',
-      projectCode: 'PROJ-044',
-      status: 'Ongoing',
-      priority: 'Critical',
-      projectManager: 'Alexander Harris',
-      managerInitials: 'AH',
-      teamSize: 21,
-      selected: false
-    },
-    {
-      id: '45',
-      name: 'Sales Forecasting Tool',
-      projectCode: 'PROJ-045',
-      status: 'Ongoing',
-      priority: 'High',
-      projectManager: 'Emily Martin',
-      managerInitials: 'EM',
-      teamSize: 15,
-      selected: false
-    },
-    {
-      id: '46',
-      name: 'Warehouse Management',
-      projectCode: 'PROJ-046',
-      status: 'On Hold',
-      priority: 'Medium',
-      projectManager: 'Daniel Thompson',
-      managerInitials: 'DT',
-      teamSize: 17,
-      selected: false
-    },
-    {
-      id: '47',
-      name: 'Learning Management System',
-      projectCode: 'PROJ-047',
-      status: 'Ongoing',
-      priority: 'High',
-      projectManager: 'Sofia Garcia',
-      managerInitials: 'SG',
-      teamSize: 20,
-      selected: false
-    },
-    {
-      id: '48',
-      name: 'API Gateway Service',
-      projectCode: 'PROJ-048',
-      status: 'Planning',
-      priority: 'Critical',
-      projectManager: 'Matthew Martinez',
-      managerInitials: 'MM',
-      teamSize: 13,
-      selected: false
-    },
-    {
-      id: '49',
-      name: 'Performance Analytics',
-      projectCode: 'PROJ-049',
-      status: 'Ongoing',
-      priority: 'Medium',
-      projectManager: 'Chloe Robinson',
-      managerInitials: 'CR',
-      teamSize: 10,
-      selected: false
-    },
-    {
-      id: '50',
-      name: 'Notification Service',
-      projectCode: 'PROJ-050',
-      status: 'Completed',
-      priority: 'Low',
-      projectManager: 'Jacob Clark',
-      managerInitials: 'JC',
-      teamSize: 6,
-      selected: false
-    }
+    { id: '1', name: 'Atlas App', projectCode: 'PROJ-001', status: 'Ongoing', priority: 'High', projectManager: 'Asha Varma', managerInitials: 'AV', teamSize: 12, selected: false },
+    { id: '2', name: 'RoadSim', projectCode: 'PROJ-002', status: 'On Hold', priority: 'Medium', projectManager: 'Pranav Iyer', managerInitials: 'PI', teamSize: 8, selected: false },
+    { id: '3', name: 'CloudSync Pro', projectCode: 'PROJ-003', status: 'Completed', priority: 'High', projectManager: 'Sarah Chen', managerInitials: 'SC', teamSize: 15, selected: false },
+    { id: '4', name: 'DataViz Dashboard', projectCode: 'PROJ-004', status: 'Ongoing', priority: 'Medium', projectManager: 'Michael Rodriguez', managerInitials: 'MR', teamSize: 6, selected: false },
+    { id: '5', name: 'SecureAuth API', projectCode: 'PROJ-005', status: 'Ongoing', priority: 'Critical', projectManager: 'Emma Thompson', managerInitials: 'ET', teamSize: 9, selected: false },
+    { id: '6', name: 'E-Learning Hub', projectCode: 'PROJ-006', status: 'Planning', priority: 'Low', projectManager: 'James Wilson', managerInitials: 'JW', teamSize: 11, selected: false },
+    { id: '7', name: 'MarketPlace Connect', projectCode: 'PROJ-007', status: 'Archived', priority: 'Medium', projectManager: 'Lisa Anderson', managerInitials: 'LA', teamSize: 18, selected: false },
+    { id: '8', name: 'Mobile Banking App', projectCode: 'PROJ-008', status: 'Ongoing', priority: 'Critical', projectManager: 'David Kumar', managerInitials: 'DK', teamSize: 20, selected: false },
+    { id: '9', name: 'Healthcare Portal', projectCode: 'PROJ-009', status: 'Planning', priority: 'High', projectManager: 'Rachel Green', managerInitials: 'RG', teamSize: 14, selected: false },
+    { id: '10', name: 'Inventory Management', projectCode: 'PROJ-010', status: 'On Hold', priority: 'Medium', projectManager: 'Tom Harris', managerInitials: 'TH', teamSize: 7, selected: false },
+    { id: '11', name: 'Social Media Platform', projectCode: 'PROJ-011', status: 'Ongoing', priority: 'High', projectManager: 'Nina Patel', managerInitials: 'NP', teamSize: 25, selected: false },
+    { id: '12', name: 'CRM System', projectCode: 'PROJ-012', status: 'Completed', priority: 'Medium', projectManager: 'Alex Johnson', managerInitials: 'AJ', teamSize: 10, selected: false },
+    { id: '13', name: 'Analytics Dashboard', projectCode: 'PROJ-013', status: 'Ongoing', priority: 'High', projectManager: 'Sophie Turner', managerInitials: 'ST', teamSize: 8, selected: false },
+    { id: '14', name: 'Payment Gateway', projectCode: 'PROJ-014', status: 'Planning', priority: 'Critical', projectManager: 'Robert Chen', managerInitials: 'RC', teamSize: 12, selected: false },
+    { id: '15', name: 'Logistics Tracker', projectCode: 'PROJ-015', status: 'Ongoing', priority: 'Medium', projectManager: 'Maria Garcia', managerInitials: 'MG', teamSize: 9, selected: false },
+    { id: '16', name: 'Video Streaming Service', projectCode: 'PROJ-016', status: 'On Hold', priority: 'Low', projectManager: 'Kevin Lee', managerInitials: 'KL', teamSize: 16, selected: false },
+    { id: '17', name: 'Smart Home App', projectCode: 'PROJ-017', status: 'Ongoing', priority: 'High', projectManager: 'Laura Martinez', managerInitials: 'LM', teamSize: 11, selected: false },
+    { id: '18', name: 'Restaurant Management', projectCode: 'PROJ-018', status: 'Completed', priority: 'Medium', projectManager: 'Chris Brown', managerInitials: 'CB', teamSize: 6, selected: false },
+    { id: '19', name: 'Fitness Tracking App', projectCode: 'PROJ-019', status: 'Ongoing', priority: 'Low', projectManager: 'Amanda White', managerInitials: 'AW', teamSize: 8, selected: false },
+    { id: '20', name: 'Real Estate Platform', projectCode: 'PROJ-020', status: 'Planning', priority: 'High', projectManager: 'Daniel Kim', managerInitials: 'DK', teamSize: 13, selected: false },
+    { id: '21', name: 'Travel Booking System', projectCode: 'PROJ-021', status: 'Ongoing', priority: 'Medium', projectManager: 'Jessica Wang', managerInitials: 'JW', teamSize: 15, selected: false },
+    { id: '22', name: 'HR Management Portal', projectCode: 'PROJ-022', status: 'On Hold', priority: 'Low', projectManager: 'Michael Smith', managerInitials: 'MS', teamSize: 7, selected: false },
+    { id: '23', name: 'Customer Support Chat', projectCode: 'PROJ-023', status: 'Ongoing', priority: 'Critical', projectManager: 'Olivia Davis', managerInitials: 'OD', teamSize: 10, selected: false },
+    { id: '24', name: 'Weather Forecast App', projectCode: 'PROJ-024', status: 'Completed', priority: 'Low', projectManager: 'Ryan Taylor', managerInitials: 'RT', teamSize: 5, selected: false },
+    { id: '25', name: 'Task Management Tool', projectCode: 'PROJ-025', status: 'Ongoing', priority: 'High', projectManager: 'Emily Wilson', managerInitials: 'EW', teamSize: 12, selected: false },
+    { id: '26', name: 'AI Chatbot Platform', projectCode: 'PROJ-026', status: 'Ongoing', priority: 'Critical', projectManager: 'Benjamin Clarke', managerInitials: 'BC', teamSize: 18, selected: false },
+    { id: '27', name: 'Blockchain Wallet', projectCode: 'PROJ-027', status: 'Planning', priority: 'High', projectManager: 'Sophia Williams', managerInitials: 'SW', teamSize: 14, selected: false },
+    { id: '28', name: 'Supply Chain Management', projectCode: 'PROJ-028', status: 'Ongoing', priority: 'Medium', projectManager: 'Lucas Brown', managerInitials: 'LB', teamSize: 22, selected: false },
+    { id: '29', name: 'Virtual Event Platform', projectCode: 'PROJ-029', status: 'Completed', priority: 'Low', projectManager: 'Isabella Martinez', managerInitials: 'IM', teamSize: 9, selected: false },
+    { id: '30', name: 'Code Review Automation', projectCode: 'PROJ-030', status: 'On Hold', priority: 'Medium', projectManager: 'Ethan Anderson', managerInitials: 'EA', teamSize: 7, selected: false },
+    { id: '31', name: 'Document Management System', projectCode: 'PROJ-031', status: 'Ongoing', priority: 'High', projectManager: 'Mia Thompson', managerInitials: 'MT', teamSize: 11, selected: false },
+    { id: '32', name: 'Fleet Management App', projectCode: 'PROJ-032', status: 'Planning', priority: 'Medium', projectManager: 'Noah Garcia', managerInitials: 'NG', teamSize: 13, selected: false },
+    { id: '33', name: 'Expense Tracking Tool', projectCode: 'PROJ-033', status: 'Ongoing', priority: 'Low', projectManager: 'Ava Rodriguez', managerInitials: 'AR', teamSize: 6, selected: false },
+    { id: '34', name: 'Network Monitoring System', projectCode: 'PROJ-034', status: 'Ongoing', priority: 'Critical', projectManager: 'William Lee', managerInitials: 'WL', teamSize: 16, selected: false },
+    { id: '35', name: 'Content Management CMS', projectCode: 'PROJ-035', status: 'Archived', priority: 'Medium', projectManager: 'Charlotte Davis', managerInitials: 'CD', teamSize: 10, selected: false },
+    { id: '36', name: 'Recruitment Portal', projectCode: 'PROJ-036', status: 'Ongoing', priority: 'High', projectManager: 'James Miller', managerInitials: 'JM', teamSize: 12, selected: false },
+    { id: '37', name: 'IoT Device Manager', projectCode: 'PROJ-037', status: 'Planning', priority: 'Critical', projectManager: 'Amelia Wilson', managerInitials: 'AW', teamSize: 19, selected: false },
+    { id: '38', name: 'Email Marketing Suite', projectCode: 'PROJ-038', status: 'Completed', priority: 'Medium', projectManager: 'Oliver Moore', managerInitials: 'OM', teamSize: 8, selected: false },
+    { id: '39', name: 'Bug Tracking System', projectCode: 'PROJ-039', status: 'Ongoing', priority: 'High', projectManager: 'Emma Taylor', managerInitials: 'ET', teamSize: 14, selected: false },
+    { id: '40', name: 'Appointment Scheduler', projectCode: 'PROJ-040', status: 'On Hold', priority: 'Low', projectManager: 'Liam Anderson', managerInitials: 'LA', teamSize: 5, selected: false },
+    { id: '41', name: 'Digital Asset Management', projectCode: 'PROJ-041', status: 'Ongoing', priority: 'Medium', projectManager: 'Harper Thomas', managerInitials: 'HT', teamSize: 11, selected: false },
+    { id: '42', name: 'Knowledge Base System', projectCode: 'PROJ-042', status: 'Planning', priority: 'High', projectManager: 'Elijah Jackson', managerInitials: 'EJ', teamSize: 9, selected: false },
+    { id: '43', name: 'Invoice Generator', projectCode: 'PROJ-043', status: 'Completed', priority: 'Low', projectManager: 'Abigail White', managerInitials: 'AW', teamSize: 4, selected: false },
+    { id: '44', name: 'Video Conference App', projectCode: 'PROJ-044', status: 'Ongoing', priority: 'Critical', projectManager: 'Alexander Harris', managerInitials: 'AH', teamSize: 21, selected: false },
+    { id: '45', name: 'Sales Forecasting Tool', projectCode: 'PROJ-045', status: 'Ongoing', priority: 'High', projectManager: 'Emily Martin', managerInitials: 'EM', teamSize: 15, selected: false },
+    { id: '46', name: 'Warehouse Management', projectCode: 'PROJ-046', status: 'On Hold', priority: 'Medium', projectManager: 'Daniel Thompson', managerInitials: 'DT', teamSize: 17, selected: false },
+    { id: '47', name: 'Learning Management System', projectCode: 'PROJ-047', status: 'Ongoing', priority: 'High', projectManager: 'Sofia Garcia', managerInitials: 'SG', teamSize: 20, selected: false },
+    { id: '48', name: 'API Gateway Service', projectCode: 'PROJ-048', status: 'Planning', priority: 'Critical', projectManager: 'Matthew Martinez', managerInitials: 'MM', teamSize: 13, selected: false },
+    { id: '49', name: 'Performance Analytics', projectCode: 'PROJ-049', status: 'Ongoing', priority: 'Medium', projectManager: 'Chloe Robinson', managerInitials: 'CR', teamSize: 10, selected: false },
+    { id: '50', name: 'Notification Service', projectCode: 'PROJ-050', status: 'Completed', priority: 'Low', projectManager: 'Jacob Clark', managerInitials: 'JC', teamSize: 6, selected: false }
   ];
 
+  // Getters
   get paginatedProjects(): Project[] {
     const start = (this.currentPage - 1) * this.rowsPerPage;
     const end = start + this.rowsPerPage;
@@ -680,7 +186,6 @@ export class Projectslist {
   get filteredProjects(): Project[] {
     let filtered = [...this.projects];
 
-    // Apply search filter
     if (this.searchQuery.trim()) {
       const query = this.searchQuery.toLowerCase().trim();
       filtered = filtered.filter(project => 
@@ -690,28 +195,24 @@ export class Projectslist {
       );
     }
 
-    // Apply status filter
     if (this.selectedStatuses.length > 0) {
       filtered = filtered.filter(project => 
         this.selectedStatuses.includes(project.status)
       );
     }
 
-    // Apply priority filter
     if (this.selectedPriorities.length > 0) {
       filtered = filtered.filter(project => 
         this.selectedPriorities.includes(project.priority)
       );
     }
 
-    // Apply manager filter
     if (this.selectedManagers.length > 0) {
       filtered = filtered.filter(project => 
         this.selectedManagers.includes(project.projectManager)
       );
     }
 
-    // Apply sorting
     if (this.sortField && this.sortDirection) {
       filtered.sort((a, b) => {
         let comparison = 0;
@@ -721,10 +222,7 @@ export class Projectslist {
           comparison = a[field] - b[field];
         } else if (field === 'priority') {
           const priorityOrder: Record<string, number> = { 
-            'Critical': 4, 
-            'High': 3, 
-            'Medium': 2, 
-            'Low': 1 
+            'Critical': 4, 'High': 3, 'Medium': 2, 'Low': 1 
           };
           comparison = priorityOrder[a[field]] - priorityOrder[b[field]];
         } else {
@@ -753,44 +251,44 @@ export class Projectslist {
            this.selectedManagers.length;
   }
 
-  onSearchChange(): void {
-    this.currentPage = 1;
-  }
-
-  onRowsPerPageChange(): void {
+  // Pagination Handlers
+  handleRowsPerPageChange(newRowsPerPage: number): void {
+    this.rowsPerPage = newRowsPerPage;
     this.currentPage = 1;
     this.scrollToTop();
   }
 
-  goToFirstPage(): void {
+  handleFirstPage(): void {
     this.currentPage = 1;
     this.scrollToTop();
   }
 
-  goToPreviousPage(): void {
+  handlePreviousPage(): void {
     if (this.currentPage > 1) {
       this.currentPage--;
       this.scrollToTop();
     }
   }
 
-  goToNextPage(): void {
+  handleNextPage(): void {
     if (this.currentPage < this.totalPages) {
       this.currentPage++;
       this.scrollToTop();
     }
   }
 
-  goToLastPage(): void {
+  handleLastPage(): void {
     this.currentPage = this.totalPages;
     this.scrollToTop();
   }
 
   scrollToTop(): void {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Other Methods
+  onSearchChange(): void {
+    this.currentPage = 1;
   }
 
   toggleFilters(): void {
@@ -905,11 +403,17 @@ export class Projectslist {
   viewDetails(projectId: string): void {
     console.log('View details:', projectId);
     this.closeActionsMenu();
+    this.router.navigate(['/projects', projectId]);
+  }
+
+  viewProjectDetails(projectId: string): void {
+    this.router.navigate(['/projects', projectId]);
   }
 
   editProject(projectId: string): void {
     console.log('Edit project:', projectId);
     this.closeActionsMenu();
+    this.router.navigate(['/projects', projectId, 'edit']);
   }
 
   archiveProject(projectId: string): void {
