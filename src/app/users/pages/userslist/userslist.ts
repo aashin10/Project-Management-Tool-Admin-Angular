@@ -313,8 +313,8 @@ export class Userslist {
       field: 'actions',
       type: 'actions' as const,
       actions: [
-        { label: 'Edit', icon: '', action: 'edit' },
-        { label: 'Delete', icon: '', action: 'delete', class: 'danger' },
+        { label: 'Edit', icon: 'image/edit.svg', action: 'edit' },
+        { label: 'Delete', icon: 'image/deleteUser.svg', action: 'delete', class: 'danger' },
       ]
     }
   ];
