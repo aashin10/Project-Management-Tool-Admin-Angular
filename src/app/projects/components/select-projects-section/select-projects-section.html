@@ -4,15 +4,18 @@
     <app-custom-button
       label="Select All"
       shortLabel="Select All"
-      bgClass="bg-blue-300 border border-gray-300 hover:bg-gray-50 ml-4"
+      bgClass="border border-gray-300 hover:bg-gray-50 ml-4"
     ></app-custom-button>
   </div>
 
   <app-importprojectslist class="w-full"></app-importprojectslist>
 
   <app-custom-button
-    label="Import"
+    label="Import Selected Projects"
     shortLabel="Import"
-    bgClass="bg-blue-300 border border-gray-300 hover:bg-gray-50"
+    bgClass="bg-[#0052cc] border border-gray-300 hover:bg-gray-50 w-full"
+    [textColor]="'text-white'"
+    class="w-full"
+    [icon]="'/images/import.svg'"
   ></app-custom-button>
 </ng-container>

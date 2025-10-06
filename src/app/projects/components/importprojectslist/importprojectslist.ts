@@ -143,7 +143,7 @@ export class Importprojectslist {
   paginatedProjects: any = [];
 
   currentPage: number = 1;
-  itemsPerPage: number = 5;
+  itemsPerPage: number = 3;
 
   ngOnInit() {
     this.updatePaginatedProjects();

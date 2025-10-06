@@ -1,18 +1,18 @@
 <div class="flex flex-col items-center text-center space-y-4 w-full">
   <!-- Icon, Title, and Description -->
   <img [src]="icon" class="h-16 w-16 text-gray-500" />
-  <h3 class="text-2xl font-semibold text-gray-800 mt-4">{{ title }}</h3>
-  <p class="text-sm text-gray-600 mt-2">{{ description }}</p>
+  <h4 class="text-xl font-semibold text-gray-800 mb-0">{{ title }}</h4>
+  <p class="text-sm text-gray-400">{{ description }}</p>
   <!-- Section Content -->
   <ng-container [ngSwitch]="stepNumber">
     <ng-container *ngSwitchCase="1">
       <app-import-users-section
-        class="flex flex-col items-center justify-center w-full mt-4"
+        class="flex flex-col items-center justify-center mt-4 w-3/4"
       ></app-import-users-section>
     </ng-container>
     <ng-container *ngSwitchCase="2">
       <app-authorize-with-jira-section
-        class="flex flex-col space-y-4 w-full"
+        class="flex flex-col space-y-4 w-3/4"
       ></app-authorize-with-jira-section>
     </ng-container>
     <ng-container *ngSwitchCase="3">

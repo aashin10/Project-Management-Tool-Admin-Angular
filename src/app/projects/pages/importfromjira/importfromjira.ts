@@ -28,13 +28,13 @@ export class Importfromjira {
     {
       step: 1,
       title: 'Import Users',
-      description: 'Set up your Jira connection details',
+      description: 'Upload a CSV file to import users, or skip this step to import users later',
       icon: Settings,
     },
     {
       step: 2,
-      title: 'Authorize Jira',
-      description: 'Choose which Jira projects to import',
+      title: 'Authorize with Jira',
+      description: 'Sign in to your Jira account to access and import projects',
       icon: Database,
     },
     {
