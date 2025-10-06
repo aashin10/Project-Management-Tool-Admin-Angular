@@ -226,7 +226,7 @@ export class Userslist {
   }
   // Sample user data
   users = [
-  { user: 'Alice Johnson', created:'23-09-2025' , type: 'Internal', status: 'Active', lastActivity: '25-09-2025' },
+  { user: 'Alice Johnson', created:'23-09-2025' , type: 'Internal', status: 'Active', lastActivity: '25-09-2025'},
   { user: 'Bob Smith', created: '27-09-2025', type: 'External', status: 'Inactive', lastActivity: '30-09-2025' },
   { user: 'Charlie Brown', created: '30-09-2025', type: 'Customer', status: 'Suspended', lastActivity: '01-10-2025' },
 
@@ -285,7 +285,11 @@ export class Userslist {
 
   // Table columns configuration
   tableColumns = [
-    { header: 'User', field: 'user', type: 'text' as const },
+    { 
+      header: 'User', 
+      field: 'user', 
+      type: 'user' as const
+    },
     { 
       header: 'Type', 
       field: 'type', 
@@ -313,8 +317,8 @@ export class Userslist {
       field: 'actions',
       type: 'actions' as const,
       actions: [
-        { label: 'Edit', icon: 'image/edit.svg', action: 'edit' },
-        { label: 'Delete', icon: 'image/deleteUser.svg', action: 'delete', class: 'danger' },
+        { label: 'Edit', icon: '', action: 'edit' },
+        { label: 'Delete', icon: '', action: 'delete', class: 'danger' },
       ]
     }
   ];
@@ -350,11 +354,33 @@ export class Userslist {
   pageSize = 10;
   
   get paginatedUsers() {
-    // Return all filtered users - let table component handle its own pagination
-    return this.filteredUsers;
+    // Transform data for table component - let table component handle its own pagination
+    return this.filteredUsers.map(user => ({
+      user: {
+        name: user.user,
+        email: user.type, // Using type as secondary info, similar to teams-and-roles using department
+        avatar: this.getInitials(user.user)
+      },
+      type: user.type,
+      status: user.status,
+      created: user.created,
+      lastActivity: user.lastActivity,
+      actions: user // Pass the full user object for actions
+    }));
   }
   
   totalPages() {
     return Math.ceil(this.filteredUsers.length / this.pageSize);
+  }
+
+  getInitials(name: string): string {
+    if (!name) return '';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    } else if (parts.length === 1) {
+      return parts[0].substring(0, 2).toUpperCase();
+    }
+    return '';
   }
 }
