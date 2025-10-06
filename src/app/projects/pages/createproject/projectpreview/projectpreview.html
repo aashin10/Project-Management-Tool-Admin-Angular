@@ -1,0 +1,45 @@
+
+<div class="sticky top-20 max-h-[calc(100vh-5rem)] overflow-auto p-6 bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col items-stretch h-fit">
+  <!-- Header -->
+  <div class="flex items-center gap-2 mb-4">
+    <span class="text-blue-600 text-sm">●</span>
+    <h2 class="text-lg font-semibold text-gray-900">Project Preview</h2>
+  </div>
+
+  <!-- Preview Content -->
+  <div class="flex items-center gap-4 mb-6">
+    <div class="flex items-center justify-center w-14 h-14 rounded-full bg-gray-100 border border-gray-300">
+      <span class="text-xl font-bold text-gray-700">{{ getInitials() }}</span>
+    </div>
+    <div>
+      <h3 class="text-base font-semibold text-gray-900">{{ projectName || 'Project Name' }}</h3>
+      <p class="text-sm text-gray-500">{{ projectKey || 'PRJ-001' }}</p>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="flex flex-col gap-2 mt-auto">
+    <app-custom-button
+      [label]="'Create Project'"
+      [bgClass]="'bg-blue-600'"
+      [textColor]="'text-white'"
+      [fontWeight]="'font-semibold'"
+      [rounded]="'rounded'"
+      [extraClasses]="'w-full shadow'"
+      [hoverClass]="'hover:bg-blue-700'"
+      [padding]="'py-2 px-4'"
+      (action)="createProject.emit()"
+    ></app-custom-button>
+    <app-custom-button
+      [label]="'Cancel'"
+      [bgClass]="'bg-transparent'"
+      [textColor]="'text-gray-500'"
+      [fontWeight]="'font-semibold'"
+      [rounded]="'rounded'"
+      [extraClasses]="'w-full border border-gray-300'"
+      [hoverClass]="'hover:text-gray-700 hover:bg-gray-50'"
+      [padding]="'py-2 px-4'"
+      (action)="cancel.emit()"
+    ></app-custom-button>
+  </div>
+</div>

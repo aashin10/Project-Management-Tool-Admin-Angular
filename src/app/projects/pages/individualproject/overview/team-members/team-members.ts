@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
 
 export interface TeamMember {
   name: string;
@@ -16,12 +17,15 @@ export interface TeamMember {
   styleUrl: './team-members.css'
 })
 export class TeamMembersComponent {
+
+    constructor(
+    private router: Router,
+  ) {}
   @Input() teamMembers: TeamMember[] = [];
   @Input() showViewAll: boolean = true;
 
   onViewAll() {
-    console.log('View all team members requested');
-    // You can emit an event here if needed
+    this.router.navigate(['/teams-and-roles']);
   }
 
   getColorClasses(color: string): string {

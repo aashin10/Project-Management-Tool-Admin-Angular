@@ -1,0 +1,44 @@
+
+<div class="bg-white rounded-lg p-6 shadow-sm border border-gray-200 relative">
+	<!-- Header -->
+	<div class="flex items-center justify-between mb-2">
+		<div class="flex items-center gap-2">
+			<span class="text-blue-600 text-sm">●</span>
+			<h2 class="text-lg font-semibold text-gray-900">Additional Information</h2>
+		</div>
+		<app-custom-button
+			[label]="'Add Info'"
+			[bgClass]="'bg-blue-600'"
+			[textColor]="'text-white'"
+			[fontWeight]="'font-regular'"
+			[rounded]="'rounded'"
+			[extraClasses]="'px-4 py-2 shadow'"
+			[hoverClass]="'hover:bg-blue-700'"
+			(action)="onAddInfo()"
+		></app-custom-button>
+	</div>
+	<!-- Content goes here -->
+
+	<!-- Added fields list (two-column grid on md+) -->
+	<div *ngIf="addedFields.length > 0" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+		<div *ngFor="let f of addedFields; let i = index" class="">
+			<label class="block text-sm font-medium text-gray-700 mb-1">{{ f.name }}</label>
+			<div class="h-2"></div>
+			<div class="flex items-center gap-3">
+				<input [(ngModel)]="addedFields[i].value" (ngModelChange)="emitAddedFields()" type="text" class="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 placeholder:text-gray-400 text-gray-700 w-full" />
+				<button (click)="removeField(i)" title="Remove" class="inline-flex items-center justify-center w-8 h-8 rounded hover:bg-red-50 text-red-600">
+					<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18" />
+						<path stroke-linecap="round" stroke-linejoin="round" d="M8 6v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6" />
+						<path stroke-linecap="round" stroke-linejoin="round" d="M10 11v6m4-6v6" />
+						<path stroke-linecap="round" stroke-linejoin="round" d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+					</svg>
+				</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal -->
+	<app-infomodal *ngIf="modalOpen" (add)="handleAdd($event)" (cancel)="handleCancel()"></app-infomodal>
+</div>
+

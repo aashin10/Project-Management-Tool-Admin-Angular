@@ -1,11 +1,12 @@
 <!-- Main Container - Adapts to sidebar state -->
 <div class="min-h-screen  transition-all duration-300">
   
+
   <!-- Back to Projects Button -->
   <div class="bg-white border-b border-gray-200 py-4">
     <button 
       (click)="goBackToProjects()"
-      class="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors">
+      class="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors cursor-pointer">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="m15 18-6-6 6-6"></path>
@@ -13,6 +14,7 @@
       Back to Projects
     </button>
   </div>
+
 
   <!-- Project Header Section - Fixed for all tabs -->
   <div class="bg-white mt-6 border border-gray-200">
@@ -48,44 +50,47 @@
         
         <!-- Right Section - Action Buttons -->
         <div class="flex items-center gap-2">
-          <button 
-            (click)="editProject()"
-            class="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
-              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path>
-              <path d="m15 5 4 4"></path>
-            </svg>
-            Edit Project
-          </button>
 
+          <app-custom-button
+            [label]="'Edit Project'"
+            [icon]="'/images/edit.svg'"
+            [bgClass]="'bg-white'"
+            [textColor]="'text-gray-700'"
+            [borderClass]="'border border-gray-300'"
+            [hoverClass]="'hover:bg-gray-50'"
+            [extraClasses]="'transition-colors'"
+            (action)="editProject()">
+          </app-custom-button>
 
-          
-          <button 
-            (click)="archiveProject()"
-            class="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
-              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect width="20" height="5" x="2" y="3" rx="1"></rect>
-              <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path>
-              <path d="M10 12h4"></path>
-            </svg>
-            Archive Project
-          </button>
-          
-          <button 
-            (click)="deleteProject()"
-            class="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
-              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 6h18"></path>
-              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-            </svg>
-            Delete Project
-          </button>
+          <app-custom-button
+            [label]="'Archive Project'"
+            [icon]="'/images/archive.svg'"
+            [bgClass]="'bg-white'"
+            [textColor]="'text-gray-700'"
+            [borderClass]="'border border-gray-300'"
+            [hoverClass]="'hover:bg-gray-50'"
+            [extraClasses]="'transition-colors'"
+            (action)="archiveProject()">
+          </app-custom-button>
+
+          <app-custom-button
+            [label]="'Delete Project'"
+            [icon]="'/images/deletewhite.svg'"
+            [bgClass]="'bg-red-600'"
+            [textColor]="'text-white'"
+            [borderClass]="''"
+            [hoverClass]="'hover:bg-red-700'"
+            [rounded]="'rounded'"
+            [gap]="'gap-2'"
+            [padding]="'px-3 py-1.5'"
+            [fontSize]="'text-sm'"
+            [fontWeight]="'font-medium'"
+            [extraClasses]="'transition-colors items-center'"
+            (action)="deleteProject()">
+          </app-custom-button>
 
         </div>
+
       </div>
     </div>
   </div>
