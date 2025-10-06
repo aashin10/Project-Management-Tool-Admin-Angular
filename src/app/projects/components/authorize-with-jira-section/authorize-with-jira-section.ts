@@ -11,8 +11,18 @@ import { Importnavigationservice } from '../../pages/importfromjira/importnaviga
 export class AuthorizeWithJiraSection {
   public constructor(private importNavigationService: Importnavigationservice) {}
 
+  url =
+    'https://auth.atlassian.com/authorize?' +
+    'audience=api.atlassian.com&' +
+    'client_id=RF0M4vOBPZQHS9s4ugEbsoEo7pmEa7Q4&' +
+    'scope=read:jira-work read:jira-user&' +
+    'redirect_uri=http://localhost:4200/projects/importfromjira&' +
+    'response_type=code&' +
+    'prompt=consent';
+
   onAuthorize() {
     console.log('Authorizing with Jira...');
-    this.importNavigationService.onNext();
+    window.location.href = this.url;
+    // this.importNavigationService.onNext();
   }
 }
