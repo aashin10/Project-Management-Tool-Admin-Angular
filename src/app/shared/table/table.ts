@@ -53,6 +53,17 @@ export class Table implements OnChanges {
       this.selectedRows.clear();
       this.emitSelectionChange();
     }
+    
+    // When data changes, clear selections that are out of bounds
+    if (changes['data'] && this.selectedRows.size > 0) {
+      const validIndices = new Set<number>();
+      this.selectedRows.forEach(index => {
+        if (index < this.data.length) {
+          validIndices.add(index);
+        }
+      });
+      this.selectedRows = validIndices;
+    }
   }
 
   
@@ -81,8 +92,7 @@ export class Table implements OnChanges {
     }
   }
   toggleAll() {
-  if (this.selectAllAcrossPages) {
-    // Select/deselect all items across all pages
+    // Always select/deselect all items across all pages
     const allSelected = this.selectedRows.size === this.data.length;
 
     if (allSelected) {
@@ -95,23 +105,8 @@ export class Table implements OnChanges {
         this.selectedRows.add(i);
       }
     }
-  } else {
-    // Original behavior - select/deselect only current page
-    const allSelected = this.selectedRows.size === this.paginatedData.length;
-
-    if (allSelected) {
-      // Unselect all
-      this.selectedRows.clear();
-    } else {
-      // Select all visible rows
-      this.selectedRows.clear();
-      for (let i = 0; i < this.paginatedData.length; i++) {
-        this.selectedRows.add(i);
-      }
-    }
+    this.emitSelectionChange();
   }
-  this.emitSelectionChange();
-}
   previousPage() {
     this.goToPage(this.currentPage - 1);
   }
@@ -121,20 +116,33 @@ export class Table implements OnChanges {
   }
 
   toggleRow(index: number) {
-    if (this.selectedRows.has(index)) {
-      this.selectedRows.delete(index);
+    // Convert paginated index to absolute index in full dataset
+    const absoluteIndex = (this.currentPage - 1) * this.itemsPerPage + index;
+    
+    if (this.selectedRows.has(absoluteIndex)) {
+      this.selectedRows.delete(absoluteIndex);
     } else {
-      this.selectedRows.add(index);
+      this.selectedRows.add(absoluteIndex);
     }
     this.emitSelectionChange();
   }
 
   isRowSelected(index: number): boolean {
-    return this.selectedRows.has(index);
+    // Convert paginated index to absolute index in full dataset
+    const absoluteIndex = (this.currentPage - 1) * this.itemsPerPage + index;
+    return this.selectedRows.has(absoluteIndex);
+  }
+  
+  isAllSelected(): boolean {
+    return this.data.length > 0 && this.selectedRows.size === this.data.length;
+  }
+  
+  isSomeSelected(): boolean {
+    return this.selectedRows.size > 0 && this.selectedRows.size < this.data.length;
   }
   
   emitSelectionChange() {
-    const selectedData = Array.from(this.selectedRows).map(index => this.paginatedData[index]);
+    const selectedData = Array.from(this.selectedRows).map(index => this.data[index]);
     this.selectionChange.emit(selectedData);
   }
 
