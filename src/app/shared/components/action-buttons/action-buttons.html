@@ -1,0 +1,10 @@
+<div class="flex items-center space-x-2 sm:space-x-4">
+  <button
+    *ngFor="let btn of buttons"
+    class="rounded-full hover:bg-gray-100 transition-colors hover:cursor-pointer"
+    [attr.aria-label]="btn.label"
+    (click)="onAction(btn.type)"
+  >
+    <img [src]="btn.icon" class="h-10 w-10 sm:h-12 sm:w-12 text-gray-500" />
+  </button>
+</div>

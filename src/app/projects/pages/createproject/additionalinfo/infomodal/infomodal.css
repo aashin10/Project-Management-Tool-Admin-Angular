@@ -1,0 +1,9 @@
+/* Make input text and placeholder use the project's gray variable */
+.custom-input {
+	color: var(--color-gray-400);
+}
+.custom-input::placeholder {
+	color: var(--color-gray-400);
+	opacity: 1;
+}
+

@@ -1,0 +1,135 @@
+<div class="bg-white rounded-lg border border-gray-200 p-6 h-full flex flex-col">
+  
+  <!-- Header -->
+  <div class="flex items-center gap-2 mb-6">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+      class="text-gray-700">
+      <path d="M3 3v16a2 2 0 0 0 2 2h16"></path>
+      <path d="M18 17V9"></path>
+      <path d="M13 17V5"></path>
+      <path d="M8 17v-3"></path>
+    </svg>
+    <h2 class="text-sm font-semibold text-gray-900">Work Item Distribution</h2>
+  </div>
+
+  <!-- Donut Chart Container -->
+  <div class="flex items-center justify-center mb-6 py-4">
+    <div class="relative inline-block">
+      <svg width="240" height="240" viewBox="0 0 240 240" class="donut-chart transform -rotate-90">
+        <!-- No background circle -->
+        
+        <!-- Completed segment (green) - 68% -->
+        <circle 
+          cx="120" 
+          cy="120" 
+          r="85" 
+          fill="none" 
+          [attr.stroke]="workItemDistribution[2].color"
+          stroke-width="24"
+          [attr.stroke-dasharray]="getStrokeDasharray(workItemDistribution[2].percentage)"
+          [attr.stroke-dashoffset]="getStrokeDashoffset(0)"
+          class="chart-segment"
+          [class.segment-hovered]="hoveredSegment === 2"
+          [class.segment-dimmed]="hoveredSegment !== -1 && hoveredSegment !== 2"
+          (mouseenter)="setHoveredSegment(2)"
+          (mouseleave)="setHoveredSegment(-1)">
+        </circle>
+        
+        <!-- In Progress segment (orange) - 8% -->
+        <circle 
+          cx="120" 
+          cy="120" 
+          r="85" 
+          fill="none" 
+          [attr.stroke]="workItemDistribution[1].color"
+          stroke-width="24"
+          [attr.stroke-dasharray]="getStrokeDasharray(workItemDistribution[1].percentage)"
+          [attr.stroke-dashoffset]="getStrokeDashoffset(workItemDistribution[2].percentage)"
+          class="chart-segment"
+          [class.segment-hovered]="hoveredSegment === 1"
+          [class.segment-dimmed]="hoveredSegment !== -1 && hoveredSegment !== 1"
+          (mouseenter)="setHoveredSegment(1)"
+          (mouseleave)="setHoveredSegment(-1)">
+        </circle>
+        
+        <!-- To Do segment (blue) - 24% -->
+        <circle 
+          cx="120" 
+          cy="120" 
+          r="85" 
+          fill="none" 
+          [attr.stroke]="workItemDistribution[0].color"
+          stroke-width="24"
+          [attr.stroke-dasharray]="getStrokeDasharray(workItemDistribution[0].percentage)"
+          [attr.stroke-dashoffset]="getStrokeDashoffset(workItemDistribution[2].percentage + workItemDistribution[1].percentage)"
+          class="chart-segment"
+          [class.segment-hovered]="hoveredSegment === 0"
+          [class.segment-dimmed]="hoveredSegment !== -1 && hoveredSegment !== 0"
+          (mouseenter)="setHoveredSegment(0)"
+          (mouseleave)="setHoveredSegment(-1)">
+        </circle>
+      </svg>
+      
+      <!-- Center text -->
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
+        <p class="text-4xl font-bold text-gray-900 leading-none transition-all duration-300">
+          {{ hoveredSegment !== -1 ? workItemDistribution[hoveredSegment].value : totalItems }}
+        </p>
+        <p class="text-xs text-gray-500 mt-1 font-normal transition-all duration-300">
+          {{ hoveredSegment !== -1 ? workItemDistribution[hoveredSegment].label : 'Total Items' }}
+        </p>
+      </div>
+
+      <!-- Tooltip -->
+      <div 
+        *ngIf="hoveredSegment !== -1" 
+        class="absolute pointer-events-none z-50"
+        [style.top.px]="getTooltipPosition().y"
+        [style.left.px]="getTooltipPosition().x"
+        style="transform: translate(-50%, -50%);">
+        <div class="bg-white border border-gray-200 rounded-md px-3 py-1.5 shadow-md whitespace-nowrap">
+          <p class="text-xs font-medium text-gray-900">
+            {{ workItemDistribution[hoveredSegment].label }}: 
+            {{ workItemDistribution[hoveredSegment].value }} items 
+            ({{ workItemDistribution[hoveredSegment].percentage }}%)
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="space-y-2 mb-4">
+    <div 
+      *ngFor="let item of workItemDistribution; let i = index" 
+      class="flex items-center justify-between py-2 px-2 rounded transition-colors duration-200 cursor-pointer"
+      (mouseenter)="setHoveredSegment(i)"
+      (mouseleave)="setHoveredSegment(-1)"
+      [class.bg-gray-50]="hoveredSegment === i">
+      <div class="flex items-center gap-2">
+        <div 
+          class="w-2 h-2 rounded-full"
+          [style.background-color]="item.color">
+        </div>
+        <span class="text-sm font-medium text-gray-700">
+          {{ item.label }}
+        </span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span class="text-sm font-bold text-gray-900">
+          {{ item.value }}
+        </span>
+        <span class="text-xs text-gray-500">({{ item.percentage }}%)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Total Work Items -->
+  <div class="pt-3 border-t border-gray-200">
+    <div class="flex items-center justify-between">
+      <span class="text-sm font-medium text-gray-600">Total Work Items</span>
+      <span class="text-lg font-bold text-blue-600">{{ totalItems }}</span>
+    </div>
+  </div>
+</div>

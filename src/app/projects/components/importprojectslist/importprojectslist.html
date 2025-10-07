@@ -1,0 +1,30 @@
+<app-importprojectcard
+  *ngFor="let project of paginatedProjects"
+  [title]="project.name"
+  [description]="project.key"
+  [issuesCount]="project.id"
+  class="w-full"
+></app-importprojectcard>
+
+<div class="flex w-full justify-center flex-row mt-6">
+  <app-custom-button
+    (action)="goToPage(currentPage - 1)"
+    [label]="'Previous'"
+    [disabled]="currentPage === 1"
+  ></app-custom-button>
+
+  <span *ngFor="let page of [].constructor(totalPages); let i = index">
+    <app-custom-button
+      (action)="goToPage(i + 1)"
+      [label]="(i + 1).toString()"
+      [class.active]="currentPage === i + 1"
+    ></app-custom-button>
+  </span>
+
+  <app-custom-button
+    [label]="'Next'"
+    (action)="goToPage(currentPage + 1)"
+    [disabled]="currentPage === totalPages"
+    >Next</app-custom-button
+  >
+</div>

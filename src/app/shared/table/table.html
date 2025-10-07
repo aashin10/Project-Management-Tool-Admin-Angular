@@ -1,0 +1,267 @@
+<div class="w-full" (click)="closeActionsMenu()">
+  <!-- Table -->
+  <div class="overflow-x-auto border border-gray-200 rounded-lg">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <!-- Checkbox column -->
+          <th *ngIf="showCheckbox" class="w-12 px-6 py-3">
+            <input type="checkbox" class="rounded border-gray-300" (change)="toggleAll()" />
+          </th>
+
+          <!-- Dynamic columns -->
+          <th
+            *ngFor="let column of columns"
+            class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider"
+            [style.width]="column.width"
+          >
+            <div class="flex items-center gap-2">
+              {{ column.header }}
+              <span *ngIf="column.sortable" class="cursor-pointer">↕</span>
+            </div>
+          </th>
+        </tr>
+      </thead>
+
+      <tbody class="bg-white divide-y divide-gray-200">
+        <tr
+          *ngFor="let row of paginatedData; let i = index"
+          class="hover:bg-gray-50 transition-colors"
+          [class.bg-blue-50]="isRowSelected(i)"
+        >
+          <!-- Checkbox -->
+          <td *ngIf="showCheckbox" class="w-12 px-6 py-4">
+            <input
+              type="checkbox"
+              class="rounded border-gray-300"
+              [checked]="isRowSelected(i)"
+              (change)="toggleRow(i)"
+            />
+          </td>
+
+          <!-- Dynamic cells -->
+          <td *ngFor="let column of columns" class="px-6 py-4">
+            <!-- Role Icon type -->
+            <div *ngIf="column.type === 'roleIcon'" class="flex items-center gap-3">
+              <div
+                class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0"
+              >
+                <svg
+                  class="w-4 h-4 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                  />
+                </svg>
+              </div>
+              <div class="text-sm font-medium text-gray-900">
+                {{ row[column.field].name }}
+              </div>
+            </div>
+            <!-- Text type -->
+            <div
+              *ngIf="!column.type || column.type === 'text'"
+              class="text-sm text-gray-900 flex items-center gap-2"
+              [class.text-left]="column.align === 'left' || !column.align"
+              [class.text-center]="column.align === 'center'"
+              [class.text-right]="column.align === 'right'"
+            >
+              <!-- Icon on the left -->
+              <ng-container *ngIf="column.icon">
+                <img [src]="column.icon" class="w-4 h-4" alt="" />
+              </ng-container>
+
+              {{ row[column.field] }}
+            </div>
+
+            <!-- Badge type -->
+            <div *ngIf="column.type === 'badge'" class="flex flex-wrap gap-1">
+              <!-- Single badge (string) -->
+              <ng-container *ngIf="!isArray(row[column.field])">
+                <span [class]="getBadgeClass(row[column.field], column)">
+                  {{ row[column.field] }}
+                </span>
+              </ng-container>
+              <!-- Multiple badges (array) -->
+              <ng-container *ngIf="isArray(row[column.field])">
+                <span
+                  *ngFor="let badge of row[column.field]"
+                  [class]="getBadgeClass(badge, column)"
+                >
+                  {{ badge }}
+                </span>
+              </ng-container>
+            </div>
+
+            <!-- Avatar type -->
+            <div *ngIf="column.type === 'avatar'" class="flex items-center gap-3">
+              <div
+                class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold"
+              >
+                {{ row[column.field].initials }}
+              </div>
+              <div>
+                <div class="text-sm font-medium text-gray-900">{{ row[column.field].name }}</div>
+                <div class="text-sm text-gray-500">{{ row[column.field].subtitle }}</div>
+              </div>
+            </div>
+
+            <!-- User type (with avatar and details) -->
+            <div *ngIf="column.type === 'user'" class="flex items-center gap-3">
+              <div
+                class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-semibold"
+              >
+                {{ row[column.field].avatar }}
+              </div>
+              <div>
+                <div class="text-sm font-medium text-gray-900">{{ row[column.field].name }}</div>
+                <div class="text-xs text-gray-500">{{ row[column.field].email }}</div>
+              </div>
+            </div>
+
+            <!-- Actions type -->
+            <div *ngIf="column.type === 'actions'" class="relative">
+              <!-- Single action - show directly -->
+              <button
+                *ngIf="column.actions && column.actions.length === 1"
+                (click)="handleAction(column.actions[0].action, row); $event.stopPropagation()"
+                [class]="getActionClass(column.actions[0].class)"
+                class="px-3 py-1.5 text-sm rounded hover:bg-gray-100 flex items-center gap-2 transition-colors"
+              >
+                <img
+                  *ngIf="column.actions[0].icon"
+                  [src]="column.actions[0].icon"
+                  class="w-4 h-4"
+                  alt=""
+                />
+                {{ column.actions[0].label }}
+              </button>
+
+              <!-- Multiple actions - show 3-dots menu -->
+              <div *ngIf="column.actions && column.actions.length > 1">
+                <button
+                  (click)="toggleActionsMenu(i); $event.stopPropagation()"
+                  class="text-gray-400 hover:text-gray-600 p-2"
+                >
+                  <span class="text-xl">⋯</span>
+                </button>
+
+                <!-- Dropdown Menu -->
+                <div
+                  *ngIf="openActionMenuIndex === i"
+                  [class.bottom-full]="isLastRows(i)"
+                  [class.mb-2]="isLastRows(i)"
+                  [class.mt-2]="!isLastRows(i)"
+                  class="absolute right-0 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50"
+                >
+                  <div class="py-1">
+                    <button
+                      *ngFor="let actionItem of column.actions"
+                      (click)="
+                        handleAction(actionItem.action, row);
+                        closeActionsMenu();
+                        $event.stopPropagation()
+                      "
+                      [class]="getActionClass(actionItem.class)"
+                      class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-3"
+                    >
+                      <img *ngIf="actionItem.icon" [src]="actionItem.icon" class="w-4 h-4" alt="" />
+                      {{ actionItem.label }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Empty State -->
+            <tbody *ngIf="data.length === 0" class="bg-white">
+              <tr>
+                <td
+                  [attr.colspan]="columns.length + (showCheckbox ? 1 : 0)"
+                  class="px-6 py-12 text-center"
+                >
+                  <div class="flex flex-col items-center justify-center text-gray-500">
+                    <svg
+                      class="w-12 h-12 mb-4 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                      ></path>
+                    </svg>
+                    <p class="text-lg font-medium">No data available</p>
+                    <p class="text-sm mt-1">There are no items to display</p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination Footer -->
+  <div class="flex items-center justify-between px-6 py-3 bg-white border-t border-gray-200">
+    <div class="text-sm text-gray-700">
+      Showing {{ startIndex }}-{{ endIndex }} of {{ data.length }}
+      {{ data.length === 1 ? 'item' : 'items' }}
+    </div>
+
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-gray-700">Rows per page</span>
+        <select [(ngModel)]="itemsPerPage" class="border border-gray-300 rounded px-2 py-1 text-sm">
+          <option [value]="10">10</option>
+          <option [value]="25">25</option>
+          <option [value]="50">50</option>
+        </select>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-gray-700">Page {{ currentPage }} of {{ totalPages }}</span>
+
+        <div class="flex gap-1">
+          <button
+            (click)="goToPage(1)"
+            [disabled]="currentPage === 1"
+            class="px-2 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50"
+          >
+            &lt;&lt;
+          </button>
+          <button
+            (click)="previousPage()"
+            [disabled]="currentPage === 1"
+            class="px-2 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50"
+          >
+            &lt;
+          </button>
+          <button
+            (click)="nextPage()"
+            [disabled]="currentPage === totalPages"
+            class="px-2 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50"
+          >
+            &gt;
+          </button>
+          <button
+            (click)="goToPage(totalPages)"
+            [disabled]="currentPage === totalPages"
+            class="px-2 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50"
+          >
+            &gt;&gt;
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

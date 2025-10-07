@@ -1,0 +1,49 @@
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 h-full">
+  <!-- Header -->
+  <div class="px-6 py-4 border-b border-gray-200">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+          class="text-gray-700">
+          <line x1="8" x2="21" y1="6" y2="6"></line>
+          <line x1="8" x2="21" y1="12" y2="12"></line>
+          <line x1="8" x2="21" y1="18" y2="18"></line>
+          <line x1="3" x2="3.01" y1="6" y2="6"></line>
+          <line x1="3" x2="3.01" y1="12" y2="12"></line>
+          <line x1="3" x2="3.01" y1="18" y2="18"></line>
+        </svg>
+        <h2 class="text-sm font-semibold text-gray-900">Types of Work</h2>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="p-6 mt-1 h-[calc(100%-64px)]">
+    <div class="h-full flex flex-col justify-center gap-10">
+      <div *ngFor="let workType of workTypes" class="group">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-3">
+            <div 
+              class="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0"
+              [style.background-color]="workType.color"
+              [innerHTML]="getWorkTypeIcon(workType.icon)"
+              style="color: white;">
+            </div>
+            <span class="text-sm font-medium text-gray-700">{{ workType.name }}</span>
+          </div>
+          <span class="text-sm font-bold text-gray-900">{{ workType.percentage }}%</span>
+        </div>
+        
+        <!-- Progress bar -->
+        <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden mt-3">
+          <div 
+            class="h-2 rounded-full transition-all duration-500 group-hover:opacity-80"
+            [style.width.%]="workType.percentage"
+            [style.background-color]="workType.color">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
