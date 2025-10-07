@@ -1,4 +1,3 @@
-
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -7,12 +6,11 @@ import { OverviewComponent } from './overview/overview';
 import { TeamsAndRoles } from './teams-and-roles/teams-and-roles';
 import { SharedModule } from '../../../shared/shared-module';
 import { TeamMembersComponent } from './overview/team-members/team-members';
-import { RouterTestingModule } from '@angular/router/testing';
 
 @Component({
   selector: 'app-individualproject',
   standalone: true,
-  imports: [CommonModule,OverviewComponent,TeamsAndRoles,SharedModule,TeamMembersComponent,RouterTestingModule],
+  imports: [CommonModule,OverviewComponent,TeamsAndRoles,SharedModule,TeamMembersComponent],
   templateUrl: './individualproject.html',
   styleUrl: './individualproject.css'
 })
@@ -39,12 +37,13 @@ export class IndividualprojectComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private sanitizer: DomSanitizer
-  ) {}
+  ) {
+    // CRITICAL: Get project ID from route params in constructor
+    const id = this.route.snapshot.paramMap.get('id');
+    this.projectId = id !== null ? id : '';
+  }
 
   ngOnInit(): void {
-    // Get project ID from route params
-    this.projectId = this.route.snapshot.paramMap.get('id') || '';
-    
     // Load overview by default
     this.loadOverviewComponent();
   }
@@ -70,8 +69,6 @@ export class IndividualprojectComponent implements OnInit {
       this.overviewComponent = OverviewComponent;
     }
   }
-
-
 
   private async loadTeamComponent(): Promise<void> {
     if (!this.teamComponent) {
