@@ -1,9 +1,9 @@
 import { Component, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule, Bell, Settings, User } from 'lucide-angular';
- 
+
 export type ActionType = 'notification' | 'setting' | 'profile';
- 
+
 @Component({
   selector: 'app-action-buttons',
   standalone: true,
@@ -11,14 +11,18 @@ export type ActionType = 'notification' | 'setting' | 'profile';
   templateUrl: './action-buttons.html',
 })
 export class ActionButtons {
-  @Output() actionClick = new EventEmitter<ActionType>();
+  @Output() actionClick = new EventEmitter<string>();
+
   buttons = [
-    { type: 'notification', label: 'Notifications', icon: Bell },
-    { type: 'setting', label: 'Settings', icon: Settings },
-    { type: 'profile', label: 'Profile', icon: User },
+    { type: 'notification', label: 'Notifications', icon: '/images/notification.svg' },
+    {
+      type: 'profile',
+      label: 'Profile',
+      icon: '/images/profile.svg',
+    },
   ];
- 
-  onAction(type: ActionType): void {
+
+  onAction(type: string): void {
     this.actionClick.emit(type);
   }
 }
