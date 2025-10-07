@@ -21,7 +21,8 @@ columns = [
   { 
     header: 'DU Code', 
     field: 'duCode',
-    type: 'text' as const
+    type: 'text' as const,
+    align: 'left' as const
   },
   { 
     header: 'DU Head', 
@@ -31,20 +32,26 @@ columns = [
   { 
     header: 'Active Members', 
     field: 'activeMembers',
-    type: 'text' as const
+    type: 'text' as const,
+    align: 'center' as const , // Center align for numeric values
+    icon: 'assets/edit.svg',   //add the icon to appear next to the member number
+    iconPosition: 'left' as const
   },
   { 
     header: 'Active Projects', 
     field: 'activeProjects',
-    type: 'text' as const
+    type: 'text' as const,
+    align: 'center' as const , // Center align for numeric values
+    icon: 'assets/user.svg', //add the icon to appear next to the project number
+    iconPosition: 'left' as const
   },
   { 
     header: 'Actions', 
     field: 'actions', 
     type: 'actions' as const,
     actions: [
-      { label: 'Edit DU', icon: '✏️', action: 'edit' },
-      { label: 'Delete DU', icon: '🗑️', action: 'delete', class: 'danger' }
+      { label: 'Edit DU', icon: 'assets/edit.png', action: 'edit' },
+      { label: 'Delete DU', icon: 'assets/user.svg', action: 'delete', class: 'danger' }
     ]
   }
 ];
@@ -61,8 +68,8 @@ deliveryUnits = [
       name: 'Sarah Chen',
       email: 'sarah.chen@company.com'
     },
-    activeMembers: '24 members',
-    activeProjects: '8 projects'
+    activeMembers: '24',
+    activeProjects: '8'
   },
   {
     duInfo: {
@@ -76,8 +83,8 @@ deliveryUnits = [
       name: 'Michael Rodriguez',
       email: 'michael.rodriguez@company.com'
     },
-    activeMembers: '12 members',
-    activeProjects: '5 projects'
+    activeMembers: '12',
+    activeProjects: '5'
   },
   {
     duInfo: {
@@ -91,8 +98,8 @@ deliveryUnits = [
       name: 'Emma Thompson',
       email: 'emma.thompson@company.com'
     },
-    activeMembers: '8 members',
-    activeProjects: '6 projects'
+    activeMembers: '8',
+    activeProjects: '6'
   },
   // Add more DUs...
 ];

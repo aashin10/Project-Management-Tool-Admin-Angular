@@ -8,7 +8,7 @@
       <div class="flex flex-col items-center flex-shrink-0">
         <div
           [class]="
-            'w-12 h-12 rounded-full flex   items-center justify-center text-sm font-medium ' +
+            'w-12 h-12 rounded-full flex items-center justify-center text-sm font-medium ' +
             (step.step === currentStep
               ? 'bg-blue-600 text-white'
               : step.step < currentStep
@@ -22,121 +22,22 @@
           {{ step.title }}
         </span>
       </div>
-
-      <!-- Connector line -->
       <div *ngIf="i < importSteps.length - 1" class="flex-grow h-0.5 bg-gray-200 mx-2"></div>
     </ng-container>
   </div>
 </div>
 
-<!-- Process Container -->
 <div
   class="p-10 m-6 bg-white rounded-xl border border-gray-300 flex flex-col text-center space-y-10 shadow-sm items-center"
 >
-  <!-- Step Content -->
   <div class="w-full max-w-xl" [ngSwitch]="currentStep">
-    <div *ngSwitchCase="1" class="flex flex-col justify-around items-center">
-      <lucide-icon [name]="importSteps[0].icon" class="h-8 w-8 text-gray-500"></lucide-icon>
-      <h3 class="text-2xl font-semibold text-gray-800 mt-4">{{ importSteps[0].title }}</h3>
-      <p class="text-sm text-gray-600 mt-2">{{ importSteps[0].description }}</p>
-
-      <div class="flex items-center justify-center w-full mt-4 flex-col">
-        <label
-          for="dropzone-file"
-          class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50"
-        >
-          <div class="flex flex-col items-center justify-center pt-5 pb-6">
-            <svg
-              class="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 20 16"
-            >
-              <path
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
-              />
-            </svg>
-            <p class="mb-2 text-sm text-gray-500 dark:text-gray-400">
-              <span class="font-semibold">Click to upload</span> or drag and drop
-            </p>
-            <p class="text-xs text-gray-500 dark:text-gray-400">
-              SVG, PNG, JPG or GIF (MAX. 800x400px)
-            </p>
-          </div>
-          <input id="dropzone-file" type="file" class="hidden" />
-        </label>
-        <div class="flex justify-around w-100 mt-6">
-          <app-custom-button
-            label="Skip for Now"
-            shortLabel="Skip"
-            bgClass="bg-blue-300 border border-gray-300 hover:bg-gray-50"
-            extraClasses=""
-          ></app-custom-button>
-          <app-custom-button
-            (action)="nextStep()"
-            label="Continue "
-            shortLabel="Continue"
-            bgClass="bg-blue-300 border border-gray-300 hover:bg-gray-50"
-            extraClasses=""
-          ></app-custom-button>
-        </div>
-      </div>
-    </div>
-
-    <div *ngSwitchCase="2" class="flex flex-col items-center justify-center pace-y-6">
-      <!-- Icon -->
-      <lucide-icon [name]="importSteps[1].icon" class="h-8 w-8 text-gray-500"></lucide-icon>
-
-      <!-- Title & Description -->
-      <h3 class="text-2xl font-semibold text-gray-800">{{ importSteps[1].title }}</h3>
-      <p class="text-sm text-gray-600">{{ importSteps[1].description }}</p>
-
-      <!-- Jira URL Input -->
-      <div class="flex flex-col space-y-2 w-100">
-        <label for="jira-url" class="font-medium">Jira Instance URL *</label>
-        <input
-          id="jira-url"
-          type="text"
-          placeholder="https://yourcompany.atlassian.net"
-          class="border rounded p-2 placeholder-gray-500"
-        />
-        <app-custom-button
-          (action)="nextStep()"
-          label="Authorize with JIRA "
-          shortLabel="Authorize"
-          bgClass="bg-blue-300 border border-gray-300 hover:bg-gray-50 w-100"
-          extraClasses=""
-        ></app-custom-button>
-      </div>
-    </div>
-
-    <div *ngSwitchCase="3" class="flex flex-col justify-center items-center">
-      <lucide-icon [name]="importSteps[2].icon" class="h-8 w-8 text-gray-500"></lucide-icon>
-      <h3 class="text-2xl font-semibold text-gray-800 mt-4">{{ importSteps[2].title }}</h3>
-      <p class="text-sm text-gray-600 mt-2">{{ importSteps[2].description }}</p>
-      <div class="flex w-full justify-between mt-6">
-        <app-search-bar class="w-100" [placeholder]="'Select Projects..'"></app-search-bar>
-        <app-custom-button
-          (action)="nextStep()"
-          label="Select All "
-          shortLabel="Select All"
-          bgClass="bg-blue-300 border border-gray-300 hover:bg-gray-50"
-          extraClasses=""
-        ></app-custom-button>
-      </div>
-      <app-importprojectslist class="w-full"></app-importprojectslist>
-      <app-custom-button
-        (action)="nextStep()"
-        label="Import "
-        shortLabel="Authorize"
-        bgClass="bg-blue-300 border border-gray-300 hover:bg-gray-50 w-50"
-        extraClasses="mt-4"
-      ></app-custom-button>
-    </div>
+    <!-- Import Process Section -->
+    <app-import-process-section
+      [icon]="'images/import-jira-step-' + currentStep + '.svg'"
+      [title]="importSteps[currentStep - 1].title"
+      [description]="importSteps[currentStep - 1].description"
+      [stepNumber]="currentStep"
+      class="w-full"
+    ></app-import-process-section>
   </div>
 </div>

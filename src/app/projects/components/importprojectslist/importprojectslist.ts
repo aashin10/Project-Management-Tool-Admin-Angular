@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { Importprojectcard } from '../importprojectcard/importprojectcard';
 import { CommonModule } from '@angular/common';
 import { CustomButton } from '../../../shared/custom-button/custom-button';
@@ -10,140 +10,11 @@ import { CustomButton } from '../../../shared/custom-button/custom-button';
   styleUrl: './importprojectslist.css',
 })
 export class Importprojectslist {
-  projects = [
-    {
-      title: 'Demo Project',
-      description: 'Demo project for testing purposes.',
-      issuesCount: 45,
-    },
-
-    {
-      title: 'Client Portal',
-      description: 'Portal for client interactions and feedback.',
-      issuesCount: 12,
-    },
-    {
-      title: 'Internal Tools',
-      description: 'Tools for internal team productivity.',
-      issuesCount: 30,
-    },
-    {
-      title: 'Demo Project',
-      description: 'Demo project for testing purposes.',
-      issuesCount: 45,
-    },
-
-    {
-      title: 'Client Portal',
-      description: 'Portal for client interactions and feedback.',
-      issuesCount: 12,
-    },
-    {
-      title: 'Internal Tools',
-      description: 'Tools for internal team productivity.',
-      issuesCount: 30,
-    },
-    {
-      title: 'Demo Project',
-      description: 'Demo project for testing purposes.',
-      issuesCount: 45,
-    },
-
-    {
-      title: 'Client Portal',
-      description: 'Portal for client interactions and feedback.',
-      issuesCount: 12,
-    },
-    {
-      title: 'Internal Tools',
-      description: 'Tools for internal team productivity.',
-      issuesCount: 30,
-    },
-    {
-      title: 'Demo Project',
-      description: 'Demo project for testing purposes.',
-      issuesCount: 45,
-    },
-
-    {
-      title: 'Client Portal',
-      description: 'Portal for client interactions and feedback.',
-      issuesCount: 12,
-    },
-    {
-      title: 'Internal Tools',
-      description: 'Tools for internal team productivity.',
-      issuesCount: 30,
-    },
-    {
-      title: 'Demo Project',
-      description: 'Demo project for testing purposes.',
-      issuesCount: 45,
-    },
-
-    {
-      title: 'Client Portal',
-      description: 'Portal for client interactions and feedback.',
-      issuesCount: 12,
-    },
-    {
-      title: 'Internal Tools',
-      description: 'Tools for internal team productivity.',
-      issuesCount: 30,
-    },
-    {
-      title: 'Demo Project',
-      description: 'Demo project for testing purposes.',
-      issuesCount: 45,
-    },
-
-    {
-      title: 'Client Portal',
-      description: 'Portal for client interactions and feedback.',
-      issuesCount: 12,
-    },
-    {
-      title: 'Internal Tools',
-      description: 'Tools for internal team productivity.',
-      issuesCount: 30,
-    },
-    {
-      title: 'Demo Project',
-      description: 'Demo project for testing purposes.',
-      issuesCount: 45,
-    },
-
-    {
-      title: 'Client Portal',
-      description: 'Portal for client interactions and feedback.',
-      issuesCount: 12,
-    },
-    {
-      title: 'Internal Tools',
-      description: 'Tools for internal team productivity.',
-      issuesCount: 30,
-    },
-    {
-      title: 'Demo Project',
-      description: 'Demo project for testing purposes.',
-      issuesCount: 45,
-    },
-
-    {
-      title: 'Client Portal',
-      description: 'Portal for client interactions and feedback.',
-      issuesCount: 12,
-    },
-    {
-      title: 'Internal Tools',
-      description: 'Tools for internal team productivity.',
-      issuesCount: 30,
-    },
-  ];
+  @Input() projects: any[] = [];
   paginatedProjects: any = [];
 
   currentPage: number = 1;
-  itemsPerPage: number = 5;
+  itemsPerPage: number = 3;
 
   ngOnInit() {
     this.updatePaginatedProjects();
