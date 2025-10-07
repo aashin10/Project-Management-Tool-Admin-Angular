@@ -1,5 +1,6 @@
-import { Component, Input, Output, EventEmitter, HostListener, ElementRef, OnInit, OnDestroy, AfterViewChecked, Renderer2 } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener, ElementRef, OnInit, OnDestroy, AfterViewChecked, Renderer2, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-modal',
@@ -27,11 +28,17 @@ export class Modal implements OnInit, OnDestroy, AfterViewChecked {
   private focusInListener?: (event: FocusEvent) => void;
   private wasOpen: boolean = false;
 
-  constructor(private elementRef: ElementRef, private renderer: Renderer2) {}
+  constructor(
+    private elementRef: ElementRef,
+    private renderer: Renderer2,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
 
   ngOnInit() {
-    // Store initial body overflow
-    this.bodyOverflow = document.body.style.overflow || '';
+    // Store initial body overflow (only in browser)
+    if (isPlatformBrowser(this.platformId)) {
+      this.bodyOverflow = document.body.style.overflow || '';
+    }
   }
 
   ngAfterViewChecked() {
@@ -77,6 +84,8 @@ export class Modal implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   private addEventListeners() {
+    if (!isPlatformBrowser(this.platformId)) return;
+
     if (!this.tabKeyListener) {
       this.tabKeyListener = this.onTabKey.bind(this);
       document.addEventListener('keydown', this.tabKeyListener, true); // Use capture phase
@@ -89,6 +98,8 @@ export class Modal implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   private removeEventListeners() {
+    if (!isPlatformBrowser(this.platformId)) return;
+
     if (this.tabKeyListener) {
       document.removeEventListener('keydown', this.tabKeyListener, true);
       this.tabKeyListener = undefined;
@@ -144,19 +155,27 @@ export class Modal implements OnInit, OnDestroy, AfterViewChecked {
 
 
   private preventBodyScroll() {
+    if (!isPlatformBrowser(this.platformId)) return;
+
     this.bodyOverflow = document.body.style.overflow || '';
+    // Calculate scrollbar width to prevent layout shift
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     this.renderer.setStyle(document.body, 'overflow', 'hidden');
+    this.renderer.setStyle(document.body, 'padding-right', `${scrollbarWidth}px`);
     this.isScrollPrevented = true;
   }
 
   private restoreBodyScroll() {
-    if (this.isScrollPrevented) {
-      this.renderer.setStyle(document.body, 'overflow', this.bodyOverflow);
-      this.isScrollPrevented = false;
-    }
+    if (!isPlatformBrowser(this.platformId) || !this.isScrollPrevented) return;
+
+    this.renderer.setStyle(document.body, 'overflow', this.bodyOverflow);
+    this.renderer.removeStyle(document.body, 'padding-right');
+    this.isScrollPrevented = false;
   }
 
   private focusModal() {
+    if (!isPlatformBrowser(this.platformId)) return;
+
     // Store current focused element
     this.previousFocusElement = document.activeElement as HTMLElement;
 
@@ -173,9 +192,9 @@ export class Modal implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   private restoreFocus() {
-    if (this.previousFocusElement) {
-      this.previousFocusElement.focus();
-    }
+    if (!isPlatformBrowser(this.platformId) || !this.previousFocusElement) return;
+
+    this.previousFocusElement.focus();
   }
 
   private updateFocusableElements() {
@@ -198,6 +217,7 @@ export class Modal implements OnInit, OnDestroy, AfterViewChecked {
     this.focusableElements = Array.from(focusableElements)
       .filter(el => {
         // Filter out elements that are not visible or have display: none
+        if (!isPlatformBrowser(this.platformId)) return true; // Include all elements on server
         const style = window.getComputedStyle(el as HTMLElement);
         return style.display !== 'none' && style.visibility !== 'hidden';
       }) as HTMLElement[];
@@ -223,7 +243,7 @@ export class Modal implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   private handleTabNavigation(event: KeyboardEvent) {
-    if (this.focusableElements.length === 0) return;
+    if (!isPlatformBrowser(this.platformId) || this.focusableElements.length === 0) return;
 
     event.preventDefault(); // Always prevent default tab behavior when modal is open
 

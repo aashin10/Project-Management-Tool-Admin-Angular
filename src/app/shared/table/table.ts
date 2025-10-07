@@ -116,33 +116,43 @@ export class Table implements OnChanges {
   }
 
   toggleRow(index: number) {
-    // Convert paginated index to absolute index in full dataset
-    const absoluteIndex = (this.currentPage - 1) * this.itemsPerPage + index;
-    
-    if (this.selectedRows.has(absoluteIndex)) {
-      this.selectedRows.delete(absoluteIndex);
+    let rowIndex: number;
+    if (this.selectAllAcrossPages) {
+      // When selecting across pages, convert paginated index to global index
+      rowIndex = (this.currentPage - 1) * this.itemsPerPage + index;
     } else {
-      this.selectedRows.add(absoluteIndex);
+      // When selecting per page, use paginated index directly
+      rowIndex = index;
+    }
+
+    if (this.selectedRows.has(rowIndex)) {
+      this.selectedRows.delete(rowIndex);
+    } else {
+      this.selectedRows.add(rowIndex);
     }
     this.emitSelectionChange();
   }
 
   isRowSelected(index: number): boolean {
-    // Convert paginated index to absolute index in full dataset
-    const absoluteIndex = (this.currentPage - 1) * this.itemsPerPage + index;
-    return this.selectedRows.has(absoluteIndex);
-  }
-  
-  isAllSelected(): boolean {
-    return this.data.length > 0 && this.selectedRows.size === this.data.length;
-  }
-  
-  isSomeSelected(): boolean {
-    return this.selectedRows.size > 0 && this.selectedRows.size < this.data.length;
+    if (this.selectAllAcrossPages) {
+      // When selecting across pages, convert paginated index to global index
+      const globalIndex = (this.currentPage - 1) * this.itemsPerPage + index;
+      return this.selectedRows.has(globalIndex);
+    } else {
+      // When selecting per page, use paginated index directly
+      return this.selectedRows.has(index);
+    }
   }
   
   emitSelectionChange() {
-    const selectedData = Array.from(this.selectedRows).map(index => this.data[index]);
+    let selectedData;
+    if (this.selectAllAcrossPages) {
+      // When selecting across pages, selectedRows contains global indices
+      selectedData = Array.from(this.selectedRows).map(index => this.data[index]);
+    } else {
+      // When selecting per page, selectedRows contains paginated indices
+      selectedData = Array.from(this.selectedRows).map(index => this.paginatedData[index]);
+    }
     this.selectionChange.emit(selectedData);
   }
 
