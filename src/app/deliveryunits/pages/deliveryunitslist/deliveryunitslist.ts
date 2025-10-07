@@ -189,12 +189,19 @@ export class Deliveryunitslist {
 }
 
   getInitials(name: string): string {
-    const words = name.trim().split(' ');
-    if (words.length >= 2) {
-      return (words[0][0] + words[1][0]).toUpperCase();
-    }
-    return name.substring(0, 2).toUpperCase();
+  if (!name) return '';
+
+  // Trim leading/trailing spaces and split by one or more spaces
+  const parts = name.trim().split(/\s+/);
+
+  // Handle single-word names
+  if (parts.length === 1) {
+    return parts[0].substring(0, 2).toUpperCase();
   }
+
+  // Take first letters of first two words
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+}
 
   getRandomColor(): string {
     return this.duColors[Math.floor(Math.random() * this.duColors.length)];
@@ -320,12 +327,15 @@ export class Deliveryunitslist {
     this.router.navigate(['/delivery-units/view', du.duCode]);
   }
 
-  deleteDeliveryUnit(du: any): void {
-    console.log('Delete DU:', du);
-    const confirmed = confirm(`Are you sure you want to delete ${du.duInfo.name}?`);
-    if (confirmed) {
-      this.deliveryUnits = this.deliveryUnits.filter(unit => unit.duCode !== du.duCode);
-      this.filteredDeliveryUnits = this.filteredDeliveryUnits.filter(unit => unit.duCode !== du.duCode);
-    }
-  }
+ deleteDeliveryUnit(du: any): void {
+  // Handle null or malformed DU
+  if (!du || !du.duInfo || !du.duInfo.name) return;
+
+  const confirmDelete = confirm(`Are you sure you want to delete ${du.duInfo.name}?`);
+  if (!confirmDelete) return;
+
+  this.deliveryUnits = this.deliveryUnits.filter(u => u.duCode !== du.duCode);
+  this.filteredDeliveryUnits = this.filteredDeliveryUnits.filter(u => u.duCode !== du.duCode);
+}
+
 }
