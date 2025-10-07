@@ -1,0 +1,185 @@
+<!-- Advanced Filters Panel -->
+<div
+  *ngIf="showFilters"
+  class="bg-white text-sm border border-gray-300 rounded-[2px] p-5 mb-6 mt-6"
+>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+    <!-- Status Filter -->
+    <div>
+      <label class="block font-semibold text-gray-900 mb-3">Status</label>
+      <div class="space-y-2.5">
+        <label
+          *ngFor="let status of statusOptions"
+          class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1.5 rounded transition-colors"
+        >
+          <input
+            type="checkbox"
+            [checked]="isStatusSelected(status)"
+            (change)="toggleStatusFilter(status)"
+            class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+          />
+          <span class="text-sm text-gray-700">{{ status }}</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Priority Filter -->
+    <div>
+      <label class="block font-semibold text-gray-900 mb-3">Priority</label>
+      <div class="space-y-2.5">
+        <label
+          *ngFor="let priority of priorityOptions"
+          class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1.5 rounded transition-colors"
+        >
+          <input
+            type="checkbox"
+            [checked]="isPrioritySelected(priority)"
+            (change)="togglePriorityFilter(priority)"
+            class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+          />
+          <span class="text-sm text-gray-700">{{ priority }}</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Project Manager Filter -->
+    <div>
+      <label class="block font-semibold text-gray-900 mb-3">Project Manager</label>
+
+      <!-- Manager Search -->
+      <div class="mb-3">
+        <div class="flex items-center bg-gray-50 border border-gray-300 rounded px-2 py-1.5">
+          <svg
+            class="w-4 h-4 text-gray-400 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+          <input
+            type="text"
+            [(ngModel)]="managerSearchQuery"
+            placeholder="Search managers..."
+            class="flex-1 text-sm outline-none bg-transparent text-gray-700"
+          />
+        </div>
+      </div>
+
+      <div class="space-y-2.5 max-h-48 overflow-y-auto">
+        <label
+          *ngFor="let manager of filteredManagers"
+          class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1.5 rounded transition-colors"
+        >
+          <input
+            type="checkbox"
+            [checked]="isManagerSelected(manager)"
+            (change)="toggleManagerFilter(manager)"
+            class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+          />
+          <span class="text-sm text-gray-700">{{ manager }}</span>
+        </label>
+
+        <button
+          *ngIf="displayedManagerCount < totalManagerCount && !showAllManagers"
+          (click)="toggleShowAllManagers()"
+          class="w-full text-left text-sm text-blue-600 hover:text-blue-700 font-medium p-1.5 cursor-pointer"
+        >
+          + Show {{ totalManagerCount - displayedManagerCount }} more
+        </button>
+
+        <button
+          *ngIf="showAllManagers && totalManagerCount > 4"
+          (click)="toggleShowAllManagers()"
+          class="w-full text-left text-sm text-blue-600 hover:text-blue-700 font-medium p-1.5 cursor-pointer"
+        >
+          - Show less
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Selected Filters Display -->
+  <div *ngIf="hasActiveFilters" class="mt-5 pt-5 border-t border-gray-200">
+    <div class="flex items-center justify-between mb-3">
+      <span class="text-sm font-semibold text-gray-900"
+        >Active Filters ({{ getActiveFilterCount() }})</span
+      >
+      <button
+        (click)="clearAllFilters()"
+        class="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors cursor-pointer"
+      >
+        Clear All
+      </button>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <!-- Status filters -->
+      <span
+        *ngFor="let status of selectedStatuses"
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-sm font-medium"
+      >
+        <span>{{ status }}</span>
+        <button
+          (click)="removeStatusFilter(status)"
+          class="hover:bg-blue-100 rounded-full p-0.5 transition-colors cursor-pointer"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </span>
+
+      <!-- Priority filters -->
+      <span
+        *ngFor="let priority of selectedPriorities"
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-full text-sm font-medium"
+      >
+        <span>{{ priority }}</span>
+        <button
+          (click)="removePriorityFilter(priority)"
+          class="hover:bg-purple-100 rounded-full p-0.5 transition-colors cursor-pointer"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </span>
+
+      <!-- Manager filters -->
+      <span
+        *ngFor="let manager of selectedManagers"
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 border border-green-200 rounded-full text-sm font-medium"
+      >
+        <span>{{ manager }}</span>
+        <button
+          (click)="removeManagerFilter(manager)"
+          class="hover:bg-green-100 rounded-full p-0.5 transition-colors cursor-pointer"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </span>
+    </div>
+  </div>
+</div>

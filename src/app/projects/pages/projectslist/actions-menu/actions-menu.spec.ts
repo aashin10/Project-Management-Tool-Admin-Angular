@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { AddMemberModal } from './add-member-modal';
+import { ActionsMenu } from './actions-menu';
 
-describe('AddMemberModal', () => {
-  let component: AddMemberModal;
-  let fixture: ComponentFixture<AddMemberModal>;
+describe('ActionsMenu', () => {
+  let component: ActionsMenu;
+  let fixture: ComponentFixture<ActionsMenu>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AddMemberModal]
+      imports: [ActionsMenu]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(AddMemberModal);
+    fixture = TestBed.createComponent(ActionsMenu);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
