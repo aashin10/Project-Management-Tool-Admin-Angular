@@ -642,6 +642,24 @@ describe('Userslist', () => {
     });
 
     it('should delete selected users when confirmed', () => {
+      // Setup selected users for bulk delete
+      component.selectedUsers = [
+        { 
+          user: { name: 'Alice Johnson', email: 'alice.johnson@company.com', avatar: 'AJ' },
+          type: 'Internal', 
+          status: 'Active',
+          created: '23-09-2025',
+          lastActivity: '25-09-2025'
+        },
+        { 
+          user: { name: 'Bob Smith', email: 'bob.smith@external.com', avatar: 'BS' },
+          type: 'External', 
+          status: 'Inactive',
+          created: '27-09-2025',
+          lastActivity: '30-09-2025'
+        }
+      ];
+      
       const initialCount = component.users.length;
       component.pendingDeleteAction = 'bulk';
       
