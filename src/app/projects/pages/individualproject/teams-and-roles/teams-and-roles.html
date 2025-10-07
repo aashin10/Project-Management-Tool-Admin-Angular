@@ -11,7 +11,7 @@
         <p class="text-sm text-gray-600 mt-1">Manage project team members and their roles</p>
       </div>
 
-      <!-- Role Filter and Add Member Button -->
+      <!-- Role Filter and Status Filter -->
       <div class="flex items-center gap-3">
         <select
           [(ngModel)]="selectedRole"
@@ -20,6 +20,16 @@
         >
           <option *ngFor="let role of roleOptions" [value]="role.value">
             {{ role.label }}
+          </option>
+        </select>
+
+        <select
+          [(ngModel)]="selectedStatus"
+          (ngModelChange)="onStatusFilterChange()"
+          class="px-4 py-2 border border-gray-300 rounded-[2px] text-sm bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+        >
+          <option *ngFor="let status of statusOptions" [value]="status.value">
+            {{ status.label }}
           </option>
         </select>
 
@@ -35,7 +45,7 @@
           [height]="'h-9'"
           [gap]="'gap-2'"
           [extraClasses]="'transition-colors font-medium'"
-          (action)="addMember()"
+          (action)="addMemberModal()"
         >
         </app-custom-button>
       </div>
@@ -52,7 +62,7 @@
           type="text"
           [(ngModel)]="searchQuery"
           (ngModelChange)="onSearchChange()"
-          placeholder="Search by name, email, role, or department..."
+          placeholder="Search by name or email..."
           class="flex-1 text-sm outline-none bg-transparent text-gray-700"
         />
       </div>
@@ -66,15 +76,6 @@
     </span>
     
     <div class="flex items-center gap-3">
-      <app-custom-button
-        label="Change Role"
-        [bgClass]="'bg-white'"
-        [borderClass]="'border border-blue-300'"
-        [textColor]="'text-blue-700'"
-        [hoverClass]="'hover:bg-blue-50'"
-        (action)="changeRoleSelected()"
-      >
-      </app-custom-button>
       
       <app-custom-button
         label="Remove"
@@ -87,6 +88,8 @@
     </div>
   </div>
 
+
+
   <!-- Table Component -->
   <div class="bg-white rounded-lg shadow-sm">
     <app-table
@@ -95,6 +98,7 @@
       [showCheckbox]="true"
       [itemsPerPage]="10"
       (actionClick)="handleTableAction($event)"
+      (selectionChange)="onSelectionChange($event)"
     ></app-table>
   </div>
 
@@ -141,4 +145,170 @@
     </app-custom-button>
   </div>
 
+  <!-- Delete Confirmation Modal -->
+  <app-modal [isOpen]="showDeleteModal" (close)="cancelDelete()">
+    <div class="px-6 py-6">
+      <!-- Modal Header -->
+      <div class="mb-4">
+        <h2 class="text-xl font-semibold text-gray-900 mb-2">Confirm Deletion</h2>
+      </div>
+
+      <!-- Modal Content -->
+      <div class="mb-6">
+        <p class="text-gray-700" *ngIf="memberToDelete">
+          Are you sure you want to remove <span class="font-semibold text-gray-900">{{ memberToDelete.name }}</span> from this project?
+          This action cannot be undone.
+        </p>
+        <p class="text-gray-700" *ngIf="!memberToDelete">
+          Are you sure you want to remove <span class="font-semibold text-gray-900">{{ selectedCount }} team member{{ selectedCount > 1 ? 's' : '' }}</span> from this project?
+          This action cannot be undone.
+        </p>
+      </div>
+
+      <!-- Modal Actions -->
+      <div class="flex gap-3 justify-end">
+        <app-custom-button
+          (action)="cancelDelete()"
+          label="Cancel"
+          bgClass="bg-gray-100"
+          textColor="text-gray-700"
+          hoverClass="hover:bg-gray-200"
+          borderClass="border border-gray-300"
+          height="h-10"
+          padding="px-4"
+        />
+        <app-custom-button
+          (action)="confirmDelete()"
+          label="Remove"
+          bgClass="bg-red-600"
+          textColor="text-white"
+          hoverClass="hover:bg-red-700"
+          borderClass="border-none"
+          height="h-10"
+          padding="px-4"
+        />
+      </div>
+    </div>
+  </app-modal>
+
+  <!-- Add Member Modal -->
+  <app-modal [isOpen]="showAddModal" (close)="showAddModal = false">
+    <div class="px-6 py-6 max-h-[80vh] overflow-hidden flex flex-col">
+      <!-- Modal Header -->
+      <div class="mb-4">
+        <h2 class="text-lg font-semibold text-gray-900 mb-2">Add New Team Member</h2>
+        <div class="w-12 h-1 bg-blue-500 rounded-full"></div>
+      </div>
+
+      <!-- Search Field -->
+      <div class="mb-3 flex-shrink-0">
+        <input
+          type="text"
+          [(ngModel)]="addMemberSearchQuery"
+          placeholder="Search employees by name or email..."
+          class="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      <!-- Employee List -->
+      <div class="flex-1 min-h-0 mb-3">
+        <ul *ngIf="addMemberSearchQuery && filteredEmployees.length > 0" class="max-h-40 overflow-y-auto border rounded">
+        <li
+          *ngFor="let emp of filteredEmployees"
+          (click)="selectEmployee(emp)"
+          class="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50"
+          [class.bg-blue-100]="selectedEmployee?.id === emp.id"
+        >
+          <div class="font-medium text-gray-800">{{ emp.name }}</div>
+          <div class="text-xs text-gray-500">{{ emp.email }}</div>
+        </li>
+      </ul>
+      </div>
+
+      <!-- Selected Employee -->
+      <div *ngIf="selectedEmployee" class="mb-3 p-3 border rounded bg-gray-50 flex-shrink-0">
+        <p class="text-sm font-medium text-gray-800">{{ selectedEmployee.name }}</p>
+        <p class="text-xs text-gray-500">{{ selectedEmployee.department }} | {{ selectedEmployee.email }}</p>
+      </div>
+
+      <!-- Role Selection -->
+      <div class="mb-4 flex-shrink-0">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Assign Roles</label>
+        <div class="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto border border-gray-300 rounded p-3 bg-gray-50">
+          <div *ngFor="let role of addMemberRoleOptions" class="flex items-center">
+            <input
+              type="checkbox"
+              [id]="'role-' + role"
+              [checked]="isRoleSelected(role)"
+              (change)="toggleRole(role)"
+              class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+            />
+            <label [for]="'role-' + role" class="ml-2 text-sm font-medium text-gray-700 cursor-pointer">
+              {{ role }}
+            </label>
+          </div>
+        </div>
+        <p *ngIf="addMemberSelectedRoles.length > 0" class="text-xs text-gray-500 mt-1">
+          {{ addMemberSelectedRoles.length }} role{{ addMemberSelectedRoles.length > 1 ? 's' : '' }} selected
+        </p>
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex justify-end gap-3 flex-shrink-0">
+        <app-custom-button
+          label="Cancel"
+          [bgClass]="'bg-white'"
+          [borderClass]="'border border-gray-300'"
+          [textColor]="'text-gray-700'"
+          [hoverClass]="'hover:bg-gray-50'"
+          (action)="closeAddModal()"
+        ></app-custom-button>
+
+        <app-custom-button
+          label="Add Member"
+          [bgClass]="'bg-blue-600'"
+          [hoverClass]="'hover:bg-blue-700'"
+          [textColor]="'text-white'"
+          (action)="addMember()"
+        ></app-custom-button>
+      </div>
+
+      <!-- Validation Modal -->
+      <app-modal [isOpen]="showValidationModal" (close)="showValidationModal = false">
+        <div class="px-6 py-6">
+          <!-- Modal Header -->
+          <div class="mb-4">
+            <h2 class="text-xl font-semibold text-gray-900 mb-2">Validation Error</h2>
+            <div class="w-12 h-1 bg-red-500 rounded-full"></div>
+          </div>
+
+          <!-- Modal Content -->
+          <div class="mb-6">
+            <p class="text-gray-700" *ngIf="!selectedEmployee || addMemberSelectedRoles.length === 0">
+              Please select an employee and at least one role before adding a team member.
+            </p>
+            <p class="text-gray-700" *ngIf="selectedEmployee && addMemberSelectedRoles.length > 0">
+              This team member is already part of the project.
+            </p>
+          </div>
+
+          <!-- Modal Actions -->
+          <div class="flex gap-3 justify-end">
+            <app-custom-button
+              (action)="showValidationModal = false"
+              label="OK"
+              bgClass="bg-blue-600"
+              textColor="text-white"
+              hoverClass="hover:bg-blue-700"
+              borderClass="border-none"
+              height="h-10"
+              padding="px-4"
+            />
+          </div>
+        </div>
+      </app-modal>
+    </div>
+  </app-modal>
+
 </div>
+

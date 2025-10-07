@@ -4,7 +4,6 @@ import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
 import { BasicInformationComponent } from './basicinfo/basicinfo';
 import { TeamOrganizationComponent } from './teaminfo/teaminfo';
 import { ProjectPreviewComponent } from './projectpreview/projectpreview';
-import { CustomButton } from '../../../shared/custom-button/custom-button';
 import { Additionalinfo } from './additionalinfo/additionalinfo';
 @Component({
   selector: 'app-createproject',
@@ -15,7 +14,6 @@ import { Additionalinfo } from './additionalinfo/additionalinfo';
     BasicInformationComponent,
     TeamOrganizationComponent,
     ProjectPreviewComponent,
-    CustomButton,
     Additionalinfo
   ],
   templateUrl: './createproject.html',
