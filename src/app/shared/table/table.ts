@@ -161,6 +161,7 @@ export class Table {
   }
 }
 
+
 function isLastRows(index: any, number: any) {
   throw new Error('Function not implemented.');
 

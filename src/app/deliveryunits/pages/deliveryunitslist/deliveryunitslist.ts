@@ -71,9 +71,9 @@ export class Deliveryunitslist {
       field: 'actions', 
       type: 'actions' as const,
       actions: [
-        { label: 'Edit DU', icon: 'assets/edit.svg', action: 'edit' },
-        { label: 'View Details', icon: 'assets/eye.svg', action: 'view' },
-        { label: 'Delete DU', icon: 'assets/trash.svg', action: 'delete', class: 'danger' }
+        { label: 'Edit DU', icon: 'images/edit.svg', action: 'edit' },
+        //{ label: 'View Details', icon: 'images/delete.svg', action: 'view' },
+        { label: 'Delete DU', icon: 'images/delete.svg', action: 'delete', class: 'danger' }
       ]
     }
   ];
