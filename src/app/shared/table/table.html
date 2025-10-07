@@ -6,7 +6,13 @@
         <tr>
           <!-- Checkbox column -->
           <th *ngIf="showCheckbox" class="w-12 px-6 py-3">
-            <input type="checkbox" class="rounded border-gray-300" (change)="toggleAll()" />
+            <input 
+              type="checkbox" 
+              class="rounded border-gray-300" 
+              [checked]="isAllSelected()"
+              [indeterminate]="isSomeSelected()"
+              (change)="toggleAll()" 
+            />
           </th>
 
           <!-- Dynamic columns -->
