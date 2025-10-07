@@ -62,24 +62,6 @@
         </span>
       </button>
 
-      <!-- Clear Sorting Button -->
-      <button
-        *ngIf="hasActiveSorting"
-        (click)="clearAllSorting()"
-        class="flex items-center gap-2 px-4 py-2.5 bg-red-50 border border-red-200 rounded-[2px] text-sm font-medium text-red-700 hover:bg-red-100 transition-colors whitespace-nowrap cursor-pointer"
-        title="Clear all sorting"
-      >
-        <span>
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </span>
-        <span class="hidden sm:inline">Clear Sort</span>
-        <span class="sm:hidden">Sort</span>
-        <span class="ml-1 px-2 py-0.5 bg-red-600 text-white rounded-full text-xs">
-          {{ sortCriteria.length }}
-        </span>
-      </button>
     </div>
 
     <!-- Advanced Filters Panel -->
@@ -91,27 +73,10 @@
       (filtersChanged)="onFiltersChanged($event)">
     </app-advanced-filters>
 
-    <!-- Sorting Status & Project Count -->
+    <!-- Project Count -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 py-4">
       <div class="text-sm text-gray-500">
         Showing all projects • Total: {{ filteredProjects.length }} projects
-      </div>
-
-      <!-- Active Sorting Display -->
-      <div *ngIf="hasActiveSorting" class="flex items-center gap-2">
-        <span class="text-sm text-gray-600">Sorted by:</span>
-        <div class="flex items-center gap-1">
-          <span
-            *ngFor="let criteria of sortCriteria; let i = index"
-            class="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-xs font-medium"
-          >
-            <span class="w-3 h-3 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
-              {{ i + 1 }}
-            </span>
-            <span>{{ getFieldLabel(criteria.field) }}</span>
-            <span class="text-blue-600">{{ criteria.direction === 'asc' ? '↑' : '↓' }}</span>
-          </span>
-        </div>
       </div>
     </div>
 
@@ -132,14 +97,13 @@
       </div>
 
       <div class="overflow-x-auto" *ngIf="paginatedProjects.length > 0">
-        <table class="w-full min-w-[900px] table-fixed">
-          <thead class="bg-gray-50 border-b border-gray-200">
+        <table class="w-full min-w-[900px] table-fixed align-top">
+          <thead class="bg-gray-50 border-b border-gray-200 align-middle">
             <tr>
-              <th class="w-1 lg:px-4 py-4">
+              <th class="w-12 px-2 lg:px-4 py-4 text-center align-middle">
                 <input
                   #selectAllCheckbox
                   type="checkbox"
-                  [checked]="allSelected"
                   (change)="toggleSelectAll()"
                   class="w-4 h-4 rounded border-gray-300 cursor-pointer"
                 />
@@ -161,10 +125,6 @@
                       class="text-blue-600 font-bold"
                       >↓</span
                     >
-                    <span
-                      *ngIf="getSortPriority('name')"
-                      class="absolute -top-1 -right-1 text-xs bg-blue-600 text-white rounded-full w-3 h-3 flex items-center justify-center"
-                    >{{ getSortPriority('name') }}</span>
                     <svg
                       *ngIf="!getSortDirection('name')"
                       class="w-4 h-4 text-gray-400"
@@ -199,10 +159,6 @@
                       class="text-blue-600 font-bold"
                       >↓</span
                     >
-                    <span
-                      *ngIf="getSortPriority('status')"
-                      class="absolute -top-1 -right-1 text-xs bg-blue-600 text-white rounded-full w-3 h-3 flex items-center justify-center"
-                    >{{ getSortPriority('status') }}</span>
                     <svg
                       *ngIf="!getSortDirection('status')"
                       class="w-4 h-4 text-gray-400"
@@ -237,10 +193,6 @@
                       class="text-blue-600 font-bold"
                       >↓</span
                     >
-                    <span
-                      *ngIf="getSortPriority('priority')"
-                      class="absolute -top-1 -right-1 text-xs bg-blue-600 text-white rounded-full w-3 h-3 flex items-center justify-center"
-                    >{{ getSortPriority('priority') }}</span>
                     <svg
                       *ngIf="!getSortDirection('priority')"
                       class="w-4 h-4 text-gray-400"
@@ -275,10 +227,6 @@
                       class="text-blue-600 font-bold"
                       >↓</span
                     >
-                    <span
-                      *ngIf="getSortPriority('projectManager')"
-                      class="absolute -top-1 -right-1 text-xs bg-blue-600 text-white rounded-full w-3 h-3 flex items-center justify-center"
-                    >{{ getSortPriority('projectManager') }}</span>
                     <svg
                       *ngIf="!getSortDirection('projectManager')"
                       class="w-4 h-4 text-gray-400"
@@ -313,10 +261,6 @@
                       class="text-blue-600 font-bold"
                       >↓</span
                     >
-                    <span
-                      *ngIf="getSortPriority('teamSize')"
-                      class="absolute -top-1 -right-1 text-xs bg-blue-600 text-white rounded-full w-3 h-3 flex items-center justify-center"
-                    >{{ getSortPriority('teamSize') }}</span>
                     <svg
                       *ngIf="!getSortDirection('teamSize')"
                       class="w-4 h-4 text-gray-400"
@@ -344,9 +288,9 @@
               *ngFor="let project of paginatedProjects"
               [class.bg-blue-50]="project.selected"
               (click)="onRowClick(project)"
-              class="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
+              class="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer align-middle"
             >
-              <td class="w-12 px-2 lg:px-4 py-4">
+              <td class="w-12 px-2 lg:px-4 py-4 text-center align-middle">
                 <input
                   type="checkbox"
                   [(ngModel)]="project.selected"
@@ -355,7 +299,7 @@
                   class="w-4 h-4 rounded border-gray-300 cursor-pointer"
                 />
               </td>
-              <td class="w-64 px-2 lg:px-4 py-4">
+              <td class="w-64 px-2 lg:px-4 py-4 align-middle">
                 <div class="flex items-center gap-2 lg:gap-3">
                   <div
                     class="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs lg:text-sm font-semibold flex-shrink-0"
@@ -370,7 +314,7 @@
                   </div>
                 </div>
               </td>
-              <td class="w-28 px-2 lg:px-4 py-4">
+              <td class="w-28 px-2 lg:px-4 py-4 align-middle">
                 <span
                   [ngClass]="{
                     'bg-green-100 text-green-800': project.status === 'Ongoing',
@@ -384,7 +328,7 @@
                   {{ project.status }}
                 </span>
               </td>
-              <td class="w-24 px-2 lg:px-4 py-4">
+              <td class="w-24 px-2 lg:px-4 py-4 align-middle">
                 <span
                   [ngClass]="{
                     'bg-red-100 text-red-800':
@@ -397,7 +341,7 @@
                   {{ project.priority }}
                 </span>
               </td>
-              <td class="w-48 px-2 lg:px-4 py-4">
+              <td class="w-48 px-2 lg:px-4 py-4 align-middle">
                 <div class="flex items-center gap-2 overflow-hidden">
                   <span
                     class="inline-flex items-center justify-center w-5 h-5 lg:w-6 lg:h-6 rounded-full bg-gray-200 text-gray-700 text-xs font-semibold flex-shrink-0"
@@ -409,13 +353,13 @@
                   }}</span>
                 </div>
               </td>
-              <td class="w-28 px-2 lg:px-4 py-4">
+              <td class="w-28 px-2 lg:px-4 py-4 align-middle">
                 <div class="flex items-center gap-2">
                   <img src="/images/team-size.svg" alt="" class="w-4 h-4 flex-shrink-0" />
                   <span class="text-xs lg:text-sm text-gray-900">{{ project.teamSize }}</span>
                 </div>
               </td>
-              <td class="w-20 px-2 lg:px-4 py-4 relative">
+              <td class="w-20 px-2 lg:px-4 py-4 relative align-middle">
                 <button
                   (click)="toggleActionsMenu(project.id, $event)"
                   class="text-gray-600 hover:text-gray-900 text-xl leading-none p-1 lg:p-2 hover:bg-gray-100 rounded transition-colors cursor-pointer"
@@ -546,7 +490,7 @@
           This action cannot be undone.
         </p>
         <p class="text-gray-700" *ngIf="deleteMode === 'bulk'">
-          Are you sure you want to delete <span class="font-semibold text-gray-900">{{ allSelectedProjects.length }} project(s)</span>?
+          Are you sure you want to delete <span class="font-semibold text-gray-900">{{ deleteCount }} project(s)</span>?
           This action cannot be undone.
         </p>
       </div>
