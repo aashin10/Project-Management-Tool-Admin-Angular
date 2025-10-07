@@ -57,6 +57,7 @@ export class Projectslist implements AfterViewChecked {
   showDeleteModal = false;
   projectToDelete: string | null = null;
   deleteMode: 'single' | 'bulk' = 'single';
+  projectsToDelete: Project[] = [];
 
   // Multi-select filter options
   selectedStatuses: string[] = [];
@@ -65,8 +66,8 @@ export class Projectslist implements AfterViewChecked {
 
   constructor(private router: Router, private cdr: ChangeDetectorRef) {}
   
-  // Sorting - now supports multiple criteria
-  sortCriteria: SortCriteria[] = [];
+  // Sorting - single criteria at a time
+  sortCriteria: SortCriteria | null = null;
   
   rowsPerPage = 10;
   currentPage = 1;
@@ -196,41 +197,34 @@ export class Projectslist implements AfterViewChecked {
       );
     }
 
-    // Apply multiple sorting criteria in order of priority
-    if (this.sortCriteria.length > 0) {
+    // Apply single sorting criteria
+    if (this.sortCriteria) {
       filtered.sort((a, b) => {
-        for (const criteria of this.sortCriteria) {
-          let comparison = 0;
-          const field = criteria.field;
+        let comparison = 0;
+        const field = this.sortCriteria!.field;
 
-          if (field === 'teamSize') {
-            comparison = a[field] - b[field];
-          } else if (field === 'priority') {
-            // Higher priority values should come first in ascending order
-            const priorityOrder: Record<string, number> = {
-              'Low': 1, 'Medium': 2, 'High': 3, 'Critical': 4
-            };
-            comparison = priorityOrder[a[field]] - priorityOrder[b[field]];
-          } else if (field === 'status') {
-            // Logical workflow order: Planning -> Ongoing -> On Hold -> Completed -> Archived
-            const statusOrder: Record<string, number> = {
-              'Planning': 1, 'Ongoing': 2, 'On Hold': 3, 'Completed': 4, 'Archived': 5
-            };
-            comparison = statusOrder[a[field]] - statusOrder[b[field]];
-          } else {
-            comparison = String(a[field]).localeCompare(String(b[field]));
-          }
-
-          // Apply direction
-          comparison = criteria.direction === 'asc' ? comparison : -comparison;
-
-          // If this criteria shows a difference, return it (higher priority)
-          if (comparison !== 0) {
-            return comparison;
-          }
-          // If equal, continue to next criteria
+        if (field === 'teamSize') {
+          comparison = a[field] - b[field];
+        } else if (field === 'priority') {
+          // Higher priority values should come first in ascending order
+          const priorityOrder: Record<string, number> = {
+            'Low': 1, 'Medium': 2, 'High': 3, 'Critical': 4
+          };
+          comparison = priorityOrder[a[field]] - priorityOrder[b[field]];
+        } else if (field === 'status') {
+          // Logical workflow order: Planning -> Ongoing -> On Hold -> Completed -> Archived
+          const statusOrder: Record<string, number> = {
+            'Planning': 1, 'Ongoing': 2, 'On Hold': 3, 'Completed': 4, 'Archived': 5
+          };
+          comparison = statusOrder[a[field]] - statusOrder[b[field]];
+        } else {
+          comparison = String(a[field]).localeCompare(String(b[field]));
         }
-        return 0;
+
+        // Apply direction
+        comparison = this.sortCriteria!.direction === 'asc' ? comparison : -comparison;
+
+        return comparison;
       });
     }
 
@@ -245,6 +239,11 @@ export class Projectslist implements AfterViewChecked {
   get allSelectedProjects(): Project[] {
     // Return all selected projects from the entire dataset
     return this.projects.filter(p => p.selected);
+  }
+
+  get deleteCount(): number {
+    // Return the count for delete operations (use stored projects for bulk delete)
+    return this.deleteMode === 'bulk' ? this.projectsToDelete.length : this.allSelectedProjects.length;
   }
 
   get allSelected(): boolean {
@@ -266,7 +265,11 @@ export class Projectslist implements AfterViewChecked {
     if (this.selectAllCheckbox) {
       const checkbox = this.selectAllCheckbox.nativeElement;
       const isIndeterminate = this.isIndeterminateSelection();
-      checkbox.indeterminate = isIndeterminate;
+      const allSelected = this.allSelected;
+
+      // Show indeterminate state for both partial selection and full selection
+      checkbox.indeterminate = isIndeterminate || allSelected;
+      checkbox.checked = false;
     }
   }
 
@@ -353,60 +356,54 @@ export class Projectslist implements AfterViewChecked {
 
   toggleSelectAll(): void {
     const allSelected = this.allSelected;
-    // Toggle selection for all filtered projects (across all pages)
+    const someSelected = this.isIndeterminateSelection();
+
+    let newSelectionState: boolean;
+
+    if (allSelected || someSelected) {
+      // All or some selected (showing dash) - deselect all
+      newSelectionState = false;
+    } else {
+      // None selected (empty) - select all
+      newSelectionState = true;
+    }
+
+    // Apply the new selection state to all filtered projects (across all pages)
     this.filteredProjects.forEach(project => {
-      project.selected = !allSelected;
+      project.selected = newSelectionState;
     });
 
-    // Force change detection to update checkbox state immediately
+    // Explicitly update checkbox state immediately after selection changes
+    this.updateCheckboxState();
+
+    // Force change detection
     this.cdr.detectChanges();
   }
 
   sortBy(field: SortField): void {
-    const existingCriteriaIndex = this.sortCriteria.findIndex(criteria => criteria.field === field);
-
-    if (existingCriteriaIndex === -1) {
-      // Field not in sort criteria, add it as the primary sort (move to front) with ascending order
-      this.sortCriteria.unshift({ field, direction: 'asc' });
-    } else {
-      // Field exists in sort criteria
-      const existingCriteria = this.sortCriteria[existingCriteriaIndex];
-
-      if (existingCriteria.direction === 'asc') {
+    if (this.sortCriteria && this.sortCriteria.field === field) {
+      // Field is currently being sorted
+      if (this.sortCriteria.direction === 'asc') {
         // Change from asc to desc
-        this.sortCriteria[existingCriteriaIndex].direction = 'desc';
+        this.sortCriteria.direction = 'desc';
       } else {
-        // Remove from sort criteria (was desc, now removing)
-        this.sortCriteria.splice(existingCriteriaIndex, 1);
+        // Remove sorting (was desc, now removing)
+        this.sortCriteria = null;
       }
-    }
-
-    // Limit to maximum 3 sorting criteria to avoid confusion
-    if (this.sortCriteria.length > 3) {
-      this.sortCriteria = this.sortCriteria.slice(0, 3);
+    } else {
+      // Set new field as sort criteria with ascending order
+      this.sortCriteria = { field, direction: 'asc' };
     }
   }
 
   // Helper method to get sort direction for a field (for UI display)
   getSortDirection(field: SortField): SortDirection | null {
-    const criteria = this.sortCriteria.find(c => c.field === field);
-    return criteria ? criteria.direction : null;
-  }
-
-  // Helper method to get sort priority for a field (for UI display)
-  getSortPriority(field: SortField): number | null {
-    const index = this.sortCriteria.findIndex(c => c.field === field);
-    return index !== -1 ? index + 1 : null;
+    return this.sortCriteria && this.sortCriteria.field === field ? this.sortCriteria.direction : null;
   }
 
   // Check if any sorting is active
   get hasActiveSorting(): boolean {
-    return this.sortCriteria.length > 0;
-  }
-
-  // Clear all sorting criteria
-  clearAllSorting(): void {
-    this.sortCriteria = [];
+    return this.sortCriteria !== null;
   }
 
   // Get human-readable field label
@@ -503,6 +500,14 @@ export class Projectslist implements AfterViewChecked {
   deleteSelected(): void {
     if (this.allSelectedProjects.length === 0) return;
 
+    // Store the selected projects for deletion
+    this.projectsToDelete = [...this.allSelectedProjects];
+
+    // Clear all selections to hide bulk actions
+    this.projects.forEach(project => {
+      project.selected = false;
+    });
+
     this.deleteMode = 'bulk';
     this.showDeleteModal = true;
   }
@@ -513,6 +518,8 @@ export class Projectslist implements AfterViewChecked {
     this.showDeleteModal = false;
     this.projectToDelete = null;
     this.deleteMode = 'single';
+    // Clear stored projects for bulk delete
+    this.projectsToDelete = [];
   }
 
   confirmDelete(): void {
@@ -526,11 +533,15 @@ export class Projectslist implements AfterViewChecked {
         this.currentPage--;
       }
     } else if (this.deleteMode === 'bulk') {
-      this.projects = this.projects.filter(p => !p.selected);
-      console.log('Projects deleted');
+      // Use stored projects to delete instead of current selections
+      const projectIdsToDelete = this.projectsToDelete.map(p => p.id);
+      this.projects = this.projects.filter(p => !projectIdsToDelete.includes(p.id));
+      console.log('Projects deleted:', projectIdsToDelete.length);
       if (this.paginatedProjects.length === 0 && this.currentPage > 1) {
         this.currentPage--;
       }
+      // Clear the stored projects after deletion
+      this.projectsToDelete = [];
     }
 
     this.showDeleteModal = false;

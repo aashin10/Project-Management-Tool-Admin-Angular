@@ -34,6 +34,7 @@ export class TeamsAndRoles {
   selectedRole: string = 'all';
   selectedStatus: string = 'all';
   selectedRows: any[] = [];
+  clearTableSelections: boolean = false;
 
   // Delete modal properties
   showDeleteModal = false;
@@ -160,7 +161,7 @@ export class TeamsAndRoles {
       id: '10',
       name: 'Ethan Brown',
       department: 'Quality Assurance',
-      roles: ['QA Engineer'],
+      roles: ['QA Engineer','Senior Developer','Project Manager'],
       email: 'ethan.brown@company.com',
       status: 'Active'
     },
@@ -332,6 +333,13 @@ export class TeamsAndRoles {
       console.log('Selected members removed');
     }
     this.showDeleteModal = false;
+
+    // Clear table selections to prevent index shifting issues after deletion
+    this.clearTableSelections = true;
+    // Reset the flag after a short delay to allow the change detection to work
+    setTimeout(() => {
+      this.clearTableSelections = false;
+    }, 0);
   }
 
   // Add member modal getters and methods
