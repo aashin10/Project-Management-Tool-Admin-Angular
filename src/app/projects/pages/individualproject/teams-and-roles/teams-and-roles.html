@@ -97,6 +97,8 @@
       [data]="tableData"
       [showCheckbox]="true"
       [itemsPerPage]="10"
+      [selectAllAcrossPages]="true"
+      [clearSelections]="clearTableSelections"
       (actionClick)="handleTableAction($event)"
       (selectionChange)="onSelectionChange($event)"
     ></app-table>

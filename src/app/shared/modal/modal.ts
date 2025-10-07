@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, HostListener, ElementRef, OnInit, OnDestroy, OnChanges, Renderer2 } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener, ElementRef, OnInit, OnDestroy, AfterViewChecked, Renderer2 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -13,13 +13,19 @@ import { CommonModule } from '@angular/common';
     '[attr.aria-modal]': 'isOpen ? "true" : null'
   }
 })
-export class Modal implements OnInit, OnDestroy, OnChanges {
+export class Modal implements OnInit, OnDestroy, AfterViewChecked {
   @Input() isOpen: boolean = false;
   @Output() close = new EventEmitter<void>();
 
   private previousFocusElement?: HTMLElement;
   private bodyOverflow: string = '';
   private isScrollPrevented: boolean = false;
+  private focusableElements: HTMLElement[] = [];
+  private firstFocusableElement?: HTMLElement;
+  private lastFocusableElement?: HTMLElement;
+  private tabKeyListener?: (event: KeyboardEvent) => void;
+  private focusInListener?: (event: FocusEvent) => void;
+  private wasOpen: boolean = false;
 
   constructor(private elementRef: ElementRef, private renderer: Renderer2) {}
 
@@ -28,9 +34,70 @@ export class Modal implements OnInit, OnDestroy, OnChanges {
     this.bodyOverflow = document.body.style.overflow || '';
   }
 
+  ngAfterViewChecked() {
+    // Check if modal state changed
+    if (this.wasOpen !== this.isOpen) {
+      this.wasOpen = this.isOpen;
+      this.handleModalStateChange();
+    }
+  }
+
   ngOnDestroy() {
     // Cleanup: restore body scroll
     this.restoreBodyScroll();
+
+    // Remove all event listeners
+    this.removeEventListeners();
+  }
+
+  private handleModalStateChange() {
+    if (this.isOpen) {
+      this.openModal();
+    } else {
+      this.closeModal();
+    }
+  }
+
+  private openModal() {
+    this.preventBodyScroll();
+    this.addEventListeners();
+
+    // Use setTimeout to ensure DOM is fully rendered
+    setTimeout(() => {
+      this.updateFocusableElements();
+      this.focusModal();
+    }, 0);
+  }
+
+  private closeModal() {
+    this.removeEventListeners();
+    this.restoreBodyScroll();
+    this.restoreFocus();
+    this.clearFocusableElements();
+  }
+
+  private addEventListeners() {
+    if (!this.tabKeyListener) {
+      this.tabKeyListener = this.onTabKey.bind(this);
+      document.addEventListener('keydown', this.tabKeyListener, true); // Use capture phase
+    }
+
+    if (!this.focusInListener) {
+      this.focusInListener = this.onFocusIn.bind(this);
+      document.addEventListener('focusin', this.focusInListener, true); // Use capture phase
+    }
+  }
+
+  private removeEventListeners() {
+    if (this.tabKeyListener) {
+      document.removeEventListener('keydown', this.tabKeyListener, true);
+      this.tabKeyListener = undefined;
+    }
+
+    if (this.focusInListener) {
+      document.removeEventListener('focusin', this.focusInListener, true);
+      this.focusInListener = undefined;
+    }
   }
 
   @HostListener('window:keydown.escape', ['$event'])
@@ -40,6 +107,29 @@ export class Modal implements OnInit, OnDestroy, OnChanges {
       this.onClose();
     }
   }
+
+  private onTabKey(event: KeyboardEvent) {
+    if (event.key === 'Tab' && this.isOpen) {
+      this.handleTabNavigation(event);
+    }
+  }
+
+  private onFocusIn(event: FocusEvent) {
+    if (!this.isOpen) return;
+
+    const modalElement = this.elementRef.nativeElement.querySelector('.bg-white.rounded-lg');
+    if (!modalElement) return;
+
+    const target = event.target as HTMLElement;
+    if (target && !modalElement.contains(target)) {
+      // Focus moved outside the modal, redirect to first focusable element
+      event.preventDefault();
+      if (this.firstFocusableElement) {
+        this.firstFocusableElement.focus();
+      }
+    }
+  }
+
 
   onClose() {
     this.close.emit();
@@ -52,16 +142,6 @@ export class Modal implements OnInit, OnDestroy, OnChanges {
     }
   }
 
-  // Handle modal open/close effects
-  private handleModalState() {
-    if (this.isOpen) {
-      this.preventBodyScroll();
-      this.focusModal();
-    } else {
-      this.restoreBodyScroll();
-      this.restoreFocus();
-    }
-  }
 
   private preventBodyScroll() {
     this.bodyOverflow = document.body.style.overflow || '';
@@ -80,14 +160,13 @@ export class Modal implements OnInit, OnDestroy, OnChanges {
     // Store current focused element
     this.previousFocusElement = document.activeElement as HTMLElement;
 
-    // Focus the modal content or close button
-    const modalElement = this.elementRef.nativeElement.querySelector('.bg-white.rounded-lg');
-    if (modalElement) {
-      // Focus the close button for accessibility
-      const closeButton = modalElement.querySelector('button');
-      if (closeButton) {
-        closeButton.focus();
-      } else {
+    // Focus the first focusable element in the modal
+    if (this.firstFocusableElement) {
+      this.firstFocusableElement.focus();
+    } else {
+      // Fallback to modal element if no focusable elements found
+      const modalElement = this.elementRef.nativeElement.querySelector('.bg-white.rounded-lg');
+      if (modalElement) {
         modalElement.focus();
       }
     }
@@ -99,8 +178,83 @@ export class Modal implements OnInit, OnDestroy, OnChanges {
     }
   }
 
-  // Call this when isOpen changes (would be handled by Angular change detection)
-  ngOnChanges() {
-    this.handleModalState();
+  private updateFocusableElements() {
+    const modalElement = this.elementRef.nativeElement.querySelector('.bg-white.rounded-lg');
+    if (!modalElement) return;
+
+    // Find all focusable elements within the modal
+    const focusableSelectors = [
+      'a[href]',
+      'area[href]',
+      'input:not([disabled]):not([type="hidden"])',
+      'select:not([disabled])',
+      'textarea:not([disabled])',
+      'button:not([disabled]):not([aria-hidden="true"])',
+      '[tabindex]:not([tabindex="-1"])',
+      '[contenteditable="true"]'
+    ];
+
+    const focusableElements = modalElement.querySelectorAll(focusableSelectors.join(', '));
+    this.focusableElements = Array.from(focusableElements)
+      .filter(el => {
+        // Filter out elements that are not visible or have display: none
+        const style = window.getComputedStyle(el as HTMLElement);
+        return style.display !== 'none' && style.visibility !== 'hidden';
+      }) as HTMLElement[];
+
+    if (this.focusableElements.length > 0) {
+      // Prioritize the close button as first, then other buttons
+      const closeButton = modalElement.querySelector('button[aria-label="Close modal"]') as HTMLElement;
+      if (closeButton && this.focusableElements.includes(closeButton)) {
+        // Move close button to end of focusable elements for better UX
+        this.focusableElements = this.focusableElements.filter(el => el !== closeButton);
+        this.focusableElements.push(closeButton);
+      }
+
+      this.firstFocusableElement = this.focusableElements[0];
+      this.lastFocusableElement = this.focusableElements[this.focusableElements.length - 1];
+    }
   }
+
+  private clearFocusableElements() {
+    this.focusableElements = [];
+    this.firstFocusableElement = undefined;
+    this.lastFocusableElement = undefined;
+  }
+
+  private handleTabNavigation(event: KeyboardEvent) {
+    if (this.focusableElements.length === 0) return;
+
+    event.preventDefault(); // Always prevent default tab behavior when modal is open
+
+    const currentElement = document.activeElement as HTMLElement;
+    const currentIndex = this.focusableElements.indexOf(currentElement);
+
+    if (event.shiftKey) {
+      // Shift + Tab: move backward
+      if (currentIndex === -1) {
+        // If not in focusable elements, go to last
+        this.lastFocusableElement?.focus();
+      } else if (currentIndex === 0) {
+        // At first element, wrap to last
+        this.lastFocusableElement?.focus();
+      } else {
+        // Move to previous element
+        this.focusableElements[currentIndex - 1]?.focus();
+      }
+    } else {
+      // Tab: move forward
+      if (currentIndex === -1) {
+        // If not in focusable elements, go to first
+        this.firstFocusableElement?.focus();
+      } else if (currentIndex === this.focusableElements.length - 1) {
+        // At last element, wrap to first
+        this.firstFocusableElement?.focus();
+      } else {
+        // Move to next element
+        this.focusableElements[currentIndex + 1]?.focus();
+      }
+    }
+  }
+
 }
