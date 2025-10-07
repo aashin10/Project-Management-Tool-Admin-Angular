@@ -59,8 +59,8 @@ export class Roleslist {
       field: 'actions',
       type: 'actions',
       actions: [
-        { label: 'Edit', action: 'edit', icon: 'assets/edit.png' },
-        { label: 'Delete', action: 'delete', icon: '🗑️', class: 'danger' }
+        { label: 'Edit', action: 'edit', icon: 'images/edit.svg' },
+        { label: 'Delete', action: 'delete', icon: 'images/delete.svg', class: 'danger' }
       ]
     }
   ];
