@@ -41,3 +41,15 @@
     ></app-import-process-section>
   </div>
 </div>
+
+<!-- Navigation Controls -->
+<div class="flex justify-around items-center w-full mt-6">
+  <!-- Previous Button -->
+  <app-custom-button (click)="previousStep()" [disabled]="currentStep === 1" [label]="'Previous'">
+  </app-custom-button>
+
+  <!-- Step Indicator -->
+  <span class="text-sm text-gray-600 font-medium">
+    Step {{ currentStep }} of {{ importSteps.length }}
+  </span>
+</div>

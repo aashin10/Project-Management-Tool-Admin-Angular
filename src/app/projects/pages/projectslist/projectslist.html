@@ -61,209 +61,49 @@
           {{ selectedStatuses.length + selectedPriorities.length + selectedManagers.length }}
         </span>
       </button>
+
     </div>
 
     <!-- Advanced Filters Panel -->
-    <div
-      *ngIf="showFilters"
-      class="bg-white text-sm border border-gray-300 rounded-[2px] p-5 mb-6 mt-6"
-    >
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
-        <!-- Status Filter -->
-        <div>
-          <label class="block font-semibold text-gray-900 mb-3">Status</label>
-          <div class="space-y-2.5">
-            <label
-              *ngFor="let status of statusOptions"
-              class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1.5 rounded transition-colors"
-            >
-              <input
-                type="checkbox"
-                [checked]="isStatusSelected(status)"
-                (change)="toggleStatusFilter(status)"
-                class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-              />
-              <span class="text-sm text-gray-700">{{ status }}</span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Priority Filter -->
-        <div>
-          <label class="block font-semibold text-gray-900 mb-3">Priority</label>
-          <div class="space-y-2.5">
-            <label
-              *ngFor="let priority of priorityOptions"
-              class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1.5 rounded transition-colors"
-            >
-              <input
-                type="checkbox"
-                [checked]="isPrioritySelected(priority)"
-                (change)="togglePriorityFilter(priority)"
-                class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-              />
-              <span class="text-sm text-gray-700">{{ priority }}</span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Project Manager Filter -->
-        <div>
-          <label class="block font-semibold text-gray-900 mb-3">Project Manager</label>
-
-          <!-- Manager Search -->
-          <div class="mb-3">
-            <div class="flex items-center bg-gray-50 border border-gray-300 rounded px-2 py-1.5">
-              <svg
-                class="w-4 h-4 text-gray-400 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-              <input
-                type="text"
-                [(ngModel)]="managerSearchQuery"
-                placeholder="Search managers..."
-                class="flex-1 text-sm outline-none bg-transparent text-gray-700"
-              />
-            </div>
-          </div>
-
-          <div class="space-y-2.5 max-h-48 overflow-y-auto">
-            <label
-              *ngFor="let manager of filteredManagers"
-              class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1.5 rounded transition-colors"
-            >
-              <input
-                type="checkbox"
-                [checked]="isManagerSelected(manager)"
-                (change)="toggleManagerFilter(manager)"
-                class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-              />
-              <span class="text-sm text-gray-700">{{ manager }}</span>
-            </label>
-
-            <button
-              *ngIf="displayedManagerCount < totalManagerCount && !showAllManagers"
-              (click)="toggleShowAllManagers()"
-              class="w-full text-left text-sm text-blue-600 hover:text-blue-700 font-medium p-1.5 cursor-pointer"
-            >
-              + Show {{ totalManagerCount - displayedManagerCount }} more
-            </button>
-
-            <button
-              *ngIf="showAllManagers && totalManagerCount > 4"
-              (click)="toggleShowAllManagers()"
-              class="w-full text-left text-sm text-blue-600 hover:text-blue-700 font-medium p-1.5 cursor-pointer"
-            >
-              - Show less
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Selected Filters Display -->
-      <div *ngIf="hasActiveFilters" class="mt-5 pt-5 border-t border-gray-200">
-        <div class="flex items-center justify-between mb-3">
-          <span class="text-sm font-semibold text-gray-900"
-            >Active Filters ({{ getActiveFilterCount() }})</span
-          >
-          <button
-            (click)="clearAllFilters()"
-            class="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors cursor-pointer"
-          >
-            Clear All
-          </button>
-        </div>
-        <div class="flex flex-wrap gap-2">
-          <!-- Status filters -->
-          <span
-            *ngFor="let status of selectedStatuses"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-sm font-medium"
-          >
-            <span>{{ status }}</span>
-            <button
-              (click)="removeStatusFilter(status)"
-              class="hover:bg-blue-100 rounded-full p-0.5 transition-colors cursor-pointer"
-            >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </span>
-
-          <!-- Priority filters -->
-          <span
-            *ngFor="let priority of selectedPriorities"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-full text-sm font-medium"
-          >
-            <span>{{ priority }}</span>
-            <button
-              (click)="removePriorityFilter(priority)"
-              class="hover:bg-purple-100 rounded-full p-0.5 transition-colors cursor-pointer"
-            >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </span>
-
-          <!-- Manager filters -->
-          <span
-            *ngFor="let manager of selectedManagers"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 border border-green-200 rounded-full text-sm font-medium"
-          >
-            <span>{{ manager }}</span>
-            <button
-              (click)="removeManagerFilter(manager)"
-              class="hover:bg-green-100 rounded-full p-0.5 transition-colors cursor-pointer"
-            >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </span>
-        </div>
-      </div>
-    </div>
+    <app-advanced-filters
+      [showFilters]="showFilters"
+      [projects]="projects"
+      [statusOptions]="statusOptions"
+      [priorityOptions]="priorityOptions"
+      (filtersChanged)="onFiltersChanged($event)">
+    </app-advanced-filters>
 
     <!-- Project Count -->
-    <div class="text-sm text-gray-500 py-6">
-      Showing all projects • Total: {{ filteredProjects.length }} projects
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 py-4">
+      <div class="text-sm text-gray-500">
+        Showing all projects • Total: {{ filteredProjects.length }} projects
+      </div>
     </div>
 
     <!-- Projects Table -->
     <div class="bg-white border border-gray-300 rounded-[2px] overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full min-w-[900px] table-fixed">
-          <thead class="bg-gray-50 border-b border-gray-200">
+      <!-- Empty State -->
+      <div *ngIf="paginatedProjects.length === 0" class="flex flex-col items-center justify-center py-16 px-4">
+        <div class="text-gray-400 text-lg font-medium mb-4">No project Exist</div>
+        <app-custom-button
+          (action)="createProject()"
+          icon="/images/plus.svg"
+          label="Create Project"
+          bgClass="bg-blue-600"
+          textColor="text-white"
+          hoverClass="hover:bg-blue-700"
+          borderClass="border border-blue-600"
+        />
+      </div>
+
+      <div class="overflow-x-auto" *ngIf="paginatedProjects.length > 0">
+        <table class="w-full min-w-[900px] table-fixed align-top">
+          <thead class="bg-gray-50 border-b border-gray-200 align-middle">
             <tr>
-              <th class="w-9">
+              <th class="w-12 px-2 lg:px-4 py-4 text-center align-middle">
                 <input
+                  #selectAllCheckbox
                   type="checkbox"
-                  [checked]="allSelected"
                   (change)="toggleSelectAll()"
                   class="w-4 h-4 rounded border-gray-300 cursor-pointer"
                 />
@@ -276,17 +116,17 @@
                   <span>Project Info</span>
                   <span class="flex items-center justify-center w-4 h-4">
                     <span
-                      *ngIf="sortField === 'name' && sortDirection === 'asc'"
+                      *ngIf="getSortDirection('name') === 'asc'"
                       class="text-blue-600 font-bold"
                       >↑</span
                     >
                     <span
-                      *ngIf="sortField === 'name' && sortDirection === 'desc'"
+                      *ngIf="getSortDirection('name') === 'desc'"
                       class="text-blue-600 font-bold"
                       >↓</span
                     >
                     <svg
-                      *ngIf="sortField !== 'name'"
+                      *ngIf="!getSortDirection('name')"
                       class="w-4 h-4 text-gray-400"
                       fill="none"
                       stroke="currentColor"
@@ -303,10 +143,72 @@
                 </div>
               </th>
               <th class="w-28 px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                <span>Status</span>
+                <div
+                  class="flex items-center gap-2 select-none p-1 rounded transition-colors cursor-pointer hover:bg-gray-100"
+                  (click)="sortBy('status')"
+                >
+                  <span>Status</span>
+                  <span class="flex items-center justify-center w-4 h-4">
+                    <span
+                      *ngIf="getSortDirection('status') === 'asc'"
+                      class="text-blue-600 font-bold"
+                      >↑</span
+                    >
+                    <span
+                      *ngIf="getSortDirection('status') === 'desc'"
+                      class="text-blue-600 font-bold"
+                      >↓</span
+                    >
+                    <svg
+                      *ngIf="!getSortDirection('status')"
+                      class="w-4 h-4 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                      />
+                    </svg>
+                  </span>
+                </div>
               </th>
               <th class="w-24 px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                <span>Priority</span>
+                <div
+                  class="flex items-center gap-2 select-none p-1 rounded transition-colors cursor-pointer hover:bg-gray-100"
+                  (click)="sortBy('priority')"
+                >
+                  <span>Priority</span>
+                  <span class="flex items-center justify-center w-4 h-4">
+                    <span
+                      *ngIf="getSortDirection('priority') === 'asc'"
+                      class="text-blue-600 font-bold"
+                      >↑</span
+                    >
+                    <span
+                      *ngIf="getSortDirection('priority') === 'desc'"
+                      class="text-blue-600 font-bold"
+                      >↓</span
+                    >
+                    <svg
+                      *ngIf="!getSortDirection('priority')"
+                      class="w-4 h-4 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                      />
+                    </svg>
+                  </span>
+                </div>
               </th>
               <th class="w-48 px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700">
                 <div
@@ -316,17 +218,17 @@
                   <span>Project Manager</span>
                   <span class="flex items-center justify-center w-4 h-4">
                     <span
-                      *ngIf="sortField === 'projectManager' && sortDirection === 'asc'"
+                      *ngIf="getSortDirection('projectManager') === 'asc'"
                       class="text-blue-600 font-bold"
                       >↑</span
                     >
                     <span
-                      *ngIf="sortField === 'projectManager' && sortDirection === 'desc'"
+                      *ngIf="getSortDirection('projectManager') === 'desc'"
                       class="text-blue-600 font-bold"
                       >↓</span
                     >
                     <svg
-                      *ngIf="sortField !== 'projectManager'"
+                      *ngIf="!getSortDirection('projectManager')"
                       class="w-4 h-4 text-gray-400"
                       fill="none"
                       stroke="currentColor"
@@ -350,17 +252,17 @@
                   <span>Team Size</span>
                   <span class="flex items-center justify-center w-4 h-4">
                     <span
-                      *ngIf="sortField === 'teamSize' && sortDirection === 'asc'"
+                      *ngIf="getSortDirection('teamSize') === 'asc'"
                       class="text-blue-600 font-bold"
                       >↑</span
                     >
                     <span
-                      *ngIf="sortField === 'teamSize' && sortDirection === 'desc'"
+                      *ngIf="getSortDirection('teamSize') === 'desc'"
                       class="text-blue-600 font-bold"
                       >↓</span
                     >
                     <svg
-                      *ngIf="sortField !== 'teamSize'"
+                      *ngIf="!getSortDirection('teamSize')"
                       class="w-4 h-4 text-gray-400"
                       fill="none"
                       stroke="currentColor"
@@ -385,21 +287,22 @@
             <tr
               *ngFor="let project of paginatedProjects"
               [class.bg-blue-50]="project.selected"
-              (click)="viewProjectDetails(project.id)"
-              class="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
+              (click)="onRowClick(project)"
+              class="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer align-middle"
             >
-              <td class="w-12 px-2 lg:px-4 py-4">
+              <td class="w-12 px-2 lg:px-4 py-4 text-center align-middle">
                 <input
                   type="checkbox"
                   [(ngModel)]="project.selected"
+                  (ngModelChange)="onSelectionChange()"
                   (click)="$event.stopPropagation()"
                   class="w-4 h-4 rounded border-gray-300 cursor-pointer"
                 />
               </td>
-              <td class="w-64 px-2 lg:px-4 py-4">
+              <td class="w-64 px-2 lg:px-4 py-4 align-middle">
                 <div class="flex items-center gap-2 lg:gap-3">
                   <div
-                    class="w-8 h-8 lg:w-10 lg:h-10 rounded-[2px] bg-blue-600 flex items-center justify-center text-white text-xs lg:text-sm font-semibold flex-shrink-0"
+                    class="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs lg:text-sm font-semibold flex-shrink-0"
                   >
                     {{ project.name.substring(0, 2).toUpperCase() }}
                   </div>
@@ -411,7 +314,7 @@
                   </div>
                 </div>
               </td>
-              <td class="w-28 px-2 lg:px-4 py-4">
+              <td class="w-28 px-2 lg:px-4 py-4 align-middle">
                 <span
                   [ngClass]="{
                     'bg-green-100 text-green-800': project.status === 'Ongoing',
@@ -425,7 +328,7 @@
                   {{ project.status }}
                 </span>
               </td>
-              <td class="w-24 px-2 lg:px-4 py-4">
+              <td class="w-24 px-2 lg:px-4 py-4 align-middle">
                 <span
                   [ngClass]="{
                     'bg-red-100 text-red-800':
@@ -438,7 +341,7 @@
                   {{ project.priority }}
                 </span>
               </td>
-              <td class="w-48 px-2 lg:px-4 py-4">
+              <td class="w-48 px-2 lg:px-4 py-4 align-middle">
                 <div class="flex items-center gap-2 overflow-hidden">
                   <span
                     class="inline-flex items-center justify-center w-5 h-5 lg:w-6 lg:h-6 rounded-full bg-gray-200 text-gray-700 text-xs font-semibold flex-shrink-0"
@@ -450,13 +353,13 @@
                   }}</span>
                 </div>
               </td>
-              <td class="w-28 px-2 lg:px-4 py-4">
+              <td class="w-28 px-2 lg:px-4 py-4 align-middle">
                 <div class="flex items-center gap-2">
                   <img src="/images/team-size.svg" alt="" class="w-4 h-4 flex-shrink-0" />
                   <span class="text-xs lg:text-sm text-gray-900">{{ project.teamSize }}</span>
                 </div>
               </td>
-              <td class="w-20 px-2 lg:px-4 py-4 relative">
+              <td class="w-20 px-2 lg:px-4 py-4 relative align-middle">
                 <button
                   (click)="toggleActionsMenu(project.id, $event)"
                   class="text-gray-600 hover:text-gray-900 text-xl leading-none p-1 lg:p-2 hover:bg-gray-100 rounded transition-colors cursor-pointer"
@@ -464,101 +367,15 @@
                   ⋯
                 </button>
 
-                <!-- Actions Menu Dropdown -->
-                <div
-                  *ngIf="showActionsMenu && activeProjectId === project.id"
-                  (click)="$event.stopPropagation()"
-                  class="absolute right-0 top-12 w-56 bg-white rounded-[2px] shadow-xl border border-gray-200 z-[60] overflow-hidden"
-                >
-                  <div class="px-4 py-3 border-b border-gray-200">
-                    <h3 class="text-base font-semibold text-gray-900">Actions</h3>
-                  </div>
-                  <div class="py-1">
-                    <button
-                      (click)="viewDetails(project.id)"
-                      class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer"
-                    >
-                      <svg
-                        class="w-5 h-5 text-gray-500"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                        />
-                      </svg>
-                      <span class="text-sm text-gray-900">View Details</span>
-                    </button>
-                    <button
-                      (click)="editProject(project.id)"
-                      class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer"
-                    >
-                      <svg
-                        class="w-5 h-5 text-gray-500"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                        />
-                      </svg>
-                      <span class="text-sm text-gray-900">Edit Project</span>
-                    </button>
-                    <button
-                      (click)="archiveProject(project.id)"
-                      class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer"
-                    >
-                      <svg
-                        class="w-5 h-5 text-gray-500"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
-                        />
-                      </svg>
-                      <span class="text-sm text-gray-900">Archive Project</span>
-                    </button>
-                    <div class="border-t border-gray-200 my-1"></div>
-                    <button
-                      (click)="deleteProject(project.id)"
-                      class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer"
-                    >
-                      <svg
-                        class="w-5 h-5 text-gray-500"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                      <span class="text-sm text-red-600 font-medium">Delete Project</span>
-                    </button>
-                  </div>
-                </div>
+                <app-actions-menu
+                  [projectId]="project.id"
+                  [isOpen]="showActionsMenu"
+                  [isActive]="activeProjectId === project.id"
+                  (viewDetails)="viewDetails($event)"
+                  (edit)="editProject($event)"
+                  (archive)="archiveProject($event)"
+                  (delete)="deleteProject($event)"
+                ></app-actions-menu>
               </td>
             </tr>
           </tbody>
@@ -567,7 +384,10 @@
     </div>
 
     <!-- Integrated Pagination -->
-    <div class="flex flex-col lg:flex-row justify-between items-center px-3 lg:px-5 py-4 bg-white border border-gray-300 rounded-[2px] text-sm gap-4 mt-4">
+    <div
+      *ngIf="filteredProjects.length > rowsPerPage"
+      class="flex flex-col lg:flex-row justify-between items-center px-3 lg:px-5 py-4 bg-white border border-gray-300 rounded-[2px] text-sm gap-4 mt-4"
+    >
       <!-- Items count -->
       <div class="flex-1 text-center lg:text-left">
         <span class="text-gray-600">
@@ -599,9 +419,19 @@
             (click)="handleFirstPage()"
             [disabled]="currentPage === 1"
             [title]="'Go to first page'"
+            class="w-10 h-8 border border-gray-300 bg-white rounded flex items-center justify-center text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          >
+            First
+          </button>
+
+          <!-- Two pages back button -->
+          <button
+            (click)="handleTwoPagesBack()"
+            [disabled]="currentPage <= 2"
+            [title]="'Go back 2 pages'"
             class="w-8 h-8 border border-gray-300 bg-white rounded flex items-center justify-center text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
-            «
+          ‹‹
           </button>
 
           <!-- Previous page button -->
@@ -624,48 +454,76 @@
             ›
           </button>
 
+          <!-- Two pages forward button -->
+          <button
+            (click)="handleTwoPagesForward()"
+            [disabled]="currentPage >= totalPages - 1"
+            [title]="'Go forward 2 pages'"
+            class="w-8 h-8 border border-gray-300 bg-white rounded flex items-center justify-center text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          >
+          ››  
+          </button>
+
           <!-- Last page button -->
           <button
             (click)="handleLastPage()"
             [disabled]="currentPage === totalPages"
             [title]="'Go to last page'"
-            class="w-8 h-8 border border-gray-300 bg-white rounded flex items-center justify-center text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            class="w-10 h-8 border border-gray-300 bg-white rounded flex items-center justify-center text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
-            »
+            Last
           </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Bulk Actions Popup at Bottom Center -->
-  <div
-    *ngIf="selectedProjects.length > 0"
-    (click)="$event.stopPropagation()"
-    class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white rounded-[2px] shadow-2xl border border-gray-300 px-6 py-4 flex items-center gap-4 z-50"
-  >
-    <span class="font-medium text-gray-900">{{ selectedProjects.length }} selected</span>
-    
-    <app-custom-button
-      (action)="archiveSelected()"
-      label="Archive"
-      bgClass="bg-gray-600"
-      textColor="text-white"
-      hoverClass="hover:bg-gray-700"
-      borderClass="border-none"
-      height="h-9"
-      padding="px-4"
-    />
-    
-    <app-custom-button
-      (action)="deleteSelected()"
-      label="Delete"
-      bgClass="bg-red-600"
-      textColor="text-white"
-      hoverClass="hover:bg-red-700"
-      borderClass="border-none"
-      height="h-9"
-      padding="px-4"
-    />
-  </div>
+  <!-- Delete Confirmation Modal -->
+  <app-modal [isOpen]="showDeleteModal" (close)="cancelDelete()">
+    <div class="px-6 py-6">
+      <!-- Modal Header -->
+      <h2 class="text-xl font-semibold text-gray-900 mb-2">Confirm Deletion</h2>
+      <!-- Modal Content -->
+      <div class="mb-6">
+        <p class="text-gray-700" *ngIf="deleteMode === 'single'">
+          Are you sure you want to delete the project <span class="font-semibold text-gray-900">"{{ getProjectName(projectToDelete) }}"</span>?
+          This action cannot be undone.
+        </p>
+        <p class="text-gray-700" *ngIf="deleteMode === 'bulk'">
+          Are you sure you want to delete <span class="font-semibold text-gray-900">{{ deleteCount }} project(s)</span>?
+          This action cannot be undone.
+        </p>
+      </div>
+
+      <!-- Modal Actions -->
+      <div class="flex gap-3 justify-end">
+        <app-custom-button
+          (action)="cancelDelete()"
+          label="Cancel"
+          bgClass="bg-gray-100"
+          textColor="text-gray-700"
+          hoverClass="hover:bg-gray-200"
+          borderClass="border border-gray-300"
+          height="h-10"
+          padding="px-4"
+        />
+        <app-custom-button
+          (action)="confirmDelete()"
+          label="Delete"
+          bgClass="bg-red-600"
+          textColor="text-white"
+          hoverClass="hover:bg-red-700"
+          borderClass="border-none"
+          height="h-10"
+          padding="px-4"
+        />
+      </div>
+    </div>
+  </app-modal>
+
+  <!-- Bulk Actions Component -->
+  <app-bulk-actions
+    [selectedCount]="selectedProjects.length"
+    (delete)="deleteSelected()"
+  ></app-bulk-actions>
 </div>

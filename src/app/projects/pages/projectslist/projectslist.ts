@@ -1,10 +1,14 @@
 // projectslist.component.ts
-import { Component } from '@angular/core';
+import { Component, ViewChild, ElementRef, AfterViewChecked, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CustomButton } from '../../../shared/custom-button/custom-button';
 import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
+import { Modal } from '../../../shared/modal/modal';
+import { AdvancedFilters } from './advanced-filters/advanced-filters';
+import { BulkActions } from './bulk-actions/bulk-actions';
+import { ActionsMenu } from './actions-menu/actions-menu';
 
 interface Project {
   id: string;
@@ -26,36 +30,44 @@ interface TableHeader {
 }
 
 type SortField = 'name' | 'status' | 'priority' | 'projectManager' | 'teamSize';
-type SortDirection = 'asc' | 'desc' | null;
+type SortDirection = 'asc' | 'desc';
+
+interface SortCriteria {
+  field: SortField;
+  direction: SortDirection;
+}
 
 @Component({
   selector: 'app-projectslist',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomButton, Sectiontitle],
+  imports: [CommonModule, FormsModule, CustomButton, Sectiontitle, Modal, AdvancedFilters, BulkActions, ActionsMenu],
   templateUrl: './projectslist.html',
   styleUrl: './projectslist.css'
 })
-export class Projectslist {
+export class Projectslist implements AfterViewChecked {
+  @ViewChild('selectAllCheckbox') selectAllCheckbox!: ElementRef<HTMLInputElement>;
+
   showFilters = false;
   searchQuery = '';
   showActionsMenu = false;
   activeProjectId: string | null = null;
   sidebarCollapsed = false;
-  
-  constructor(private router: Router) {}
-  
+
+  // Delete modal properties
+  showDeleteModal = false;
+  projectToDelete: string | null = null;
+  deleteMode: 'single' | 'bulk' = 'single';
+  projectsToDelete: Project[] = [];
+
   // Multi-select filter options
   selectedStatuses: string[] = [];
   selectedPriorities: string[] = [];
   selectedManagers: string[] = [];
+
+  constructor(private router: Router, private cdr: ChangeDetectorRef) {}
   
-  // Manager search
-  managerSearchQuery = '';
-  showAllManagers = false;
-  
-  // Sorting
-  sortField: SortField | null = null;
-  sortDirection: SortDirection = null;
+  // Sorting - single criteria at a time
+  sortCriteria: SortCriteria | null = null;
   
   rowsPerPage = 10;
   currentPage = 1;
@@ -68,8 +80,8 @@ export class Projectslist {
   // Table headers configuration
   tableHeaders: TableHeader[] = [
     { field: 'name' as SortField, label: 'Project Info', sortable: true, minWidth: '200px' },
-    { field: 'status' as SortField, label: 'Status', sortable: false, minWidth: '100px' },
-    { field: 'priority' as SortField, label: 'Priority', sortable: false, minWidth: '90px' },
+    { field: 'status' as SortField, label: 'Status', sortable: true, minWidth: '100px' },
+    { field: 'priority' as SortField, label: 'Priority', sortable: true, minWidth: '90px' },
     { field: 'projectManager' as SortField, label: 'Project Manager', sortable: true, minWidth: '160px' },
     { field: 'teamSize' as SortField, label: 'Team Size', sortable: true, minWidth: '100px' },
     { field: null, label: 'Actions', sortable: false, minWidth: '80px' }
@@ -150,36 +162,9 @@ export class Projectslist {
   }
 
   get hasActiveFilters(): boolean {
-    return this.selectedStatuses.length > 0 || 
-           this.selectedPriorities.length > 0 || 
+    return this.selectedStatuses.length > 0 ||
+           this.selectedPriorities.length > 0 ||
            this.selectedManagers.length > 0;
-  }
-
-  get uniqueManagers(): string[] {
-    return [...new Set(this.projects.map(p => p.projectManager))].sort();
-  }
-
-  get filteredManagers(): string[] {
-    if (!this.managerSearchQuery) {
-      return this.showAllManagers ? this.uniqueManagers : this.uniqueManagers.slice(0, 4);
-    }
-    const filtered = this.uniqueManagers.filter(manager =>
-      manager.toLowerCase().includes(this.managerSearchQuery.toLowerCase())
-    );
-    return this.showAllManagers ? filtered : filtered.slice(0, 4);
-  }
-
-  get displayedManagerCount(): number {
-    return this.filteredManagers.length;
-  }
-
-  get totalManagerCount(): number {
-    if (!this.managerSearchQuery) {
-      return this.uniqueManagers.length;
-    }
-    return this.uniqueManagers.filter(manager =>
-      manager.toLowerCase().includes(this.managerSearchQuery.toLowerCase())
-    ).length;
   }
 
   get filteredProjects(): Project[] {
@@ -212,23 +197,34 @@ export class Projectslist {
       );
     }
 
-    if (this.sortField && this.sortDirection) {
+    // Apply single sorting criteria
+    if (this.sortCriteria) {
       filtered.sort((a, b) => {
         let comparison = 0;
-        const field = this.sortField!;
-        
+        const field = this.sortCriteria!.field;
+
         if (field === 'teamSize') {
           comparison = a[field] - b[field];
         } else if (field === 'priority') {
-          const priorityOrder: Record<string, number> = { 
-            'Critical': 4, 'High': 3, 'Medium': 2, 'Low': 1 
+          // Higher priority values should come first in ascending order
+          const priorityOrder: Record<string, number> = {
+            'Low': 1, 'Medium': 2, 'High': 3, 'Critical': 4
           };
           comparison = priorityOrder[a[field]] - priorityOrder[b[field]];
+        } else if (field === 'status') {
+          // Logical workflow order: Planning -> Ongoing -> On Hold -> Completed -> Archived
+          const statusOrder: Record<string, number> = {
+            'Planning': 1, 'Ongoing': 2, 'On Hold': 3, 'Completed': 4, 'Archived': 5
+          };
+          comparison = statusOrder[a[field]] - statusOrder[b[field]];
         } else {
           comparison = String(a[field]).localeCompare(String(b[field]));
         }
-        
-        return this.sortDirection === 'asc' ? comparison : -comparison;
+
+        // Apply direction
+        comparison = this.sortCriteria!.direction === 'asc' ? comparison : -comparison;
+
+        return comparison;
       });
     }
 
@@ -236,18 +232,62 @@ export class Projectslist {
   }
 
   get selectedProjects(): Project[] {
+    // Return only selected projects that are currently visible in filtered results
+    return this.filteredProjects.filter(p => p.selected);
+  }
+
+  get allSelectedProjects(): Project[] {
+    // Return all selected projects from the entire dataset
     return this.projects.filter(p => p.selected);
   }
 
+  get deleteCount(): number {
+    // Return the count for delete operations (use stored projects for bulk delete)
+    return this.deleteMode === 'bulk' ? this.projectsToDelete.length : this.allSelectedProjects.length;
+  }
+
   get allSelected(): boolean {
-    return this.paginatedProjects.length > 0 && 
+    const filteredProjects = this.filteredProjects;
+    return filteredProjects.length > 0 &&
+           filteredProjects.every(p => p.selected);
+  }
+
+  get allOnCurrentPageSelected(): boolean {
+    return this.paginatedProjects.length > 0 &&
            this.paginatedProjects.every(p => p.selected);
   }
 
-  getActiveFilterCount(): number {
-    return this.selectedStatuses.length + 
-           this.selectedPriorities.length + 
-           this.selectedManagers.length;
+  ngAfterViewChecked(): void {
+    this.updateCheckboxState();
+  }
+
+  private updateCheckboxState(): void {
+    if (this.selectAllCheckbox) {
+      const checkbox = this.selectAllCheckbox.nativeElement;
+      const isIndeterminate = this.isIndeterminateSelection();
+      const allSelected = this.allSelected;
+
+      // Show indeterminate state for both partial selection and full selection
+      checkbox.indeterminate = isIndeterminate || allSelected;
+      checkbox.checked = false;
+    }
+  }
+
+  isIndeterminateSelection(): boolean {
+    const filteredProjects = this.filteredProjects;
+    const selectedCount = filteredProjects.filter(p => p.selected).length;
+    return selectedCount > 0 && selectedCount < filteredProjects.length;
+  }
+
+  // Filter change handler
+  onFiltersChanged(filters: { selectedStatuses: string[]; selectedPriorities: string[]; selectedManagers: string[] }): void {
+    this.selectedStatuses = filters.selectedStatuses;
+    this.selectedPriorities = filters.selectedPriorities;
+    this.selectedManagers = filters.selectedManagers;
+    this.currentPage = 1;
+
+    // Force change detection to update checkbox state
+    this.cdr.detectChanges();
   }
 
   // Pagination Handlers
@@ -281,6 +321,24 @@ export class Projectslist {
     this.scrollToTop();
   }
 
+  handleTwoPagesBack(): void {
+    if (this.currentPage > 2) {
+      this.currentPage -= 2;
+    } else {
+      this.currentPage = 1;
+    }
+    this.scrollToTop();
+  }
+
+  handleTwoPagesForward(): void {
+    if (this.currentPage < this.totalPages - 1) {
+      this.currentPage += 2;
+    } else {
+      this.currentPage = this.totalPages;
+    }
+    this.scrollToTop();
+  }
+
   scrollToTop(): void {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -288,6 +346,8 @@ export class Projectslist {
   // Other Methods
   onSearchChange(): void {
     this.currentPage = 1;
+    // Force change detection to update checkbox state when search changes
+    this.cdr.detectChanges();
   }
 
   toggleFilters(): void {
@@ -296,91 +356,66 @@ export class Projectslist {
 
   toggleSelectAll(): void {
     const allSelected = this.allSelected;
-    this.paginatedProjects.forEach(project => {
-      project.selected = !allSelected;
+    const someSelected = this.isIndeterminateSelection();
+
+    let newSelectionState: boolean;
+
+    if (allSelected || someSelected) {
+      // All or some selected (showing dash) - deselect all
+      newSelectionState = false;
+    } else {
+      // None selected (empty) - select all
+      newSelectionState = true;
+    }
+
+    // Apply the new selection state to all filtered projects (across all pages)
+    this.filteredProjects.forEach(project => {
+      project.selected = newSelectionState;
     });
-  }
 
-  isStatusSelected(status: string): boolean {
-    return this.selectedStatuses.includes(status);
-  }
+    // Explicitly update checkbox state immediately after selection changes
+    this.updateCheckboxState();
 
-  isPrioritySelected(priority: string): boolean {
-    return this.selectedPriorities.includes(priority);
-  }
-
-  isManagerSelected(manager: string): boolean {
-    return this.selectedManagers.includes(manager);
-  }
-
-  toggleStatusFilter(status: string): void {
-    const index = this.selectedStatuses.indexOf(status);
-    if (index > -1) {
-      this.selectedStatuses.splice(index, 1);
-    } else {
-      this.selectedStatuses.push(status);
-    }
-    this.currentPage = 1;
-  }
-
-  togglePriorityFilter(priority: string): void {
-    const index = this.selectedPriorities.indexOf(priority);
-    if (index > -1) {
-      this.selectedPriorities.splice(index, 1);
-    } else {
-      this.selectedPriorities.push(priority);
-    }
-    this.currentPage = 1;
-  }
-
-  toggleManagerFilter(manager: string): void {
-    const index = this.selectedManagers.indexOf(manager);
-    if (index > -1) {
-      this.selectedManagers.splice(index, 1);
-    } else {
-      this.selectedManagers.push(manager);
-    }
-    this.currentPage = 1;
-  }
-
-  removeStatusFilter(status: string): void {
-    this.selectedStatuses = this.selectedStatuses.filter(s => s !== status);
-    this.currentPage = 1;
-  }
-
-  removePriorityFilter(priority: string): void {
-    this.selectedPriorities = this.selectedPriorities.filter(p => p !== priority);
-    this.currentPage = 1;
-  }
-
-  removeManagerFilter(manager: string): void {
-    this.selectedManagers = this.selectedManagers.filter(m => m !== manager);
-    this.currentPage = 1;
-  }
-
-  clearAllFilters(): void {
-    this.selectedStatuses = [];
-    this.selectedPriorities = [];
-    this.selectedManagers = [];
-    this.currentPage = 1;
-  }
-
-  toggleShowAllManagers(): void {
-    this.showAllManagers = !this.showAllManagers;
+    // Force change detection
+    this.cdr.detectChanges();
   }
 
   sortBy(field: SortField): void {
-    if (this.sortField === field) {
-      if (this.sortDirection === 'asc') {
-        this.sortDirection = 'desc';
-      } else if (this.sortDirection === 'desc') {
-        this.sortDirection = null;
-        this.sortField = null;
+    if (this.sortCriteria && this.sortCriteria.field === field) {
+      // Field is currently being sorted
+      if (this.sortCriteria.direction === 'asc') {
+        // Change from asc to desc
+        this.sortCriteria.direction = 'desc';
+      } else {
+        // Remove sorting (was desc, now removing)
+        this.sortCriteria = null;
       }
     } else {
-      this.sortField = field;
-      this.sortDirection = 'asc';
+      // Set new field as sort criteria with ascending order
+      this.sortCriteria = { field, direction: 'asc' };
     }
+  }
+
+  // Helper method to get sort direction for a field (for UI display)
+  getSortDirection(field: SortField): SortDirection | null {
+    return this.sortCriteria && this.sortCriteria.field === field ? this.sortCriteria.direction : null;
+  }
+
+  // Check if any sorting is active
+  get hasActiveSorting(): boolean {
+    return this.sortCriteria !== null;
+  }
+
+  // Get human-readable field label
+  getFieldLabel(field: SortField): string {
+    const fieldLabels: Record<SortField, string> = {
+      'name': 'Project Name',
+      'status': 'Status',
+      'priority': 'Priority',
+      'projectManager': 'Manager',
+      'teamSize': 'Team Size'
+    };
+    return fieldLabels[field] || field;
   }
 
   toggleActionsMenu(projectId: string, event: Event): void {
@@ -405,6 +440,25 @@ export class Projectslist {
     this.router.navigate(['/projects', projectId]);
   }
 
+  // Smart row click handler: toggle selection if projects selected, navigate if none selected
+  onRowClick(project: Project): void {
+    if (this.allSelectedProjects.length > 0) {
+      // If any projects are selected globally, toggle this project's selection
+      project.selected = !project.selected;
+      // Force change detection to update checkbox and bulk actions popup
+      this.cdr.detectChanges();
+    } else {
+      // If no projects are selected, navigate to project details
+      this.viewProjectDetails(project.id);
+    }
+  }
+
+  // Handle individual checkbox changes to ensure UI updates
+  onSelectionChange(): void {
+    // Force change detection when individual selections change
+    this.cdr.detectChanges();
+  }
+
   viewProjectDetails(projectId: string): void {
     this.router.navigate(['/projects', projectId]);
   }
@@ -425,13 +479,9 @@ export class Projectslist {
   }
 
   deleteProject(projectId: string): void {
-    if (confirm('Are you sure you want to delete this project?')) {
-      this.projects = this.projects.filter(p => p.id !== projectId);
-      console.log('Project deleted:', projectId);
-      if (this.paginatedProjects.length === 0 && this.currentPage > 1) {
-        this.currentPage--;
-      }
-    }
+    this.projectToDelete = projectId;
+    this.deleteMode = 'single';
+    this.showDeleteModal = true;
     this.closeActionsMenu();
   }
 
@@ -440,32 +490,72 @@ export class Projectslist {
   }
 
   importFromJira(): void {
-    console.log('Importing from Jira...');
+    this.router.navigate(['/projects/importfromjira']);
   }
 
   createProject(): void {
-    console.log('Creating new project...');
+    this.router.navigate(['/projects/create']);
   }
 
   deleteSelected(): void {
-    if (this.selectedProjects.length === 0) return;
-    
-    if (confirm(`Are you sure you want to delete ${this.selectedProjects.length} project(s)?`)) {
-      this.projects = this.projects.filter(p => !p.selected);
-      console.log('Projects deleted');
+    if (this.allSelectedProjects.length === 0) return;
+
+    // Store the selected projects for deletion
+    this.projectsToDelete = [...this.allSelectedProjects];
+
+    // Clear all selections to hide bulk actions
+    this.projects.forEach(project => {
+      project.selected = false;
+    });
+
+    this.deleteMode = 'bulk';
+    this.showDeleteModal = true;
+  }
+
+  // Modal handlers
+  cancelDelete(): void {
+    this.closeActionsMenu();
+    this.showDeleteModal = false;
+    this.projectToDelete = null;
+    this.deleteMode = 'single';
+    // Clear stored projects for bulk delete
+    this.projectsToDelete = [];
+  }
+
+  confirmDelete(): void {
+    // Close actions menu immediately before any other operations
+    this.closeActionsMenu();
+
+    if (this.deleteMode === 'single' && this.projectToDelete) {
+      this.projects = this.projects.filter(p => p.id !== this.projectToDelete);
+      console.log('Project deleted:', this.projectToDelete);
       if (this.paginatedProjects.length === 0 && this.currentPage > 1) {
         this.currentPage--;
       }
+    } else if (this.deleteMode === 'bulk') {
+      // Use stored projects to delete instead of current selections
+      const projectIdsToDelete = this.projectsToDelete.map(p => p.id);
+      this.projects = this.projects.filter(p => !projectIdsToDelete.includes(p.id));
+      console.log('Projects deleted:', projectIdsToDelete.length);
+      if (this.paginatedProjects.length === 0 && this.currentPage > 1) {
+        this.currentPage--;
+      }
+      // Clear the stored projects after deletion
+      this.projectsToDelete = [];
     }
+
+    this.showDeleteModal = false;
+    this.projectToDelete = null;
+    this.deleteMode = 'single';
+
+    // Force change detection to ensure all UI updates properly
+    this.cdr.detectChanges();
   }
 
-  archiveSelected(): void {
-    if (this.selectedProjects.length === 0) return;
-    
-    this.selectedProjects.forEach(project => {
-      project.status = 'Archived';
-      project.selected = false;
-    });
-    console.log('Projects archived');
+  // Helper method to get project name for modal display
+  getProjectName(projectId: string | null): string {
+    if (!projectId) return '';
+    const project = this.projects.find(p => p.id === projectId);
+    return project ? project.name : '';
   }
 }
