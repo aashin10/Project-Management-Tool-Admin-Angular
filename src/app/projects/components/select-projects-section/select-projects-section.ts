@@ -41,4 +41,9 @@ export class SelectProjectsSection implements OnInit {
     this.loadingProjects = false;
     this.cdr.detectChanges();
   }
+
+  selectAllProjects() {
+    this.projects.forEach((project) => (project.selected = true));
+    this.cdr.detectChanges();
+  }
 }
