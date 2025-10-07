@@ -131,38 +131,25 @@ export class OverviewComponent implements OnInit {
       title: 'Sprint Iterations',
       value: this.sprintData.totalIterations,
       subtitle: `${this.sprintData.active} active, ${this.sprintData.completed} completed`,
-      icon: `
-        <circle cx="12" cy="12" r="10"></circle>
-        <polyline points="12 6 12 12 16 14"></polyline>
-      `
+      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-current"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`
     },
     {
       title: 'Work Items',
       value: this.workItemsData.total,
       subtitle: `${this.workItemsData.toDo} To Do • ${this.workItemsData.inProgress} In Progress • ${this.workItemsData.done} Done`,
-      icon: `
-        <path d="M3 3v16a2 2 0 0 0 2 2h16"></path>
-        <path d="M18 17V9"></path>
-        <path d="M13 17V5"></path>
-        <path d="M8 17v-3"></path>
-      `
+      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-current"><path d="M3 3v16a2 2 0 0 0 2 2h16"></path><path d="M18 17V9"></path><path d="M13 17V5"></path><path d="M8 17v-3"></path></svg>`
     },
     {
       title: 'Current Sprint Progress',
       value: this.currentSprint.progress + '%',
       subtitle: ` ${this.currentSprint.name} • ${this.currentSprint.startDate} - ${this.currentSprint.endDate}`,
-      icon: `<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>`
+      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-current"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>`
     },
     {
       title: 'Team Members',
       value: this.teamMembersCount,
       subtitle: 'Active contributors',
-      icon: `
-        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-        <circle cx="9" cy="7" r="4"></circle>
-        <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-      `
+      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-current"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`
     }
   ];
 
