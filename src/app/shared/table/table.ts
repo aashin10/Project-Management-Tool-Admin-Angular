@@ -134,6 +134,10 @@ export class Table {
     return `${baseClasses} ${colorMap[value?.toLowerCase()] || 'bg-gray-100 text-gray-800'}`;
   }
   
+  isArray(value: any): boolean {
+    return Array.isArray(value);
+  }
+  
 
   // ... existing methods
 

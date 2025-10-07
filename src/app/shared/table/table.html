@@ -82,12 +82,14 @@
 
             <!-- Badge type -->
             <div *ngIf="column.type === 'badge'" class="flex flex-wrap gap-1">
-              <ng-container>
+              <!-- Single badge (string) -->
+              <ng-container *ngIf="!isArray(row[column.field])">
                 <span [class]="getBadgeClass(row[column.field], column)">
                   {{ row[column.field] }}
                 </span>
               </ng-container>
-              <ng-container>
+              <!-- Multiple badges (array) -->
+              <ng-container *ngIf="isArray(row[column.field])">
                 <span
                   *ngFor="let badge of row[column.field]"
                   [class]="getBadgeClass(badge, column)"
