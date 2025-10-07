@@ -5,12 +5,11 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { OverviewComponent } from './overview/overview';
 import { TeamsAndRoles } from './teams-and-roles/teams-and-roles';
 import { SharedModule } from '../../../shared/shared-module';
-import { TeamMembersComponent } from './overview/team-members/team-members';
 
 @Component({
   selector: 'app-individualproject',
   standalone: true,
-  imports: [CommonModule,OverviewComponent,TeamsAndRoles,SharedModule,TeamMembersComponent],
+  imports: [CommonModule,OverviewComponent,TeamsAndRoles,SharedModule],
   templateUrl: './individualproject.html',
   styleUrl: './individualproject.css'
 })

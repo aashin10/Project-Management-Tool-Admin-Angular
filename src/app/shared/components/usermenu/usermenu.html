@@ -1,0 +1,18 @@
+<div class="dropdown-menu bg-white shadow-md rounded-md p-2 w-48">
+  <div class="px-2 py-2 text-sm font-medium">
+    <div class="flex flex-col space-y-1">
+      <p>{{ user.name }}</p>
+      <p class="text-xs text-gray-500">{{ user.email }}</p>
+    </div>
+  </div>
+
+  <hr class="my-2 border-gray-200" />
+
+  <div
+    *ngFor="let item of menuItems"
+    class="flex w-full items-center justify-center gap-2 p-2 text-sm cursor-pointer rounded hover:bg-gray-100"
+  >
+    <img [src]="item.icon" class="h-4 w-4 bg-color-red" alt="" />
+    <p class="text-sm">{{ item.label }}</p>
+  </div>
+</div>
