@@ -12,10 +12,10 @@ export class Jiraservice {
 
     const body = new HttpParams()
       .set('grant_type', 'authorization_code')
-      .set('client_id', 'RF0M4vOBPZQHS9s4ugEbsoEo7pmEa7Q4')
+      .set('client_id', 'LlEIudxhc8hSon7CNwnNblzfGamJVvu2')
       .set(
         'client_secret',
-        'ATOAaRIB5daqZzpM2BcD8ze_az_2nDlL_ZgDYec-XMKlzZBstzoDE-WT2nwHK5EkYrGB5FD12B18'
+        'ATOAtHqkou0PXZwlWeOCJXNq9oWDhAvZqY2aai98hLSFoWfWkBeJerdfHT95OCyRUh4P19C29ADE'
       )
       .set('code', authCode)
       .set('redirect_uri', 'http://localhost:4200/projects/importfromjira');

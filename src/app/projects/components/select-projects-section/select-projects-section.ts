@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { CustomButton } from '../../../shared/custom-button/custom-button';
 import { SearchBar } from '../../../shared/components/search-bar/search-bar';
 import { Importprojectslist } from '../importprojectslist/importprojectslist';
-import { get } from 'http';
 import { Jiraservice } from '../../pages/importfromjira/jiraservice';
 
 @Component({
@@ -21,7 +20,7 @@ export class SelectProjectsSection implements OnInit {
       const ids = await this.jiraService.getAccessibleResources(token);
       console.log('Cloud IDs:', ids);
       if (ids && ids.length > 0) {
-        const cloudId = ids[1].id;
+        const cloudId = ids[0].id;
         const importedProjects: any = await this.jiraService.fetchJiraProjects(token, cloudId);
         console.log('Jira Projects:', importedProjects);
         importedProjects.forEach((project: any) => {
