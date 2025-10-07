@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 export interface TableColumn {
   header: string;
   field: string;
-  type?: 'text' | 'badge' | 'avatar' | 'user' | 'actions';
+  type?: 'text' | 'badge' | 'avatar' | 'user' | 'actions'|'roleIcon';
   sortable?: boolean;
   width?: string;
   align?: 'left' | 'center' | 'right'; // Text alignment
@@ -115,13 +115,13 @@ export class Table {
 
   getBadgeClass(value: string, column: TableColumn): string {
     const baseClasses = 'px-2 py-1 rounded text-xs font-medium';
-
+    
     if (column.badgeColors && column.badgeColors[value]) {
       return `${baseClasses} ${column.badgeColors[value]}`;
     }
 
-
-
+   
+    
     // Default colors
     const colorMap: { [key: string]: string } = {
       'active': 'bg-green-100 text-green-800',
@@ -130,12 +130,8 @@ export class Table {
       'external': 'bg-orange-100 text-orange-800',
       'customer': 'bg-purple-100 text-purple-800'
     };
-
+    
     return `${baseClasses} ${colorMap[value?.toLowerCase()] || 'bg-gray-100 text-gray-800'}`;
-  }
-
-  isArray(value: any): boolean {
-    return Array.isArray(value);
   }
   
 
