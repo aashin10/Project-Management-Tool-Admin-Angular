@@ -1,13 +1,12 @@
 import { Component } from '@angular/core';
 import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
-import { NgFor } from '@angular/common';
 import { SearchBar } from '../../../shared/components/search-bar/search-bar';
 import { Table, TableColumn } from '../../../shared/table/table';
 import { RolesModal } from '../roles-modal/roles-modal';
 
 @Component({
   selector: 'app-roleslist',
-  imports: [Sectiontitle, NgFor, SearchBar, Table, RolesModal],
+  imports: [Sectiontitle, SearchBar, Table, RolesModal],
   templateUrl: './roleslist.html',
   styleUrl: './roleslist.css'
 })

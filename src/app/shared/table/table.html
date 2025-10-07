@@ -58,12 +58,21 @@
             </div>
 
             <!-- Badge type -->
-            <span
-              *ngIf="column.type === 'badge'"
-              [class]="getBadgeClass(row[column.field], column)"
-            >
-              {{ row[column.field] }}
-            </span>
+            <div *ngIf="column.type === 'badge'" class="flex flex-wrap gap-1">
+              <ng-container *ngIf="!isArray(row[column.field])">
+                <span [class]="getBadgeClass(row[column.field], column)">
+                  {{ row[column.field] }}
+                </span>
+              </ng-container>
+              <ng-container *ngIf="isArray(row[column.field])">
+                <span
+                  *ngFor="let badge of row[column.field]"
+                  [class]="getBadgeClass(badge, column)"
+                >
+                  {{ badge }}
+                </span>
+              </ng-container>
+            </div>
 
             <!-- Avatar type -->
             <div *ngIf="column.type === 'avatar'" class="flex items-center gap-3">
