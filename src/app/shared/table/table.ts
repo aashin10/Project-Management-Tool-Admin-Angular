@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 export interface TableColumn {
   header: string;
   field: string;
-  type?: 'text' | 'badge' | 'avatar' | 'user' | 'actions';
+  type?: 'text' | 'badge' | 'avatar' | 'user' | 'actions'|'roleIcon';
   sortable?: boolean;
   width?: string;
   align?: 'left' | 'center' | 'right'; // Text alignment
@@ -160,7 +160,6 @@ export class Table {
     return 'text-gray-700';
   }
 }
-
 function isLastRows(index: any, number: any) {
   throw new Error('Function not implemented.');
 
