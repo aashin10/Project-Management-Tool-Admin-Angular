@@ -49,8 +49,6 @@ describe('Userslist', () => {
       expect(component.searchQuery).toBe('');
       expect(component.selectedFileName).toBe('');
       expect(component.isDragging).toBeFalse();
-      expect(component.currentPage).toBe(1);
-      expect(component.pageSize).toBe(10);
     });
 
     it('should initialize with correct type and status options', () => {
@@ -332,7 +330,6 @@ describe('Userslist', () => {
       component.onSearchChange('test search');
 
       expect(component.searchQuery).toBe('test search');
-      expect(component.currentPage).toBe(1);
     });
 
     it('should toggle advanced filter', () => {
@@ -350,7 +347,6 @@ describe('Userslist', () => {
 
       expect(component.filterType).toBe('internal');
       expect(component.showTypeDropdown).toBeFalse();
-      expect(component.currentPage).toBe(1);
     });
 
     it('should select status filter', () => {
@@ -358,7 +354,6 @@ describe('Userslist', () => {
 
       expect(component.filterStatus).toBe('active');
       expect(component.showStatusDropdown).toBeFalse();
-      expect(component.currentPage).toBe(1);
     });
 
     it('should get correct type label', () => {
@@ -496,11 +491,11 @@ describe('Userslist', () => {
       )).toBeTrue();
     });
 
-    it('should return paginated users with correct structure', () => {
-      const paginated = component.paginatedUsers;
+    it('should return table data with correct structure', () => {
+      const tableData = component.getTableData();
 
-      expect(paginated.length).toBeGreaterThan(0);
-      paginated.forEach(user => {
+      expect(tableData.length).toBeGreaterThan(0);
+      tableData.forEach(user => {
         expect(user).toEqual(jasmine.objectContaining({
           user: jasmine.objectContaining({
             name: jasmine.any(String),
@@ -519,14 +514,14 @@ describe('Userslist', () => {
     it('should calculate total pages correctly', () => {
       const totalPages = component.totalPages();
 
-      expect(totalPages).toBe(Math.ceil(component.filteredUsers.length / component.pageSize));
+      expect(totalPages).toBe(1); // Table component now handles pagination
     });
   });
 
   describe('Data Transformation', () => {
-    it('should transform user data correctly in paginatedUsers', () => {
-      const paginated = component.paginatedUsers;
-      const firstUser = paginated[0];
+    it('should transform user data correctly in getTableData', () => {
+      const tableData = component.getTableData();
+      const firstUser = tableData[0];
 
       expect(firstUser.user.name).toBe(component.users[0].user);
       expect(firstUser.user.email).toBe(component.users[0].email);
@@ -570,22 +565,6 @@ describe('Userslist', () => {
       const filtered = component.filteredUsers;
 
       expect(filtered.length).toBe(component.users.length);
-    });
-
-    it('should reset page on filter change', () => {
-      component.currentPage = 5;
-
-      component.selectType('internal');
-
-      expect(component.currentPage).toBe(1);
-    });
-
-    it('should reset page on search change', () => {
-      component.currentPage = 5;
-
-      component.onSearchChange('test');
-
-      expect(component.currentPage).toBe(1);
     });
   });
 
@@ -814,9 +793,10 @@ describe('Userslist', () => {
       tableComponent = tableFixture.componentInstance;
       
       // Set up table with 50 users (5 pages of 10 each)
-      tableComponent.data = component.paginatedUsers;
+      tableComponent.data = component.getTableData();
       tableComponent.columns = component.tableColumns;
       tableComponent.showCheckbox = true;
+      tableComponent.selectAllAcrossPages = true;
       tableComponent.itemsPerPage = 10;
       tableComponent.currentPage = 1;
       tableFixture.detectChanges();
@@ -831,7 +811,7 @@ describe('Userslist', () => {
       tableFixture.detectChanges();
       
       // Should select all 50 users across all pages
-      expect(tableComponent.selectedRows.size).toBe(component.paginatedUsers.length);
+      expect(tableComponent.selectedRows.size).toBe(component.getTableData().length);
       expect(tableComponent.isAllSelected()).toBeTrue();
       expect(tableComponent.isSomeSelected()).toBeFalse();
     });
@@ -841,14 +821,14 @@ describe('Userslist', () => {
       tableComponent.toggleAll();
       tableFixture.detectChanges();
       
-      expect(tableComponent.selectedRows.size).toBe(component.paginatedUsers.length);
+      expect(tableComponent.selectedRows.size).toBe(component.getTableData().length);
       
       // Navigate to page 2
       tableComponent.goToPage(2);
       tableFixture.detectChanges();
       
       // All users should still be selected
-      expect(tableComponent.selectedRows.size).toBe(component.paginatedUsers.length);
+      expect(tableComponent.selectedRows.size).toBe(component.getTableData().length);
       
       // Check that first row on page 2 is selected (index 0 on paginated view = index 10 absolute)
       expect(tableComponent.isRowSelected(0)).toBeTrue();
@@ -860,7 +840,7 @@ describe('Userslist', () => {
       tableComponent.toggleAll();
       tableFixture.detectChanges();
       
-      expect(tableComponent.selectedRows.size).toBe(component.paginatedUsers.length);
+      expect(tableComponent.selectedRows.size).toBe(component.getTableData().length);
       
       // Change to 50 items per page
       tableComponent.itemsPerPage = 50;
@@ -868,11 +848,11 @@ describe('Userslist', () => {
       tableFixture.detectChanges();
       
       // All 50 users should still be selected
-      expect(tableComponent.selectedRows.size).toBe(component.paginatedUsers.length);
+      expect(tableComponent.selectedRows.size).toBe(component.getTableData().length);
       expect(tableComponent.isAllSelected()).toBeTrue();
       
       // Check specific rows are selected
-      for (let i = 0; i < Math.min(50, component.paginatedUsers.length); i++) {
+      for (let i = 0; i < Math.min(50, component.getTableData().length); i++) {
         expect(tableComponent.isRowSelected(i)).toBeTrue();
       }
     });
@@ -894,7 +874,7 @@ describe('Userslist', () => {
       tableComponent.toggleAll();
       tableFixture.detectChanges();
       
-      expect(tableComponent.selectedRows.size).toBe(component.paginatedUsers.length);
+      expect(tableComponent.selectedRows.size).toBe(component.getTableData().length);
       
       // Click select all again to deselect
       tableComponent.toggleAll();
@@ -915,7 +895,7 @@ describe('Userslist', () => {
       // Should emit array with all users
       expect(tableComponent.selectionChange.emit).toHaveBeenCalled();
       const emittedData = (tableComponent.selectionChange.emit as jasmine.Spy).calls.mostRecent().args[0];
-      expect(emittedData.length).toBe(component.paginatedUsers.length);
+      expect(emittedData.length).toBe(component.getTableData().length);
     });
 
     it('should select individual user on different page correctly', () => {
@@ -948,9 +928,9 @@ describe('Userslist', () => {
       tableComponent.emitSelectionChange();
       
       // Update component's selected users
-      component.selectedUsers = Array.from(tableComponent.selectedRows).map(index => component.paginatedUsers[index]);
+      component.selectedUsers = Array.from(tableComponent.selectedRows).map(index => component.getTableData()[index]);
       
-      expect(component.selectedUsers.length).toBe(component.paginatedUsers.length);
+      expect(component.selectedUsers.length).toBe(component.getTableData().length);
       
       // Perform bulk delete
       component.onBulkDelete();
