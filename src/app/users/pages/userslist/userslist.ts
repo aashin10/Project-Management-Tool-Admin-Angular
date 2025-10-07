@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
@@ -48,6 +48,7 @@ export class Userslist {
   selectedFileName: string = '';
   isDragging: boolean = false;
   selectedUsers: any[] = [];
+  validationErrors: string[] = [];
   
   // Add User form fields
   newUser = {
@@ -75,6 +76,7 @@ export class Userslist {
   
   closeAddUserModal() {
     this.showAddUserModal = false;
+    this.validationErrors = [];
     // Reset form
     this.newUser = {
       fullName: '',
@@ -86,9 +88,25 @@ export class Userslist {
   }
   
   submitNewUser() {
+    // Reset validation errors
+    this.validationErrors = [];
+    
     // Validate required fields
-    if (!this.newUser.fullName || !this.newUser.email || !this.newUser.type || !this.newUser.status) {
-      alert('Please fill all required fields');
+    if (!this.newUser.fullName?.trim()) {
+      this.validationErrors.push('Full Name is required');
+    }
+    if (!this.newUser.email?.trim()) {
+      this.validationErrors.push('Email is required');
+    }
+    if (!this.newUser.type) {
+      this.validationErrors.push('Type is required');
+    }
+    if (!this.newUser.status) {
+      this.validationErrors.push('Status is required');
+    }
+    
+    // If there are validation errors, don't submit
+    if (this.validationErrors.length > 0) {
       return;
     }
     
@@ -136,12 +154,14 @@ export class Userslist {
     const files = event.dataTransfer?.files;
     if (files && files.length > 0) {
       const file = files[0];
-      if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
+      // Check if it's a CSV file
+      if (file.type === 'text/csv' || file.type === 'application/vnd.ms-excel' || file.name.toLowerCase().endsWith('.csv')) {
         this.selectedFileName = file.name;
         console.log('File dropped:', file.name);
         // Add your CSV import logic here
       } else {
         alert('Please upload a CSV file');
+        this.selectedFileName = '';
       }
     }
   }
@@ -198,12 +218,6 @@ export class Userslist {
     this.showAdvancedFilter = !this.showAdvancedFilter;
   }
 
-  onTypeChange(event: any) {
-    this.filterType = event.target.value;
-  }
-  onStatusChange(event: any) {
-    this.filterStatus = event.target.value;
-  }
   selectType(value: string) {
     this.filterType = value;
     this.showTypeDropdown = false;
@@ -226,61 +240,61 @@ export class Userslist {
   }
   // Sample user data
   users = [
-  { user: 'Alice Johnson', created:'23-09-2025' , type: 'Internal', status: 'Active', lastActivity: '25-09-2025'},
-  { user: 'Bob Smith', created: '27-09-2025', type: 'External', status: 'Inactive', lastActivity: '30-09-2025' },
-  { user: 'Charlie Brown', created: '30-09-2025', type: 'Customer', status: 'Suspended', lastActivity: '01-10-2025' },
+  { user: 'Alice Johnson', email: 'alice.johnson@company.com', created:'23-09-2025' , type: 'Internal', status: 'Active', lastActivity: '25-09-2025'},
+  { user: 'Bob Smith', email: 'bob.smith@external.com', created: '27-09-2025', type: 'External', status: 'Inactive', lastActivity: '30-09-2025' },
+  { user: 'Charlie Brown', email: 'charlie.brown@customer.com', created: '30-09-2025', type: 'Customer', status: 'Suspended', lastActivity: '01-10-2025' },
 
-  { user: 'David Miller', created: '01-09-2025', type: 'Internal', status: 'Active', lastActivity: '03-09-2025' },
-  { user: 'Eva Williams', created: '02-09-2025', type: 'External', status: 'Inactive', lastActivity: '05-09-2025' },
-  { user: 'Frank Harris', created: '05-09-2025', type: 'Customer', status: 'Active', lastActivity: '10-09-2025' },
-  { user: 'Grace Taylor', created: '07-09-2025', type: 'Internal', status: 'Active', lastActivity: '09-09-2025' },
-  { user: 'Henry White', created: '08-09-2025', type: 'External', status: 'Inactive', lastActivity: '12-09-2025' },
-  { user: 'Ivy Martin', created: '10-09-2025', type: 'Customer', status: 'Suspended', lastActivity: '11-09-2025' },
-  { user: 'Jack Thompson', created: '12-09-2025', type: 'Internal', status: 'Active', lastActivity: '15-09-2025' },
+  { user: 'David Miller', email: 'david.miller@company.com', created: '01-09-2025', type: 'Internal', status: 'Active', lastActivity: '03-09-2025' },
+  { user: 'Eva Williams', email: 'eva.williams@external.com', created: '02-09-2025', type: 'External', status: 'Inactive', lastActivity: '05-09-2025' },
+  { user: 'Frank Harris', email: 'frank.harris@customer.com', created: '05-09-2025', type: 'Customer', status: 'Active', lastActivity: '10-09-2025' },
+  { user: 'Grace Taylor', email: 'grace.taylor@company.com', created: '07-09-2025', type: 'Internal', status: 'Active', lastActivity: '09-09-2025' },
+  { user: 'Henry White', email: 'henry.white@external.com', created: '08-09-2025', type: 'External', status: 'Inactive', lastActivity: '12-09-2025' },
+  { user: 'Ivy Martin', email: 'ivy.martin@customer.com', created: '10-09-2025', type: 'Customer', status: 'Suspended', lastActivity: '11-09-2025' },
+  { user: 'Jack Thompson', email: 'jack.thompson@company.com', created: '12-09-2025', type: 'Internal', status: 'Active', lastActivity: '15-09-2025' },
   
-  { user: 'Karen Anderson', created: '13-09-2025', type: 'External', status: 'Active', lastActivity: '14-09-2025' },
-  { user: 'Leo Martinez', created: '14-09-2025', type: 'Customer', status: 'Inactive', lastActivity: '18-09-2025' },
-  { user: 'Mia Robinson', created: '15-09-2025', type: 'Internal', status: 'Active', lastActivity: '20-09-2025' },
-  { user: 'Nathan Clark', created: '16-09-2025', type: 'External', status: 'Active', lastActivity: '19-09-2025' },
-  { user: 'Olivia Lewis', created: '17-09-2025', type: 'Customer', status: 'Inactive', lastActivity: '21-09-2025' },
-  { user: 'Paul Walker', created: '18-09-2025', type: 'Internal', status: 'Suspended', lastActivity: '19-09-2025' },
-  { user: 'Quinn Hall', created: '19-09-2025', type: 'External', status: 'Active', lastActivity: '23-09-2025' },
-  { user: 'Rachel Allen', created: '20-09-2025', type: 'Customer', status: 'Active', lastActivity: '22-09-2025' },
-  { user: 'Samuel Young', created: '21-09-2025', type: 'Internal', status: 'Inactive', lastActivity: '24-09-2025' },
-  { user: 'Tina King', created: '22-09-2025', type: 'External', status: 'Active', lastActivity: '26-09-2025' },
+  { user: 'Karen Anderson', email: 'karen.anderson@external.com', created: '13-09-2025', type: 'External', status: 'Active', lastActivity: '14-09-2025' },
+  { user: 'Leo Martinez', email: 'leo.martinez@customer.com', created: '14-09-2025', type: 'Customer', status: 'Inactive', lastActivity: '18-09-2025' },
+  { user: 'Mia Robinson', email: 'mia.robinson@company.com', created: '15-09-2025', type: 'Internal', status: 'Active', lastActivity: '20-09-2025' },
+  { user: 'Nathan Clark', email: 'nathan.clark@external.com', created: '16-09-2025', type: 'External', status: 'Active', lastActivity: '19-09-2025' },
+  { user: 'Olivia Lewis', email: 'olivia.lewis@customer.com', created: '17-09-2025', type: 'Customer', status: 'Inactive', lastActivity: '21-09-2025' },
+  { user: 'Paul Walker', email: 'paul.walker@company.com', created: '18-09-2025', type: 'Internal', status: 'Suspended', lastActivity: '19-09-2025' },
+  { user: 'Quinn Hall', email: 'quinn.hall@external.com', created: '19-09-2025', type: 'External', status: 'Active', lastActivity: '23-09-2025' },
+  { user: 'Rachel Allen', email: 'rachel.allen@customer.com', created: '20-09-2025', type: 'Customer', status: 'Active', lastActivity: '22-09-2025' },
+  { user: 'Samuel Young', email: 'samuel.young@company.com', created: '21-09-2025', type: 'Internal', status: 'Inactive', lastActivity: '24-09-2025' },
+  { user: 'Tina King', email: 'tina.king@external.com', created: '22-09-2025', type: 'External', status: 'Active', lastActivity: '26-09-2025' },
 
-  { user: 'Uma Scott', created: '23-09-2025', type: 'Customer', status: 'Active', lastActivity: '27-09-2025' },
-  { user: 'Victor Green', created: '24-09-2025', type: 'Internal', status: 'Inactive', lastActivity: '28-09-2025' },
-  { user: 'Wendy Baker', created: '25-09-2025', type: 'External', status: 'Suspended', lastActivity: '29-09-2025' },
-  { user: 'Xavier Adams', created: '26-09-2025', type: 'Customer', status: 'Active', lastActivity: '30-09-2025' },
-  { user: 'Yara Nelson', created: '27-09-2025', type: 'Internal', status: 'Active', lastActivity: '01-10-2025' },
-  { user: 'Zane Carter', created: '28-09-2025', type: 'External', status: 'Inactive', lastActivity: '02-10-2025' },
-  { user: 'Aaron Torres', created: '29-09-2025', type: 'Customer', status: 'Active', lastActivity: '03-10-2025' },
-  { user: 'Bella Perez', created: '30-09-2025', type: 'Internal', status: 'Suspended', lastActivity: '04-10-2025' },
-  { user: 'Cody Ramirez', created: '01-10-2025', type: 'External', status: 'Active', lastActivity: '05-10-2025' },
-  { user: 'Diana Flores', created: '02-10-2025', type: 'Customer', status: 'Inactive', lastActivity: '06-10-2025' },
+  { user: 'Uma Scott', email: 'uma.scott@customer.com', created: '23-09-2025', type: 'Customer', status: 'Active', lastActivity: '27-09-2025' },
+  { user: 'Victor Green', email: 'victor.green@company.com', created: '24-09-2025', type: 'Internal', status: 'Inactive', lastActivity: '28-09-2025' },
+  { user: 'Wendy Baker', email: 'wendy.baker@external.com', created: '25-09-2025', type: 'External', status: 'Suspended', lastActivity: '29-09-2025' },
+  { user: 'Xavier Adams', email: 'xavier.adams@customer.com', created: '26-09-2025', type: 'Customer', status: 'Active', lastActivity: '30-09-2025' },
+  { user: 'Yara Nelson', email: 'yara.nelson@company.com', created: '27-09-2025', type: 'Internal', status: 'Active', lastActivity: '01-10-2025' },
+  { user: 'Zane Carter', email: 'zane.carter@external.com', created: '28-09-2025', type: 'External', status: 'Inactive', lastActivity: '02-10-2025' },
+  { user: 'Aaron Torres', email: 'aaron.torres@customer.com', created: '29-09-2025', type: 'Customer', status: 'Active', lastActivity: '03-10-2025' },
+  { user: 'Bella Perez', email: 'bella.perez@company.com', created: '30-09-2025', type: 'Internal', status: 'Suspended', lastActivity: '04-10-2025' },
+  { user: 'Cody Ramirez', email: 'cody.ramirez@external.com', created: '01-10-2025', type: 'External', status: 'Active', lastActivity: '05-10-2025' },
+  { user: 'Diana Flores', email: 'diana.flores@customer.com', created: '02-10-2025', type: 'Customer', status: 'Inactive', lastActivity: '06-10-2025' },
 
-  { user: 'Ethan Rivera', created: '03-10-2025', type: 'Internal', status: 'Active', lastActivity: '07-10-2025' },
-  { user: 'Fiona Cooper', created: '04-10-2025', type: 'External', status: 'Active', lastActivity: '08-10-2025' },
-  { user: 'George Morgan', created: '05-10-2025', type: 'Customer', status: 'Inactive', lastActivity: '09-10-2025' },
-  { user: 'Hannah Reed', created: '06-10-2025', type: 'Internal', status: 'Suspended', lastActivity: '10-10-2025' },
-  { user: 'Ian Bailey', created: '07-10-2025', type: 'External', status: 'Active', lastActivity: '11-10-2025' },
-  { user: 'Julia Murphy', created: '08-10-2025', type: 'Customer', status: 'Active', lastActivity: '12-10-2025' },
-  { user: 'Kevin Bell', created: '09-10-2025', type: 'Internal', status: 'Inactive', lastActivity: '13-10-2025' },
-  { user: 'Laura Rivera', created: '10-10-2025', type: 'External', status: 'Active', lastActivity: '14-10-2025' },
-  { user: 'Mike Foster', created: '11-10-2025', type: 'Customer', status: 'Suspended', lastActivity: '15-10-2025' },
-  { user: 'Nora Gray', created: '12-10-2025', type: 'Internal', status: 'Active', lastActivity: '16-10-2025' },
+  { user: 'Ethan Rivera', email: 'ethan.rivera@company.com', created: '03-10-2025', type: 'Internal', status: 'Active', lastActivity: '07-10-2025' },
+  { user: 'Fiona Cooper', email: 'fiona.cooper@external.com', created: '04-10-2025', type: 'External', status: 'Active', lastActivity: '08-10-2025' },
+  { user: 'George Morgan', email: 'george.morgan@customer.com', created: '05-10-2025', type: 'Customer', status: 'Inactive', lastActivity: '09-10-2025' },
+  { user: 'Hannah Reed', email: 'hannah.reed@company.com', created: '06-10-2025', type: 'Internal', status: 'Suspended', lastActivity: '10-10-2025' },
+  { user: 'Ian Bailey', email: 'ian.bailey@external.com', created: '07-10-2025', type: 'External', status: 'Active', lastActivity: '11-10-2025' },
+  { user: 'Julia Murphy', email: 'julia.murphy@customer.com', created: '08-10-2025', type: 'Customer', status: 'Active', lastActivity: '12-10-2025' },
+  { user: 'Kevin Bell', email: 'kevin.bell@company.com', created: '09-10-2025', type: 'Internal', status: 'Inactive', lastActivity: '13-10-2025' },
+  { user: 'Laura Rivera', email: 'laura.rivera@external.com', created: '10-10-2025', type: 'External', status: 'Active', lastActivity: '14-10-2025' },
+  { user: 'Mike Foster', email: 'mike.foster@customer.com', created: '11-10-2025', type: 'Customer', status: 'Suspended', lastActivity: '15-10-2025' },
+  { user: 'Nora Gray', email: 'nora.gray@company.com', created: '12-10-2025', type: 'Internal', status: 'Active', lastActivity: '16-10-2025' },
 
-  { user: 'Oscar Price', created: '13-10-2025', type: 'External', status: 'Inactive', lastActivity: '17-10-2025' },
-  { user: 'Pamela Hughes', created: '14-10-2025', type: 'Customer', status: 'Active', lastActivity: '18-10-2025' },
-  { user: 'Quincy Bryant', created: '15-10-2025', type: 'Internal', status: 'Active', lastActivity: '19-10-2025' },
-  { user: 'Rita Diaz', created: '16-10-2025', type: 'External', status: 'Inactive', lastActivity: '20-10-2025' },
-  { user: 'Steven Myers', created: '17-10-2025', type: 'Customer', status: 'Active', lastActivity: '21-10-2025' },
-  { user: 'Teresa Howard', created: '18-10-2025', type: 'Internal', status: 'Suspended', lastActivity: '22-10-2025' },
-  { user: 'Umar Chavez', created: '19-10-2025', type: 'External', status: 'Active', lastActivity: '23-10-2025' },
-  { user: 'Vanessa Brooks', created: '20-10-2025', type: 'Customer', status: 'Inactive', lastActivity: '24-10-2025' },
-  { user: 'William Sanders', created: '21-10-2025', type: 'Internal', status: 'Active', lastActivity: '25-10-2025' },
-  { user: 'Ximena Ward', created: '22-10-2025', type: 'External', status: 'Active', lastActivity: '26-10-2025' }
+  { user: 'Oscar Price', email: 'oscar.price@external.com', created: '13-10-2025', type: 'External', status: 'Inactive', lastActivity: '17-10-2025' },
+  { user: 'Pamela Hughes', email: 'pamela.hughes@customer.com', created: '14-10-2025', type: 'Customer', status: 'Active', lastActivity: '18-10-2025' },
+  { user: 'Quincy Bryant', email: 'quincy.bryant@company.com', created: '15-10-2025', type: 'Internal', status: 'Active', lastActivity: '19-10-2025' },
+  { user: 'Rita Diaz', email: 'rita.diaz@external.com', created: '16-10-2025', type: 'External', status: 'Inactive', lastActivity: '20-10-2025' },
+  { user: 'Steven Myers', email: 'steven.myers@customer.com', created: '17-10-2025', type: 'Customer', status: 'Active', lastActivity: '21-10-2025' },
+  { user: 'Teresa Howard', email: 'teresa.howard@company.com', created: '18-10-2025', type: 'Internal', status: 'Suspended', lastActivity: '22-10-2025' },
+  { user: 'Umar Chavez', email: 'umar.chavez@external.com', created: '19-10-2025', type: 'External', status: 'Active', lastActivity: '23-10-2025' },
+  { user: 'Vanessa Brooks', email: 'vanessa.brooks@customer.com', created: '20-10-2025', type: 'Customer', status: 'Inactive', lastActivity: '24-10-2025' },
+  { user: 'William Sanders', email: 'william.sanders@company.com', created: '21-10-2025', type: 'Internal', status: 'Active', lastActivity: '25-10-2025' },
+  { user: 'Ximena Ward', email: 'ximena.ward@external.com', created: '22-10-2025', type: 'External', status: 'Active', lastActivity: '26-10-2025' }
 ];
 
   // Table columns configuration
@@ -358,7 +372,7 @@ export class Userslist {
     return this.filteredUsers.map(user => ({
       user: {
         name: user.user,
-        email: user.type, // Using type as secondary info, similar to teams-and-roles using department
+        email: user.email,
         avatar: this.getInitials(user.user)
       },
       type: user.type,
@@ -375,12 +389,24 @@ export class Userslist {
 
   getInitials(name: string): string {
     if (!name) return '';
-    const parts = name.trim().split(' ');
+    const parts = name.trim().split(/\s+/).filter(p => p.length > 0);
     if (parts.length >= 2) {
       return (parts[0][0] + parts[1][0]).toUpperCase();
     } else if (parts.length === 1) {
       return parts[0].substring(0, 2).toUpperCase();
     }
     return '';
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event) {
+    // Close dropdowns when clicking outside
+    const target = event.target as HTMLElement;
+    const typeDropdown = target.closest('.relative.w-48');
+    
+    if (!typeDropdown) {
+      this.showTypeDropdown = false;
+      this.showStatusDropdown = false;
+    }
   }
 }
