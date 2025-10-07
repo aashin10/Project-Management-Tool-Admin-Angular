@@ -85,7 +85,7 @@ export class SidebarHome implements OnDestroy {
       expanded: false,
       children: [
         { label: 'Add Access', route: '/settings/add-access' },
-        { label: 'Import/Export', route: '/importexport' }
+        { label: 'Import/Export', route: '/settings/importexport' }
       ]
     }
   ];
