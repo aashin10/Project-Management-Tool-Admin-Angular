@@ -1,15 +1,3 @@
-// import { Component } from '@angular/core';
-
-// @Component({
-//   selector: 'app-individualproject',
-//   imports: [],
-//   templateUrl: './individualproject.html',
-//   styleUrl: './individualproject.css'
-// })
-// export class Individualproject {
-
-// }
-
 
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -19,11 +7,12 @@ import { OverviewComponent } from './overview/overview';
 import { TeamsAndRoles } from './teams-and-roles/teams-and-roles';
 import { SharedModule } from '../../../shared/shared-module';
 import { TeamMembersComponent } from './overview/team-members/team-members';
+import { RouterTestingModule } from '@angular/router/testing';
 
 @Component({
   selector: 'app-individualproject',
   standalone: true,
-  imports: [CommonModule,OverviewComponent,TeamsAndRoles,SharedModule,TeamMembersComponent],
+  imports: [CommonModule,OverviewComponent,TeamsAndRoles,SharedModule,TeamMembersComponent,RouterTestingModule],
   templateUrl: './individualproject.html',
   styleUrl: './individualproject.css'
 })
