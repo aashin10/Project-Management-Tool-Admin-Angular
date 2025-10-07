@@ -1,18 +1,20 @@
 import { Component } from '@angular/core';
 import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
-import { NgFor } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 import { SearchBar } from '../../../shared/components/search-bar/search-bar';
 import { Table, TableColumn } from '../../../shared/table/table';
 import { RolesModal } from '../roles-modal/roles-modal';
+import { CustomButton } from '../../../shared/custom-button/custom-button';
 
 @Component({
   selector: 'app-roleslist',
-  imports: [Sectiontitle, NgFor, SearchBar, Table, RolesModal],
+  imports: [Sectiontitle, NgFor, SearchBar, Table, RolesModal, CustomButton, NgIf],
   templateUrl: './roleslist.html',
   styleUrl: './roleslist.css'
 })
 export class Roleslist {
-  isModalOpen: boolean = false;
+  isModalOpen = false;
+  showFilterDropdown = false;
 
   roles = [
     { name: 'Admin', description: 'Full access to system', users: 10, created: '2024-01-05' },
@@ -28,6 +30,8 @@ export class Roleslist {
     { name: 'Project Lead', description: 'Oversees project progress', users: 2, created: '2024-09-22' },
     { name: 'Consultant', description: 'Advises on technical decisions', users: 1, created: '2024-10-03' }
   ];
+
+  filteredRoles = [...this.roles];
 
   columns: TableColumn[] = [
     { header: 'Role Name', field: 'name', type: 'text' },
@@ -45,14 +49,32 @@ export class Roleslist {
     }
   ];
 
+  // 🔹 Search functionality
   onSearch(term: string) {
-    console.log('Search:', term);
+    this.filteredRoles = this.roles.filter(role =>
+      role.name.toLowerCase().includes(term.toLowerCase()) ||
+      role.description.toLowerCase().includes(term.toLowerCase())
+    );
   }
 
-  handleTableAction(event: { action: string; row: any }) {
-    console.log('Action clicked:', event);
+  // 🔹 Filter dropdown toggle
+  toggleFilterDropdown() {
+    this.showFilterDropdown = !this.showFilterDropdown;
   }
 
+  // 🔹 Apply filters
+  applyFilter(filterType: string) {
+    if (filterType === 'moreThan10') {
+      this.filteredRoles = this.roles.filter(role => role.users > 10);
+    } else if (filterType === 'lessThan10') {
+      this.filteredRoles = this.roles.filter(role => role.users <= 10);
+    } else {
+      this.filteredRoles = [...this.roles];
+    }
+    this.showFilterDropdown = false;
+  }
+
+  // 🔹 Modal control
   openModal() {
     this.isModalOpen = true;
   }
@@ -61,12 +83,19 @@ export class Roleslist {
     this.isModalOpen = false;
   }
 
+  // 🔹 Role creation handler
   createRole(newRole: any) {
     this.roles.push({
       ...newRole,
       users: 0,
       created: new Date().toISOString().split('T')[0]
     });
+    this.filteredRoles = [...this.roles];
     this.closeModal();
+  }
+
+  // 🔹 Table actions
+  handleTableAction(event: { action: string; row: any }) {
+    console.log('Table Action:', event);
   }
 }

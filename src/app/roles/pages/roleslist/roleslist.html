@@ -1,36 +1,53 @@
-<app-sectiontitle
-  title="All Roles"
-  description="Manage user roles and permissions across your organization">
-</app-sectiontitle>
-
-<div class="p-6">
-  <!-- Search and Create Button -->
-  <div class="flex justify-between items-center mb-4">
-    <!-- <input type="text" placeholder="Search roles..." class="border rounded px-3 py-2 w-1/3"> -->
-     <app-search-bar
-        placeholder="Search roles..."
-        (search)="onSearch($event)"
-        ></app-search-bar>
-
-    <button
-      class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-      (click)="openModal()">
-      + Create Role
-    </button>
+<!-- Header Section: Title + Create Role Button -->
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between px-6 pt-6">
+  <!-- Left: Title and Description -->
+  <div>
+    <h2 class="text-2xl font-semibold text-gray-800">All Roles</h2>
+    <p class="text-sm text-gray-500">
+      Manage user roles and permissions across your organization
+    </p>
   </div>
 
-  <!-- Roles Table -->
-   <app-table
+  <!-- Right: Create Role Button -->
+  <app-custom-button
+    label="+ Create Role"
+    shortLabel="New"
+    bgClass="bg-blue-600"
+    textColor="text-white"
+    hoverClass="hover:bg-blue-700"
+    rounded="rounded-md"
+    padding="px-4 py-2"
+    fontSize="text-sm"
+    fontWeight="font-semibold"
+    (action)="openModal()">
+  </app-custom-button>
+</div>
+
+<!-- Search Bar (Full Width) -->
+<div class="px-6 pt-4">
+  <app-search-bar
+    placeholder="Search roles..."
+    class="w-full"
+    (search)="onSearch($event)">
+  </app-search-bar>
+</div>
+
+
+<!-- Roles Table -->
+<div class="px-6 pt-6 w-full">
+  <app-table
+    class="w-full"
     [columns]="columns"
-    [data]="roles"
+    [data]="filteredRoles"
     [showCheckbox]="false"
     (actionClick)="handleTableAction($event)">
   </app-table>
 </div>
 
+<!-- Role Creation Modal -->
 <app-roles-modal
+  *ngIf="isModalOpen"
   [isOpen]="isModalOpen"
   (close)="closeModal()"
   (create)="createRole($event)">
 </app-roles-modal>
-
