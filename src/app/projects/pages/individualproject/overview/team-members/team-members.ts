@@ -1,5 +1,6 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
 
 export interface TeamMember {
   name: string;
@@ -16,12 +17,16 @@ export interface TeamMember {
   styleUrl: './team-members.css'
 })
 export class TeamMembersComponent {
+
+    constructor(
+    private router: Router,
+  ) {}
   @Input() teamMembers: TeamMember[] = [];
   @Input() showViewAll: boolean = true;
-
+ @Output() viewAllClicked = new EventEmitter<void>();
+ 
   onViewAll() {
-    console.log('View all team members requested');
-    // You can emit an event here if needed
+    this.viewAllClicked.emit(); // notify parent component
   }
 
   getColorClasses(color: string): string {

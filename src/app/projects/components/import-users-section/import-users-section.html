@@ -1,0 +1,76 @@
+<ng-container class="w-50">
+  <label
+    for="dropzone-file"
+    class="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer"
+  >
+    <div class="flex flex-col items-center justify-center pt-5 pb-6">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="gray"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="lucide lucide-upload h-12 w-12 text-muted-foreground mx-auto mb-4"
+        aria-hidden="true"
+      >
+        <path d="M12 3v12"></path>
+        <path d="m17 8-5-5-5 5"></path>
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+      </svg>
+      <p class="mb-2 text-sm">
+        <span class="font-semibold">Upload CSV File </span>
+      </p>
+      <p class="text-xs text-gray-500">CSV should contain: Name, Email, Role columns</p>
+    </div>
+    <input
+      id="dropzone-file"
+      type="file"
+      accept=".csv"
+      class="hidden"
+      (change)="onFileUpload($event)"
+    />
+  </label>
+
+  <div
+    *ngIf="uploadSuccess"
+    class="flex items-center gap-2 text-sm text-green-600 bg-green-50 p-2 border mt-2 border-green-200"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="lucide lucide-check h-5 w-5"
+      aria-hidden="true"
+    >
+      <path d="M20 6 9 17l-5-5"></path>
+    </svg>
+    <span>File imported successfully!</span>
+  </div>
+
+  <div class="flex justify-around w-full mt-6">
+    <app-custom-button
+      label="Skip for Now"
+      shortLabel="Skip"
+      (action)="onContinue()"
+      bgClass="bg-blue-white border border-gray-300 hover:bg-gray-50 w-52"
+    ></app-custom-button>
+    <app-custom-button
+      label="Continue"
+      shortLabel="Continue"
+      bgClass="bg-[#0052cc] border border-gray-300 hover:bg-gray-50 w-52"
+      (action)="onContinue()"
+      [textColor]="'text-white'"
+      [disabled]="!uploadSuccess"
+    ></app-custom-button>
+  </div>
+</ng-container>
