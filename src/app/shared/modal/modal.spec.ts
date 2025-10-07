@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
 
@@ -562,25 +562,40 @@ describe('Modal', () => {
     it('should prevent body scroll when modal opens', () => {
       const initialOverflow = document.body.style.overflow;
       component.isOpen = true;
-      (component as any).ngOnChanges();
+      fixture.detectChanges();
 
       expect(document.body.style.overflow).toBe('hidden');
     });
 
     it('should restore body scroll when modal closes', () => {
-      // First prevent scroll
+      // Set initial body overflow before modal opens
+      document.body.style.overflow = 'auto';
+
+      // Open modal (should prevent scroll)
       component.isOpen = true;
-      (component as any).ngOnChanges();
+      fixture.detectChanges();
 
-      // Then restore
+      expect(document.body.style.overflow).toBe('hidden');
+
+      // Close modal (should restore to original)
       component.isOpen = false;
-      (component as any).ngOnChanges();
+      fixture.detectChanges();
 
-      expect(document.body.style.overflow).toBe('');
+      expect(document.body.style.overflow).toBe('auto');
     });
 
     it('should restore original body overflow on destroy', () => {
+      // Set initial body overflow
       document.body.style.overflow = 'auto';
+
+      // Simulate the component preventing scroll (like when modal opens)
+      (component as any).isScrollPrevented = true;
+      (component as any).bodyOverflow = 'auto'; // This would be captured during ngOnInit
+
+      // Change overflow to hidden (simulating modal being open)
+      document.body.style.overflow = 'hidden';
+
+      // Destroy component (should restore to original)
       component.ngOnDestroy();
 
       expect(document.body.style.overflow).toBe('auto');
@@ -588,16 +603,15 @@ describe('Modal', () => {
   });
 
   describe('Focus Management', () => {
-    it('should focus close button when modal opens', () => {
+    it('should focus close button when modal opens', fakeAsync(() => {
       component.isOpen = true;
       fixture.detectChanges();
-
-      (component as any).ngOnChanges();
+      tick(); // Wait for setTimeout in component
 
       // The close button should be focused
       const closeButton = debugElement.query(By.css('button'));
       expect(document.activeElement).toBe(closeButton.nativeElement);
-    });
+    }));
 
     it('should restore focus when modal closes', () => {
       // Set up a focused element
@@ -607,11 +621,11 @@ describe('Modal', () => {
 
       // Open modal
       component.isOpen = true;
-      (component as any).ngOnChanges();
+      fixture.detectChanges();
 
       // Close modal
       component.isOpen = false;
-      (component as any).ngOnChanges();
+      fixture.detectChanges();
 
       expect(document.activeElement).toBe(testElement);
 
