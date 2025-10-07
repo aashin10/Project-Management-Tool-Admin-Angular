@@ -7,6 +7,7 @@ import { Importnavigationservice } from './importnavigationservice';
 import { ActivatedRoute } from '@angular/router';
 import { Jiraservice } from './jiraservice';
 import { HttpClientModule } from '@angular/common/http';
+import { CustomButton } from '../../../shared/custom-button/custom-button';
 
 @Component({
   selector: 'app-importfromjira',
@@ -16,6 +17,7 @@ import { HttpClientModule } from '@angular/common/http';
     LucideAngularModule,
     ImportProcessSection,
     HttpClientModule,
+    CustomButton,
   ],
   templateUrl: './importfromjira.html',
   styleUrl: './importfromjira.css',
