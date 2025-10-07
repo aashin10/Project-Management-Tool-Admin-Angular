@@ -1,3 +1,4 @@
+
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 
@@ -34,7 +35,22 @@ export class WorkItemDistributionComponent {
 
   getStrokeDashoffset(previousPercentages: number): number {
     const circumference = 2 * Math.PI * 85;
-    return -((previousPercentages / 100) * circumference);
+    // Add gap: 1% of circumference per segment passed
+    const gapSize = 0.0; // 0.8% gap between segments
+    const gapsBeforeSegment = previousPercentages > 0 ? this.getSegmentCount(previousPercentages) : 0;
+    const totalGap = gapsBeforeSegment * gapSize;
+    return -(((previousPercentages + totalGap) / 100) * circumference);
+  }
+
+  private getSegmentCount(percentage: number): number {
+    let count = 0;
+    let total = 0;
+    for (let item of this.workItemDistribution) {
+      if (total >= percentage) break;
+      total += item.percentage;
+      count++;
+    }
+    return count;
   }
 
   getTooltipPosition(): { x: number; y: number } {
@@ -60,7 +76,7 @@ export class WorkItemDistributionComponent {
     const angle = (middlePercentage / 100) * 2 * Math.PI - (Math.PI / 2);
     
     // Calculate tooltip position at the outer edge of the segment
-    const tooltipDistance = radius + 35; // Distance from center
+    const tooltipDistance = radius + 45; // Distance from center
     const x = centerX + Math.cos(angle) * tooltipDistance;
     const y = centerY + Math.sin(angle) * tooltipDistance;
     

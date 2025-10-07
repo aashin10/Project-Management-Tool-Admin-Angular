@@ -1,29 +1,30 @@
-<!-- Header Section: Title + Create Role Button -->
+<!-- Header Section using Sectiontitle with button inline -->
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between px-6 pt-6">
-  <!-- Left: Title and Description -->
-  <div>
-    <h2 class="text-2xl font-semibold text-gray-800">All Roles</h2>
-    <p class="text-sm text-gray-500">
-      Manage user roles and permissions across your organization
-    </p>
-  </div>
+  <!-- Section Title -->
+  <app-sectiontitle
+    [title]="'All Roles'"
+    [description]="'Manage user roles and permissions across your organization'">
+  </app-sectiontitle>
 
-  <!-- Right: Create Role Button -->
-  <app-custom-button
-    label="+ Create Role"
-    shortLabel="New"
-    bgClass="bg-blue-600"
-    textColor="text-white"
-    hoverClass="hover:bg-blue-700"
-    rounded="rounded-md"
-    padding="px-4 py-2"
-    fontSize="text-sm"
-    fontWeight="font-semibold"
-    (action)="openModal()">
-  </app-custom-button>
+  <!-- Create Role Button -->
+  <div class="mt-4 sm:mt-0">
+    <app-custom-button
+      label="+ Create Role"
+      shortLabel="New"
+      bgClass="bg-blue-600"
+      textColor="text-white"
+      hoverClass="hover:bg-blue-700"
+      rounded="rounded-md"
+      padding="px-4 py-2"
+      fontSize="text-sm"
+      fontWeight="font-semibold"
+      (action)="openModal()">
+    </app-custom-button>
+  </div>
 </div>
 
-<!-- Search Bar (Full Width) -->
+
+<!-- Search Bar -->
 <div class="px-6 pt-4">
   <app-search-bar
     placeholder="Search roles..."
@@ -32,22 +33,76 @@
   </app-search-bar>
 </div>
 
-
 <!-- Roles Table -->
 <div class="px-6 pt-6 w-full">
   <app-table
-    class="w-full"
-    [columns]="columns"
-    [data]="filteredRoles"
-    [showCheckbox]="false"
-    (actionClick)="handleTableAction($event)">
-  </app-table>
+  class="w-full"
+  [columns]="columns"
+  [data]="filteredRoles"
+  [showCheckbox]="false"
+  (actionClick)="handleTableAction($event)">
+
+  <!-- Custom template for Role Name column -->
+  <ng-template #cellName let-row="row">
+    <div class="flex items-center space-x-2">
+      <img src="{{ row.icon }}" alt="role icon" class="w-5 h-5"/>
+      <span>{{ row.name }}</span>
+    </div>
+  </ng-template>
+
+</app-table>
+
 </div>
 
-<!-- Role Creation Modal -->
-<app-roles-modal
-  *ngIf="isModalOpen"
+<!-- Role Modal -->
+<app-modal
   [isOpen]="isModalOpen"
-  (close)="closeModal()"
-  (create)="createRole($event)">
-</app-roles-modal>
+  (close)="closeModal()">
+
+  <div class="px-6 py-4 space-y-3">
+    <h2 class="text-lg font-semibold">{{ isEditMode ? 'Edit Role' : 'Create New Role' }}</h2>
+
+    <!-- Role Name -->
+    <div>
+      <label class="block text-xs font-medium text-gray-700">Role Name *</label>
+      <input [(ngModel)]="newRole.name" type="text" placeholder="e.g., Project Manager, Developer"
+        class="w-full mt-1 px-2 py-1 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm placeholder-gray-400" />
+    </div>
+
+    <!-- Description -->
+    <div>
+      <label class="block text-xs font-medium text-gray-700">Description</label>
+      <textarea [(ngModel)]="newRole.description" placeholder="Describe the role's responsibilities..."
+        class="w-full mt-1 px-2 py-1 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm placeholder-gray-400"></textarea>
+    </div>
+
+    <!-- Clone From -->
+    <div>
+      <label class="block text-xs font-medium text-gray-700">Clone from Existing Role (Optional)</label>
+      <select [(ngModel)]="newRole.cloneFrom"
+        class="w-full mt-1 px-2 py-1 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm">
+        <option value="">Select a role to copy permissions from</option>
+        <option *ngFor="let r of roles">{{ r.name }}</option>
+      </select>
+    </div>
+
+    <!-- Permissions -->
+    <div>
+      <label class="block text-xs font-medium text-gray-700">Permissions</label>
+      <div class="space-y-1 mt-1 text-sm">
+        <div *ngFor="let perm of permissionsList" class="flex items-center space-x-2">
+          <input type="checkbox" [checked]="newRole.permissions?.includes(perm)" (change)="togglePermission(perm)" />
+          <span class="text-gray-700 text-sm">{{ perm }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="flex justify-end gap-2 border-t px-4 py-3 bg-gray-50 mt-4">
+      <button (click)="closeModal()" class="px-3 py-1.5 bg-gray-200 rounded hover:bg-gray-300 text-sm">Cancel</button>
+      <button (click)="saveRole()" class="px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">{{ isEditMode ? 'Save Changes' : 'Create Role' }}</button>
+    </div>
+  </div>
+
+</app-modal>
+

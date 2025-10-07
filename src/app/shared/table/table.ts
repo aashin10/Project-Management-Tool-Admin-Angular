@@ -8,6 +8,8 @@ export interface TableColumn {
   type?: 'text' | 'badge' | 'avatar' | 'user' | 'actions';
   sortable?: boolean;
   width?: string;
+  align?: 'left' | 'center' | 'right'; // Text alignment
+  icon?: string; // Icon path for text type
   badgeColors?: { [key: string]: string }; // For different badge colors
   actions?:ActionItem [];
 }
@@ -25,6 +27,7 @@ export interface ActionItem {
   styleUrl: './table.css'
 })
 export class Table {
+  
  isLastRows(index: number): boolean {
   // Show dropdown above only for the last row
   return index === this.paginatedData.length - 1;
@@ -42,6 +45,8 @@ export class Table {
   currentPage: number = 1;
   selectedRows: Set<number> = new Set();
   openActionMenuIndex: number | null = null;
+
+  
 
   get paginatedData() {
     const start = (this.currentPage - 1) * this.itemsPerPage;
@@ -158,4 +163,5 @@ export class Table {
 
 function isLastRows(index: any, number: any) {
   throw new Error('Function not implemented.');
+
 }

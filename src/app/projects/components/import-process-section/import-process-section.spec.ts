@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { AdvancedFilterSection } from './advanced-filter-section';
+import { ImportProcessSection } from './import-process-section';
 
-describe('AdvancedFilterSection', () => {
-  let component: AdvancedFilterSection;
-  let fixture: ComponentFixture<AdvancedFilterSection>;
+describe('ImportProcessSection', () => {
+  let component: ImportProcessSection;
+  let fixture: ComponentFixture<ImportProcessSection>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AdvancedFilterSection]
+      imports: [ImportProcessSection]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(AdvancedFilterSection);
+    fixture = TestBed.createComponent(ImportProcessSection);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

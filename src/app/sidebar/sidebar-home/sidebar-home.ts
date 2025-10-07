@@ -60,27 +60,24 @@ export class SidebarHome {
       icon: this.buildingIcon,
       expanded: false,
       children: [
-        { label: 'View All DUs', route: '/deliveryunits' },
-        { label: 'Add new DU', route: '/deliveryunits/add' }
-      ]
+      ],
+      route: '/deliveryunits'
     },
     {
       label: 'User Management',
       icon: this.userIcon,
       expanded: false,
       children: [
-        { label: 'All Users', route: '/users' },
-        { label: 'Create User', route: '/users/create' }
-      ]
+      ],
+      route: '/users'
     },
     {
       label: 'Roles and Permissions',
       icon: this.shieldIcon,
       expanded: false,
       children: [
-        { label: 'All Roles', route: '/roles' },
-        { label: 'Create Role', route: '/roles/create' }
-      ]
+      ],
+      route: '/roles'
     },
     {
       label: 'Reports',
@@ -93,7 +90,7 @@ export class SidebarHome {
       icon: this.settingsIcon,
       expanded: false,
       children: [
-        { label: 'System Settings', route: '/settings/system' },
+        { label: 'Add Access', route: '/settings/add-access' },
         { label: 'Import/Export', route: '/importexport' }
       ]
     }
@@ -116,7 +113,12 @@ export class SidebarHome {
   }
 
   toggleSection(item: MenuItem): void {
-    item.expanded = !item.expanded;
+    if (this.isCollapsed) {
+      this.isCollapsed = false;
+      item.expanded = true;
+    } else {
+      item.expanded = !item.expanded;
+    }
   }
 
   toggleCollapse(): void {
