@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { filter } from 'rxjs/operators';
+import { filter, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
 interface MenuItem {
   label: string;
@@ -19,8 +20,10 @@ interface MenuItem {
   templateUrl: './sidebar-home.html',
   styleUrl: './sidebar-home.css'
 })
-export class SidebarHome {
+export class SidebarHome implements OnDestroy {
   isCollapsed = false;
+
+  private destroy$ = new Subject<void>();
 
   // SVG Icons
   dashboardIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house w-4 h-4" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>`;
@@ -58,29 +61,17 @@ export class SidebarHome {
     {
       label: 'DU Management',
       icon: this.buildingIcon,
-      expanded: false,
-      children: [
-        { label: 'View All DUs', route: '/deliveryunits' },
-        { label: 'Add new DU', route: '/deliveryunits/add' }
-      ]
+      route: '/deliveryunits'
     },
     {
       label: 'User Management',
       icon: this.userIcon,
-      expanded: false,
-      children: [
-        { label: 'All Users', route: '/users' },
-        { label: 'Create User', route: '/users/create' }
-      ]
+      route: '/users'
     },
     {
       label: 'Roles and Permissions',
       icon: this.shieldIcon,
-      expanded: false,
-      children: [
-        { label: 'All Roles', route: '/roles' },
-        { label: 'Create Role', route: '/roles/create' }
-      ]
+      route: '/roles'
     },
     {
       label: 'Reports',
@@ -93,8 +84,8 @@ export class SidebarHome {
       icon: this.settingsIcon,
       expanded: false,
       children: [
-        { label: 'System Settings', route: '/settings/system' },
-        { label: 'Import/Export', route: '/importexport' }
+        { label: 'Add Access', route: '/settings/add-access' },
+        { label: 'Import/Export', route: '/settings/importexport' }
       ]
     }
   ];
@@ -102,7 +93,10 @@ export class SidebarHome {
   constructor(private sanitizer: DomSanitizer, private router: Router) {
     // Auto-expand parent when child route is active
     this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
+      .pipe(
+        filter(event => event instanceof NavigationEnd),
+        takeUntil(this.destroy$)
+      )
       .subscribe(() => {
         this.expandActiveParent();
       });
@@ -111,12 +105,26 @@ export class SidebarHome {
     this.expandActiveParent();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   getSanitizedIcon(icon: string): SafeHtml {
     return this.sanitizer.bypassSecurityTrustHtml(icon);
   }
 
   toggleSection(item: MenuItem): void {
-    item.expanded = !item.expanded;
+    if (this.isCollapsed) {
+      this.isCollapsed = false;
+      if (item.children && item.children.length > 0) {
+        item.expanded = true;
+      }
+    } else {
+      if (item.children && item.children.length > 0) {
+        item.expanded = !item.expanded;
+      }
+    }
   }
 
   toggleCollapse(): void {
@@ -138,9 +146,18 @@ export class SidebarHome {
   private expandActiveParent(): void {
     const currentUrl = this.router.url;
     
+    if (!currentUrl) {
+      return;
+    }
+    
     this.menuItems.forEach(item => {
       if (item.children && item.children.length > 0) {
-        const isActive = item.children.some(child => currentUrl.startsWith(child.route));
+        // Check if any child route matches the current URL
+        const isActive = item.children.some(child => {
+          // For exact routes, check if URL matches exactly
+          // For routes that might have parameters or children, check if URL starts with route
+          return currentUrl === child.route || currentUrl.startsWith(child.route + '/');
+        });
         if (isActive && !this.isCollapsed) {
           item.expanded = true;
         }

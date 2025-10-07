@@ -1,13 +1,8 @@
-<nav class="bg-white shadow-sm border-b">
+<nav class="bg-white shadow-sm">
   <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
     <div
       class="flex flex-row lg:justify-between lg:items-center py-3 lg:py-0 lg:h-16 gap-3 lg:gap-4"
     >
-      <!-- Breadcrumb Navigation (Hidden on Mobile) -->
-      <div class="hidden lg:flex items-center flex-shrink min-w-0">
-        <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
-      </div>
-
       <!-- Search Bar -->
       <div class="w-full lg:max-w-lg flex-shrink">
         <app-search-bar
@@ -20,6 +15,11 @@
       <div class="flex items-center justify-end flex-shrink-0">
         <app-action-buttons (actionClick)="onActionClick($event)"></app-action-buttons>
       </div>
+    </div>
+  </div>
+  <div class="relative">
+    <div *ngIf="isUserMenuVisible" class="absolute right-1 mt-1">
+      <app-user-menu></app-user-menu>
     </div>
   </div>
 </nav>

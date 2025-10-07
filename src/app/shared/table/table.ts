@@ -1,11 +1,11 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 export interface TableColumn {
   header: string;
   field: string;
-  type?: 'text' | 'badge' | 'avatar' | 'user' | 'actions';
+  type?: 'text' | 'badge' | 'avatar' | 'user' | 'actions'|'roleIcon';
   sortable?: boolean;
   width?: string;
   align?: 'left' | 'center' | 'right'; // Text alignment
@@ -26,7 +26,7 @@ export interface ActionItem {
   templateUrl: './table.html',
   styleUrl: './table.css'
 })
-export class Table {
+export class Table implements OnChanges {
   
  isLastRows(index: number): boolean {
   // Show dropdown above only for the last row
@@ -37,6 +37,8 @@ export class Table {
   @Input() data: any[] = [];
   @Input() showCheckbox: boolean = false;
   @Input() itemsPerPage: number = 10;
+  @Input() selectAllAcrossPages: boolean = false;
+  @Input() clearSelections: boolean = false;
   
   @Output() rowSelect = new EventEmitter<any>();
   @Output() actionClick = new EventEmitter<{action: string, row: any}>();
@@ -45,6 +47,24 @@ export class Table {
   currentPage: number = 1;
   selectedRows: Set<number> = new Set();
   openActionMenuIndex: number | null = null;
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['clearSelections'] && changes['clearSelections'].currentValue === true) {
+      this.selectedRows.clear();
+      this.emitSelectionChange();
+    }
+    
+    // When data changes, clear selections that are out of bounds
+    if (changes['data'] && this.selectedRows.size > 0) {
+      const validIndices = new Set<number>();
+      this.selectedRows.forEach(index => {
+        if (index < this.data.length) {
+          validIndices.add(index);
+        }
+      });
+      this.selectedRows = validIndices;
+    }
+  }
 
   
 
@@ -72,21 +92,21 @@ export class Table {
     }
   }
   toggleAll() {
-  // Check if all rows are currently selected
-  const allSelected = this.selectedRows.size === this.paginatedData.length;
-  
-  if (allSelected) {
-    // Unselect all
-    this.selectedRows.clear();
-  } else {
-    // Select all visible rows
-    this.selectedRows.clear();
-    for (let i = 0; i < this.paginatedData.length; i++) {
-      this.selectedRows.add(i);
+    // Always select/deselect all items across all pages
+    const allSelected = this.selectedRows.size === this.data.length;
+
+    if (allSelected) {
+      // Unselect all
+      this.selectedRows.clear();
+    } else {
+      // Select all items across all pages
+      this.selectedRows.clear();
+      for (let i = 0; i < this.data.length; i++) {
+        this.selectedRows.add(i);
+      }
     }
+    this.emitSelectionChange();
   }
-  this.emitSelectionChange();
-}
   previousPage() {
     this.goToPage(this.currentPage - 1);
   }
@@ -96,20 +116,43 @@ export class Table {
   }
 
   toggleRow(index: number) {
-    if (this.selectedRows.has(index)) {
-      this.selectedRows.delete(index);
+    let rowIndex: number;
+    if (this.selectAllAcrossPages) {
+      // When selecting across pages, convert paginated index to global index
+      rowIndex = (this.currentPage - 1) * this.itemsPerPage + index;
     } else {
-      this.selectedRows.add(index);
+      // When selecting per page, use paginated index directly
+      rowIndex = index;
+    }
+
+    if (this.selectedRows.has(rowIndex)) {
+      this.selectedRows.delete(rowIndex);
+    } else {
+      this.selectedRows.add(rowIndex);
     }
     this.emitSelectionChange();
   }
 
   isRowSelected(index: number): boolean {
-    return this.selectedRows.has(index);
+    if (this.selectAllAcrossPages) {
+      // When selecting across pages, convert paginated index to global index
+      const globalIndex = (this.currentPage - 1) * this.itemsPerPage + index;
+      return this.selectedRows.has(globalIndex);
+    } else {
+      // When selecting per page, use paginated index directly
+      return this.selectedRows.has(index);
+    }
   }
   
   emitSelectionChange() {
-    const selectedData = Array.from(this.selectedRows).map(index => this.paginatedData[index]);
+    let selectedData;
+    if (this.selectAllAcrossPages) {
+      // When selecting across pages, selectedRows contains global indices
+      selectedData = Array.from(this.selectedRows).map(index => this.data[index]);
+    } else {
+      // When selecting per page, selectedRows contains paginated indices
+      selectedData = Array.from(this.selectedRows).map(index => this.paginatedData[index]);
+    }
     this.selectionChange.emit(selectedData);
   }
 
@@ -132,6 +175,10 @@ export class Table {
     };
     
     return `${baseClasses} ${colorMap[value?.toLowerCase()] || 'bg-gray-100 text-gray-800'}`;
+  }
+  
+  isArray(value: any): boolean {
+    return Array.isArray(value);
   }
   
 
@@ -160,6 +207,7 @@ export class Table {
     return 'text-gray-700';
   }
 }
+
 
 function isLastRows(index: any, number: any) {
   throw new Error('Function not implemented.');

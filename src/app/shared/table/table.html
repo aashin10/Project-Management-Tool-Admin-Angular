@@ -6,7 +6,13 @@
         <tr>
           <!-- Checkbox column -->
           <th *ngIf="showCheckbox" class="w-12 px-6 py-3">
-            <input type="checkbox" class="rounded border-gray-300" (change)="toggleAll()" />
+            <input 
+              type="checkbox" 
+              class="rounded border-gray-300" 
+              [checked]="isAllSelected()"
+              [indeterminate]="isSomeSelected()"
+              (change)="toggleAll()" 
+            />
           </th>
 
           <!-- Dynamic columns -->
@@ -26,11 +32,12 @@
       <tbody class="bg-white divide-y divide-gray-200">
         <tr
           *ngFor="let row of paginatedData; let i = index"
-          class="hover:bg-gray-50 transition-colors"
+          class="hover:bg-gray-50 transition-colors cursor-pointer"
           [class.bg-blue-50]="isRowSelected(i)"
+          (click)="showCheckbox ? toggleRow(i) : null"
         >
           <!-- Checkbox -->
-          <td *ngIf="showCheckbox" class="w-12 px-6 py-4">
+          <td *ngIf="showCheckbox" class="w-12 px-6 py-4" (click)="$event.stopPropagation()">
             <input
               type="checkbox"
               class="rounded border-gray-300"
@@ -41,6 +48,29 @@
 
           <!-- Dynamic cells -->
           <td *ngFor="let column of columns" class="px-6 py-4">
+            <!-- Role Icon type -->
+            <div *ngIf="column.type === 'roleIcon'" class="flex items-center gap-3">
+              <div
+                class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0"
+              >
+                <svg
+                  class="w-4 h-4 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                  />
+                </svg>
+              </div>
+              <div class="text-sm font-medium text-gray-900">
+                {{ row[column.field].name }}
+              </div>
+            </div>
             <!-- Text type -->
             <div
               *ngIf="!column.type || column.type === 'text'"
@@ -58,12 +88,23 @@
             </div>
 
             <!-- Badge type -->
-            <span
-              *ngIf="column.type === 'badge'"
-              [class]="getBadgeClass(row[column.field], column)"
-            >
-              {{ row[column.field] }}
-            </span>
+            <div *ngIf="column.type === 'badge'" class="flex flex-wrap gap-1">
+              <!-- Single badge (string) -->
+              <ng-container *ngIf="!isArray(row[column.field])">
+                <span [class]="getBadgeClass(row[column.field], column)">
+                  {{ row[column.field] }}
+                </span>
+              </ng-container>
+              <!-- Multiple badges (array) -->
+              <ng-container *ngIf="isArray(row[column.field])">
+                <span
+                  *ngFor="let badge of row[column.field]"
+                  [class]="getBadgeClass(badge, column)"
+                >
+                  {{ badge }}
+                </span>
+              </ng-container>
+            </div>
 
             <!-- Avatar type -->
             <div *ngIf="column.type === 'avatar'" class="flex items-center gap-3">
@@ -92,7 +133,7 @@
             </div>
 
             <!-- Actions type -->
-            <div *ngIf="column.type === 'actions'" class="relative">
+            <div *ngIf="column.type === 'actions'" class="relative" (click)="$event.stopPropagation()">
               <!-- Single action - show directly -->
               <button
                 *ngIf="column.actions && column.actions.length === 1"
