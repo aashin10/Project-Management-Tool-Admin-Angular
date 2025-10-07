@@ -367,4 +367,239 @@ describe('TeamsAndRoles', () => {
     expect(component.teamMembers.find(m => m.id === memberToDelete.id)).toBeUndefined();
     expect(component.showDeleteModal).toBe(false);
   });
+
+  it('should handle all edge cases and error conditions', () => {
+    // Test empty search queries
+    component.searchQuery = '   ';
+    expect(component.filteredMembers.length).toBe(component.teamMembers.length);
+
+    component.searchQuery = '';
+    expect(component.filteredMembers.length).toBe(component.teamMembers.length);
+
+    // Test all filters combinations
+    component.searchQuery = 'Test';
+    component.selectedRole = 'all';
+    component.selectedStatus = 'all';
+    expect(component.filteredMembers.length).toBe(0);
+
+    // Test role filter with all
+    component.searchQuery = '';
+    component.selectedRole = 'all';
+    expect(component.filteredMembers.length).toBe(component.teamMembers.length);
+
+    // Test status filter with all
+    component.selectedStatus = 'all';
+    expect(component.filteredMembers.length).toBe(component.teamMembers.length);
+
+    // Test complex filtering scenarios
+    component.selectedRole = 'Project Manager';
+    component.selectedStatus = 'Active';
+    const pmActiveMembers = component.filteredMembers;
+    pmActiveMembers.forEach(member => {
+      expect(member.roles).toContain('Project Manager');
+      expect(member.status).toBe('Active');
+    });
+
+    // Test boundary conditions
+    component.selectedRows = [];
+    component.removeSelected();
+    expect(component.showDeleteModal).toBe(false);
+
+    // Test modal state management
+    component.showDeleteModal = true;
+    component.cancelDelete();
+    expect(component.showDeleteModal).toBe(false);
+    expect(component.memberToDelete).toBe(null);
+
+    // Test invalid member deletion
+    component.handleTableAction({ action: 'remove', row: { actions: 'invalid-id' } });
+    expect(component.memberToDelete).toBe(null);
+    expect(component.showDeleteModal).toBe(true); // Still true from previous action
+
+    // Reset modal state
+    component.cancelDelete();
+  });
+
+  it('should handle complex role selection scenarios', () => {
+    component.addMemberModal();
+
+    // Test multiple role selections
+    component.toggleRole('Project Manager');
+    component.toggleRole('Tech Lead');
+    component.toggleRole('UI/UX Designer');
+    expect(component.addMemberSelectedRoles).toEqual(['Project Manager', 'Tech Lead', 'UI/UX Designer']);
+
+    // Test role deselection
+    component.toggleRole('Tech Lead');
+    expect(component.addMemberSelectedRoles).toEqual(['Project Manager', 'UI/UX Designer']);
+
+    // Test clearing all roles
+    component.toggleRole('Project Manager');
+    component.toggleRole('UI/UX Designer');
+    expect(component.addMemberSelectedRoles).toEqual([]);
+
+    component.closeAddModal();
+  });
+
+  it('should handle employee search edge cases', () => {
+    component.addMemberModal();
+
+    // Test special characters that don't match any names
+    component.addMemberSearchQuery = 'xyz123';
+    expect(component.filteredEmployees.length).toBe(0);
+
+    // Test partial email matches
+    component.addMemberSearchQuery = 'company.com';
+    const emailMatches = component.filteredEmployees.filter(emp =>
+      emp.email.includes('company.com')
+    );
+    expect(component.filteredEmployees.length).toBe(emailMatches.length);
+
+    // Test mixed case search
+    component.addMemberSearchQuery = 'AMIT';
+    expect(component.filteredEmployees.length).toBe(1);
+    expect(component.filteredEmployees[0].name).toBe('Amit Sharma');
+
+    component.closeAddModal();
+  });
+
+  it('should handle member deletion with pagination scenarios', () => {
+    // Test deletion when multiple members exist
+    const initialCount = component.teamMembers.length;
+    component.selectedRows = [
+      { actions: component.teamMembers[0].id },
+      { actions: component.teamMembers[1].id },
+      { actions: component.teamMembers[2].id }
+    ];
+
+    component.confirmDelete();
+    expect(component.teamMembers.length).toBe(initialCount - 3);
+    expect(component.selectedRows).toEqual([]);
+  });
+
+  it('should handle duplicate member validation by email', () => {
+    component.addMemberModal();
+    const initialCount = component.teamMembers.length;
+
+    // Try to add member with existing email
+    component.selectedEmployee = {
+      id: 'new-id',
+      name: 'Different Name',
+      department: 'Engineering',
+      email: 'asha.varma@company.com', // Existing email
+      status: 'active'
+    };
+    component.addMemberSelectedRoles = ['Developer'];
+
+    component.addMember();
+    expect(component.teamMembers.length).toBe(initialCount); // Should not add
+    expect(component.showValidationModal).toBe(true);
+
+    component.closeAddModal();
+  });
+
+  it('should handle table data transformation correctly', () => {
+    const tableData = component.tableData;
+    expect(tableData.length).toBe(component.teamMembers.length);
+
+    // Verify all required fields are present
+    tableData.forEach((row, index) => {
+      const member = component.teamMembers[index];
+      expect(row.member.name).toBe(member.name);
+      expect(row.member.avatar).toBe(member.name.slice(0, 2).toUpperCase());
+      expect(row.roles).toBe(member.roles);
+      expect(row.email).toBe(member.email);
+      expect(row.status).toBe(member.status);
+      expect(row.actions).toBe(member.id);
+    });
+
+    // Test with filtered data
+    component.selectedRole = 'Project Manager';
+    const filteredTableData = component.tableData;
+    expect(filteredTableData.length).toBe(component.filteredMembers.length);
+  });
+
+  it('should handle modal state transitions correctly', () => {
+    // Test delete modal transitions
+    component.showDeleteModal = false;
+    component.memberToDelete = component.teamMembers[0];
+    component.showDeleteModal = true;
+
+    component.cancelDelete();
+    expect(component.showDeleteModal).toBe(false);
+    expect(component.memberToDelete).toBeNull();
+
+    // Test add modal transitions
+    component.addMemberModal();
+    expect(component.showAddModal).toBe(true);
+
+    component.closeAddModal();
+    expect(component.showAddModal).toBe(false);
+    expect(component.addMemberSearchQuery).toBe('');
+    expect(component.selectedEmployee).toBe(null);
+    expect(component.addMemberSelectedRoles).toEqual([]);
+    expect(component.showValidationModal).toBe(false);
+  });
+
+  it('should handle complete member lifecycle', () => {
+    const initialCount = component.teamMembers.length;
+
+    // Add member
+    component.addMemberModal();
+    component.selectEmployee(component.employees[0]);
+    component.toggleRole('Project Manager');
+    component.addMember();
+    expect(component.teamMembers.length).toBe(initialCount + 1);
+
+    // Verify member was added correctly
+    const newMember = component.teamMembers[component.teamMembers.length - 1];
+    expect(newMember.name).toBe(component.employees[0].name);
+    expect(newMember.roles).toEqual(['Project Manager']);
+    expect(newMember.status).toBe('Active');
+
+    // Delete the member
+    component.handleTableAction({ action: 'remove', row: { actions: newMember.id } });
+    component.confirmDelete();
+    expect(component.teamMembers.length).toBe(initialCount);
+  });
+
+  it('should handle bulk operations correctly', () => {
+    const initialCount = component.teamMembers.length;
+
+    // Select multiple members for bulk deletion
+    component.selectedRows = [
+      { actions: component.teamMembers[0].id },
+      { actions: component.teamMembers[1].id }
+    ];
+
+    component.removeSelected();
+    expect(component.showDeleteModal).toBe(true);
+
+    // Confirm bulk deletion
+    component.confirmDelete();
+    expect(component.teamMembers.length).toBe(initialCount - 2);
+    expect(component.showDeleteModal).toBe(false);
+    expect(component.selectedRows).toEqual([]);
+  });
+
+  it('should handle all filter combinations', () => {
+    // Test all combinations of filters
+    const testCases = [
+      { role: 'all', status: 'all', expectedFiltered: component.teamMembers.length },
+      { role: 'Project Manager', status: 'all', expectedFiltered: 2 },
+      { role: 'all', status: 'Active', expectedFiltered: component.teamMembers.filter(m => m.status === 'Active').length },
+      { role: 'Tech Lead', status: 'Active', expectedFiltered: component.teamMembers.filter(m => m.roles.includes('Tech Lead') && m.status === 'Active').length },
+      { role: 'UI/UX Designer', status: 'Inactive', expectedFiltered: component.teamMembers.filter(m => m.roles.includes('UI/UX Designer') && m.status === 'Inactive').length }
+    ];
+
+    testCases.forEach(testCase => {
+      component.selectedRole = testCase.role;
+      component.selectedStatus = testCase.status;
+      expect(component.filteredMembers.length).toBe(testCase.expectedFiltered);
+    });
+
+    // Reset filters
+    component.selectedRole = 'all';
+    component.selectedStatus = 'all';
+  });
 });
