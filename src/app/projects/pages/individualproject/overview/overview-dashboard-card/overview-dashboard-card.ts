@@ -1,5 +1,17 @@
 import { Component, Input } from '@angular/core';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+
+export interface SprintData {
+  totalIterations: number;
+  active: number;
+  completed: number;
+}
+
+export interface WorkItemsData {
+  total: number;
+  toDo: number;
+  inProgress: number;
+  done: number;
+}
 
 @Component({
   selector: 'app-overview-dashboard-card',
@@ -12,15 +24,5 @@ export class OverviewDashboardCard {
   @Input() title!: string;
   @Input() value!: string | number;
   @Input() subtitle!: string;
-  @Input() set icon(value: string) {
-    this._icon = this.sanitizer.bypassSecurityTrustHtml(value);
-  }
-
-  private _icon!: SafeHtml;
-
-  constructor(private sanitizer: DomSanitizer) {}
-
-  get icon(): SafeHtml {
-    return this._icon;
-  }
+  @Input() icon!: string; 
 }
