@@ -1,7 +1,14 @@
-import { Component, Input } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnInit,
+  OnChanges,
+  SimpleChanges,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { Importprojectcard } from '../importprojectcard/importprojectcard';
-import { CommonModule } from '@angular/common';
 import { CustomButton } from '../../../shared/custom-button/custom-button';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-importprojectslist',
@@ -9,7 +16,9 @@ import { CustomButton } from '../../../shared/custom-button/custom-button';
   templateUrl: './importprojectslist.html',
   styleUrl: './importprojectslist.css',
 })
-export class Importprojectslist {
+export class Importprojectslist implements OnInit, OnChanges {
+  public constructor(private cd: ChangeDetectorRef) {}
+
   @Input() projects: any[] = [];
   paginatedProjects: any = [];
 
@@ -18,6 +27,13 @@ export class Importprojectslist {
 
   ngOnInit() {
     this.updatePaginatedProjects();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['projects'] && changes['projects'].currentValue) {
+      this.updatePaginatedProjects();
+      this.cd.detectChanges();
+    }
   }
 
   updatePaginatedProjects() {

@@ -23,7 +23,7 @@
 
   <app-custom-button
     [label]="'Next'"
-    (click)="goToPage(currentPage + 1)"
+    (action)="goToPage(currentPage + 1)"
     [disabled]="currentPage === totalPages"
     >Next</app-custom-button
   >
