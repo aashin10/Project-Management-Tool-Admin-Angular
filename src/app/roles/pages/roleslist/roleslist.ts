@@ -20,7 +20,17 @@ interface Role {
 @Component({
   selector: 'app-roleslist',
   standalone: true,
-  imports: [CommonModule, FormsModule, Sectiontitle, NgFor, NgIf, SearchBar, Table, Modal, CustomButton],
+  imports: [
+    CommonModule,
+    FormsModule,
+    Sectiontitle,
+    NgFor,
+    NgIf,
+    SearchBar,
+    Table,
+    Modal,
+    CustomButton
+  ],
   templateUrl: './roleslist.html',
   styleUrls: ['./roleslist.css']
 })
@@ -40,29 +50,26 @@ export class Roleslist {
   filteredRoles: Role[] = [...this.roles];
 
   columns: TableColumn[] = [
-  { header: 'Role Name', field: 'name', type: 'text' },
-  { header: 'Description', field: 'description', type: 'text' },
-  { header: 'Users', field: 'users', type: 'text' },
-  { header: 'Created', field: 'created', type: 'text' },
-  {
-    header: 'Actions',
-    field: 'actions',
-    type: 'actions', // keep it as 'actions'
-    actions: [
-      { label: 'Edit', action: 'edit', icon: 'assets/edit.png' },
-      { label: 'Delete', action: 'delete', icon: '🗑️', class: 'danger' }
-    ]
-  }
-];
-  newRole: Role = { name: '', description: '', users: 0, created: '', cloneFrom: '', permissions: [] };
-
-  permissionsList = [
-    'Sprint Creation',
-    'Admin to Admin Creation',
-    'View Private Tickets'
+    { header: 'Role Name', field: 'name', type: 'text' },
+    { header: 'Description', field: 'description', type: 'text' },
+    { header: 'Users', field: 'users', type: 'text' },
+    { header: 'Created', field: 'created', type: 'text' },
+    {
+      header: 'Actions',
+      field: 'actions',
+      type: 'actions',
+      actions: [
+        { label: 'Edit', action: 'edit', icon: 'assets/edit.png' },
+        { label: 'Delete', action: 'delete', icon: '🗑️', class: 'danger' }
+      ]
+    }
   ];
 
-  // Search filter
+  newRole: Role = { name: '', description: '', users: 0, created: '', cloneFrom: '', permissions: [] };
+
+  permissionsList = ['Sprint Creation', 'Admin to Admin Creation', 'View Private Tickets'];
+
+  // 🔍 Search filter
   onSearch(term: string) {
     this.filteredRoles = this.roles.filter(role =>
       role.name.toLowerCase().includes(term.toLowerCase()) ||
@@ -70,14 +77,14 @@ export class Roleslist {
     );
   }
 
-  // Open modal for new role
+  // ➕ Open modal for new role
   openModal() {
     this.isEditMode = false;
     this.newRole = { name: '', description: '', users: 0, created: '', cloneFrom: '', permissions: [] };
     this.isModalOpen = true;
   }
 
-  // Edit role
+  // ✏️ Edit role (prefills modal)
   editRole(role: Role, index: number) {
     this.isEditMode = true;
     this.editingIndex = index;
@@ -92,24 +99,48 @@ export class Roleslist {
     this.isModalOpen = true;
   }
 
-  // Save role (create or edit)
+  // 💾 Save role (create or update)
   saveRole() {
+    const trimmedName = this.newRole.name.trim();
+
+    if (!trimmedName) {
+      alert('Role name is required.');
+      return;
+    }
+
+    const duplicate = this.roles.some(
+      (r, i) => r.name.toLowerCase() === trimmedName.toLowerCase() && i !== this.editingIndex
+    );
+    if (duplicate) {
+      alert('A role with this name already exists.');
+      return;
+    }
+
+    if (!this.newRole.permissions || this.newRole.permissions.length === 0) {
+      alert('Please assign at least one permission.');
+      return;
+    }
+
     if (this.isEditMode && this.editingIndex > -1) {
-      this.roles[this.editingIndex] = { ...this.newRole };
+      this.roles[this.editingIndex] = { ...this.newRole, name: trimmedName };
+      alert('Role updated successfully!');
     } else {
       this.roles.push({
         ...this.newRole,
+        name: trimmedName,
         users: 0,
-        created: new Date().toISOString().split('T')[0]
+        created: new Date().toISOString().split('T')[0],
       });
+      alert('Role created successfully!');
     }
+
     this.filteredRoles = [...this.roles];
     this.closeModal();
   }
 
-  // Delete role
+  // 🗑️ Delete role
   deleteRole(index: number) {
-    if (confirm(`Are you sure you want to delete role "${this.roles[index].name}"?`)) {
+    if (confirm(`Delete role "${this.roles[index].name}"?`)) {
       this.roles.splice(index, 1);
       this.filteredRoles = [...this.roles];
       alert('Role deleted successfully!');
@@ -121,23 +152,24 @@ export class Roleslist {
   }
 
   togglePermission(permission: string) {
-    if (this.newRole.permissions!.includes(permission)) {
-      this.newRole.permissions = this.newRole.permissions!.filter(p => p !== permission);
+    if (!this.newRole.permissions) this.newRole.permissions = [];
+    if (this.newRole.permissions.includes(permission)) {
+      this.newRole.permissions = this.newRole.permissions.filter(p => p !== permission);
     } else {
-      this.newRole.permissions!.push(permission);
+      this.newRole.permissions.push(permission);
     }
   }
 
-  // Handle actions from table buttons
+  // ⚙️ Table actions (Edit/Delete)
   handleTableAction(event: { action: string; row: Role; rowIndex?: number }) {
-  const { action, row, rowIndex } = event;
-  const index = rowIndex ?? this.roles.findIndex(r => r.name === row.name && r.created === row.created);
-  if (index === -1) return;
+    const { action, row, rowIndex } = event;
+    const index = rowIndex ?? this.roles.findIndex(r => r.name === row.name && r.created === row.created);
+    if (index === -1) return;
 
-  if (action === 'edit') {
-    this.editRole(row, index);
-  } else if (action === 'delete') {
-    this.deleteRole(index);
+    if (action === 'edit') {
+      this.editRole(row, index);
+    } else if (action === 'delete') {
+      this.deleteRole(index);
+    }
   }
-}
 }
