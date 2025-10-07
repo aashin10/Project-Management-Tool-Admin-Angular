@@ -588,4 +588,202 @@ describe('Userslist', () => {
       expect(component.currentPage).toBe(1);
     });
   });
+
+  describe('Bulk Actions', () => {
+    beforeEach(() => {
+      component.selectedUsers = [
+        { 
+          user: { name: 'Alice Johnson', email: 'alice.johnson@company.com', avatar: 'AJ' },
+          type: 'Internal', 
+          status: 'Active',
+          created: '23-09-2025',
+          lastActivity: '25-09-2025'
+        },
+        { 
+          user: { name: 'Bob Smith', email: 'bob.smith@external.com', avatar: 'BS' },
+          type: 'External', 
+          status: 'Inactive',
+          created: '27-09-2025',
+          lastActivity: '30-09-2025'
+        }
+      ];
+    });
+
+    it('should show bulk actions section when users are selected', () => {
+      expect(component.selectedUsers.length).toBeGreaterThan(0);
+    });
+
+    it('should call onAssignProjects when Assign Projects button is clicked', () => {
+      spyOn(console, 'log');
+      component.onAssignProjects();
+      
+      expect(console.log).toHaveBeenCalledWith('Assign projects to selected users:', component.selectedUsers);
+    });
+
+    it('should suspend selected users when Suspend button is clicked', () => {
+      const initialUsers = component.users.length;
+      component.onSuspendUsers();
+      
+      // Check that users status is updated
+      const aliceUser = component.users.find(u => u.user === 'Alice Johnson');
+      const bobUser = component.users.find(u => u.user === 'Bob Smith');
+      
+      expect(aliceUser?.status).toBe('Suspended');
+      expect(bobUser?.status).toBe('Suspended');
+      expect(component.selectedUsers.length).toBe(0);
+      expect(component.users.length).toBe(initialUsers);
+    });
+
+    it('should open delete confirmation modal when bulk delete is clicked', () => {
+      component.onBulkDelete();
+      
+      expect(component.showDeleteConfirmModal).toBeTrue();
+      expect(component.pendingDeleteAction).toBe('bulk');
+    });
+
+    it('should delete selected users when confirmed', () => {
+      const initialCount = component.users.length;
+      component.pendingDeleteAction = 'bulk';
+      
+      component.confirmDelete();
+      
+      expect(component.users.length).toBe(initialCount - 2);
+      expect(component.selectedUsers.length).toBe(0);
+      expect(component.showDeleteConfirmModal).toBeFalse();
+      
+      // Verify users are actually deleted
+      const aliceExists = component.users.some(u => u.user === 'Alice Johnson');
+      const bobExists = component.users.some(u => u.user === 'Bob Smith');
+      
+      expect(aliceExists).toBeFalse();
+      expect(bobExists).toBeFalse();
+    });
+
+    it('should close delete modal without deleting when cancelled', () => {
+      const initialCount = component.users.length;
+      component.showDeleteConfirmModal = true;
+      
+      component.closeDeleteConfirmModal();
+      
+      expect(component.showDeleteConfirmModal).toBeFalse();
+      expect(component.users.length).toBe(initialCount);
+      expect(component.userToDelete).toBeNull();
+    });
+  });
+
+  describe('Single User Delete', () => {
+    it('should open delete confirmation modal when delete action is clicked', () => {
+      const mockUser = {
+        user: { name: 'Alice Johnson', email: 'alice.johnson@company.com', avatar: 'AJ' },
+        type: 'Internal',
+        status: 'Active'
+      };
+      
+      component.onActionClick({ action: 'delete', row: mockUser });
+      
+      expect(component.showDeleteConfirmModal).toBeTrue();
+      expect(component.pendingDeleteAction).toBe('single');
+      expect(component.userToDelete).toEqual(mockUser);
+    });
+
+    it('should delete single user when confirmed', () => {
+      const initialCount = component.users.length;
+      const userToDelete = {
+        user: { name: 'Alice Johnson', email: 'alice.johnson@company.com', avatar: 'AJ' },
+        type: 'Internal',
+        status: 'Active'
+      };
+      
+      component.userToDelete = userToDelete;
+      component.pendingDeleteAction = 'single';
+      
+      component.confirmDelete();
+      
+      expect(component.users.length).toBe(initialCount - 1);
+      expect(component.showDeleteConfirmModal).toBeFalse();
+      expect(component.userToDelete).toBeNull();
+      
+      // Verify user is actually deleted
+      const aliceExists = component.users.some(u => u.user === 'Alice Johnson');
+      expect(aliceExists).toBeFalse();
+    });
+  });
+
+  describe('Bulk Actions Initialization', () => {
+    it('should initialize with no delete modal shown', () => {
+      expect(component.showDeleteConfirmModal).toBeFalse();
+    });
+
+    it('should initialize with bulk pending delete action', () => {
+      expect(component.pendingDeleteAction).toBe('bulk');
+    });
+
+    it('should initialize with null userToDelete', () => {
+      expect(component.userToDelete).toBeNull();
+    });
+  });
+
+  describe('Bulk Actions Edge Cases', () => {
+    it('should handle suspending users that do not exist', () => {
+      component.selectedUsers = [
+        { 
+          user: { name: 'Nonexistent User', email: 'nonexistent@test.com', avatar: 'NU' },
+          type: 'Internal',
+          status: 'Active'
+        }
+      ];
+      
+      const initialCount = component.users.length;
+      component.onSuspendUsers();
+      
+      expect(component.users.length).toBe(initialCount);
+      expect(component.selectedUsers.length).toBe(0);
+    });
+
+    it('should handle deleting users that do not exist', () => {
+      component.selectedUsers = [
+        { 
+          user: { name: 'Nonexistent User', email: 'nonexistent@test.com', avatar: 'NU' },
+          type: 'Internal',
+          status: 'Active'
+        }
+      ];
+      
+      const initialCount = component.users.length;
+      component.pendingDeleteAction = 'bulk';
+      
+      component.confirmDelete();
+      
+      expect(component.users.length).toBe(initialCount);
+    });
+
+    it('should clear selectedUsers after suspension', () => {
+      component.selectedUsers = [
+        { 
+          user: { name: 'Alice Johnson', email: 'alice.johnson@company.com', avatar: 'AJ' },
+          type: 'Internal',
+          status: 'Active'
+        }
+      ];
+      
+      component.onSuspendUsers();
+      
+      expect(component.selectedUsers).toEqual([]);
+    });
+
+    it('should clear selectedUsers after bulk delete', () => {
+      component.selectedUsers = [
+        { 
+          user: { name: 'Alice Johnson', email: 'alice.johnson@company.com', avatar: 'AJ' },
+          type: 'Internal',
+          status: 'Active'
+        }
+      ];
+      
+      component.pendingDeleteAction = 'bulk';
+      component.confirmDelete();
+      
+      expect(component.selectedUsers).toEqual([]);
+    });
+  });
 });
