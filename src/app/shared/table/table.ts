@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -26,7 +26,7 @@ export interface ActionItem {
   templateUrl: './table.html',
   styleUrl: './table.css'
 })
-export class Table {
+export class Table implements OnChanges {
   
  isLastRows(index: number): boolean {
   // Show dropdown above only for the last row
@@ -37,6 +37,8 @@ export class Table {
   @Input() data: any[] = [];
   @Input() showCheckbox: boolean = false;
   @Input() itemsPerPage: number = 10;
+  @Input() selectAllAcrossPages: boolean = false;
+  @Input() clearSelections: boolean = false;
   
   @Output() rowSelect = new EventEmitter<any>();
   @Output() actionClick = new EventEmitter<{action: string, row: any}>();
@@ -45,6 +47,13 @@ export class Table {
   currentPage: number = 1;
   selectedRows: Set<number> = new Set();
   openActionMenuIndex: number | null = null;
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['clearSelections'] && changes['clearSelections'].currentValue === true) {
+      this.selectedRows.clear();
+      this.emitSelectionChange();
+    }
+  }
 
   
 
@@ -72,17 +81,33 @@ export class Table {
     }
   }
   toggleAll() {
-  // Check if all rows are currently selected
-  const allSelected = this.selectedRows.size === this.paginatedData.length;
-  
-  if (allSelected) {
-    // Unselect all
-    this.selectedRows.clear();
+  if (this.selectAllAcrossPages) {
+    // Select/deselect all items across all pages
+    const allSelected = this.selectedRows.size === this.data.length;
+
+    if (allSelected) {
+      // Unselect all
+      this.selectedRows.clear();
+    } else {
+      // Select all items across all pages
+      this.selectedRows.clear();
+      for (let i = 0; i < this.data.length; i++) {
+        this.selectedRows.add(i);
+      }
+    }
   } else {
-    // Select all visible rows
-    this.selectedRows.clear();
-    for (let i = 0; i < this.paginatedData.length; i++) {
-      this.selectedRows.add(i);
+    // Original behavior - select/deselect only current page
+    const allSelected = this.selectedRows.size === this.paginatedData.length;
+
+    if (allSelected) {
+      // Unselect all
+      this.selectedRows.clear();
+    } else {
+      // Select all visible rows
+      this.selectedRows.clear();
+      for (let i = 0; i < this.paginatedData.length; i++) {
+        this.selectedRows.add(i);
+      }
     }
   }
   this.emitSelectionChange();
@@ -134,6 +159,10 @@ export class Table {
     return `${baseClasses} ${colorMap[value?.toLowerCase()] || 'bg-gray-100 text-gray-800'}`;
   }
   
+  isArray(value: any): boolean {
+    return Array.isArray(value);
+  }
+  
 
   // ... existing methods
 
@@ -160,6 +189,8 @@ export class Table {
     return 'text-gray-700';
   }
 }
+
+
 function isLastRows(index: any, number: any) {
   throw new Error('Function not implemented.');
 
