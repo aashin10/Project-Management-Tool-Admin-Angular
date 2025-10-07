@@ -53,6 +53,17 @@ export class Table implements OnChanges {
       this.selectedRows.clear();
       this.emitSelectionChange();
     }
+    
+    // When data changes, clear selections that are out of bounds
+    if (changes['data'] && this.selectedRows.size > 0) {
+      const validIndices = new Set<number>();
+      this.selectedRows.forEach(index => {
+        if (index < this.data.length) {
+          validIndices.add(index);
+        }
+      });
+      this.selectedRows = validIndices;
+    }
   }
 
   
@@ -81,8 +92,7 @@ export class Table implements OnChanges {
     }
   }
   toggleAll() {
-  if (this.selectAllAcrossPages) {
-    // Select/deselect all items across all pages
+    // Always select/deselect all items across all pages
     const allSelected = this.selectedRows.size === this.data.length;
 
     if (allSelected) {
@@ -95,23 +105,8 @@ export class Table implements OnChanges {
         this.selectedRows.add(i);
       }
     }
-  } else {
-    // Original behavior - select/deselect only current page
-    const allSelected = this.selectedRows.size === this.paginatedData.length;
-
-    if (allSelected) {
-      // Unselect all
-      this.selectedRows.clear();
-    } else {
-      // Select all visible rows
-      this.selectedRows.clear();
-      for (let i = 0; i < this.paginatedData.length; i++) {
-        this.selectedRows.add(i);
-      }
-    }
+    this.emitSelectionChange();
   }
-  this.emitSelectionChange();
-}
   previousPage() {
     this.goToPage(this.currentPage - 1);
   }
