@@ -1,7 +1,6 @@
 // navbar.component.ts
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BreadcrumbItem } from '../components/breadcrumb-item/breadcrumb-item';
 import { SearchBar } from '../components/search-bar/search-bar';
 import { ActionButtons, ActionType } from '../components/action-buttons/action-buttons';
 import { Usermenu } from '../components/usermenu/usermenu';
