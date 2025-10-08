@@ -499,9 +499,9 @@ projects: Project[] = [
         user.status = 'Suspended';
       }
     });
-    console.log('Suspended users:', this.selectedUsers);
     // Clear selection after action
     this.selectedUsers = [];
+    console.log('Suspended users:', this.selectedUsers);
   }
 
   onBulkDelete() {
@@ -520,8 +520,8 @@ projects: Project[] = [
           this.users.splice(index, 1);
         }
       });
-      console.log('Deleted users:', this.selectedUsers);
       this.selectedUsers = [];
+      console.log('Deleted users:', this.selectedUsers);
     } else if (this.pendingDeleteAction === 'single' && this.userToDelete) {
       // Delete single user
       const index = this.users.findIndex(u => 
@@ -530,8 +530,8 @@ projects: Project[] = [
       if (index !== -1) {
         this.users.splice(index, 1);
       }
-      console.log('Deleted user:', this.userToDelete);
       this.userToDelete = null;
+      console.log('Deleted user:', this.userToDelete);
     }
     this.closeDeleteConfirmModal();
   }
