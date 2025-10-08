@@ -191,7 +191,7 @@ export class Userslist {
 
   onSearchChange(query: string) {
     this.searchQuery = query;
-    this.currentPage = 1; // Reset to first page when search changes
+    // Table component now handles pagination
   }
 
   exportToCSV() {
@@ -238,12 +238,12 @@ export class Userslist {
   selectType(value: string) {
     this.filterType = value;
     this.showTypeDropdown = false;
-    this.currentPage = 1; // Reset to first page when filter changes
+    // Table component now handles pagination
   }
   selectStatus(value: string) {
     this.filterStatus = value;
     this.showStatusDropdown = false;
-    this.currentPage = 1; // Reset to first page when filter changes
+    // Table component now handles pagination
   }
   getTypeLabel(): string {
     if (!this.filterType) return 'All Types';
@@ -435,12 +435,12 @@ projects: Project[] = [
     });
   }
 
-  // Pagination state
-  currentPage = 1;
-  pageSize = 10;
+  // Pagination state - now handled by table component
+  // currentPage = 1;
+  // pageSize = 10;
   
-  get paginatedUsers() {
-    // Transform data for table component - let table component handle its own pagination
+  // Data transformation for table
+  getTableData() {
     return this.filteredUsers.map(user => ({
       user: {
         name: user.user,
@@ -456,7 +456,8 @@ projects: Project[] = [
   }
   
   totalPages() {
-    return Math.ceil(this.filteredUsers.length / this.pageSize);
+    // Table component now handles pagination
+    return 1;
   }
 
   getInitials(name: string): string {
@@ -498,9 +499,9 @@ projects: Project[] = [
         user.status = 'Suspended';
       }
     });
-    console.log('Suspended users:', this.selectedUsers);
     // Clear selection after action
     this.selectedUsers = [];
+    console.log('Suspended users:', this.selectedUsers);
   }
 
   onBulkDelete() {
@@ -519,8 +520,8 @@ projects: Project[] = [
           this.users.splice(index, 1);
         }
       });
-      console.log('Deleted users:', this.selectedUsers);
       this.selectedUsers = [];
+      console.log('Deleted users:', this.selectedUsers);
     } else if (this.pendingDeleteAction === 'single' && this.userToDelete) {
       // Delete single user
       const index = this.users.findIndex(u => 
@@ -529,8 +530,8 @@ projects: Project[] = [
       if (index !== -1) {
         this.users.splice(index, 1);
       }
-      console.log('Deleted user:', this.userToDelete);
       this.userToDelete = null;
+      console.log('Deleted user:', this.userToDelete);
     }
     this.closeDeleteConfirmModal();
   }

@@ -49,7 +49,7 @@ describe('SelectProjectsSection', () => {
     component.loadingProjects = true;
     fixture.detectChanges();
 
-    const loadingEl = fixture.debugElement.query(By.css('div app-loading-indicator'));
+    const loadingEl = fixture.debugElement.query(By.css('app-loading-indicator'));
     console.log(fixture.debugElement);
     expect(loadingEl).toBeTruthy();
   });

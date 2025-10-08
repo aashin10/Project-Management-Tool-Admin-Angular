@@ -33,7 +33,6 @@ export class ImportUsersSection {
           this.parsedData = result.data;
           console.log('Parsed CSV:', this.parsedData);
           this.uploadSuccess = true;
-          alert(this.uploadSuccess);
         },
       });
       this.uploadSuccess = true;

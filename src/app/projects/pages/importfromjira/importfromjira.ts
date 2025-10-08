@@ -64,7 +64,7 @@ export class Importfromjira implements OnInit {
   importSteps = [
     {
       step: 1,
-      title: 'Import Users',
+      title: 'Import Users (Optional)',
       description: 'Upload a CSV file to import users, or skip this step to import users later',
       icon: Settings,
     },

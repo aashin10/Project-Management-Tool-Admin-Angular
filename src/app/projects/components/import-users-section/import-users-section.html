@@ -67,7 +67,8 @@
     <app-custom-button
       label="Continue"
       shortLabel="Continue"
-      bgClass="bg-[#0052cc] border border-gray-300 hover:bg-gray-50 w-52"
+      bgClass="bg-[#0052cc] border border-gray-300 w-52"
+      [hoverClass]="'hover:bg-[#0052cce6]'"
       (action)="onContinue()"
       [textColor]="'text-white'"
       [disabled]="!uploadSuccess"

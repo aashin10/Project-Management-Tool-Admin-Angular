@@ -19,7 +19,17 @@
           {{ step.step }}
         </div>
         <span class="text-xs mt-2" [class.text-blue-600]="step.step === currentStep">
-          {{ step.title }}
+          <button
+            [ngClass]="{
+              'hover:text-blue-700 hover:cursor-pointer':
+                step.step !== currentStep && step.step < currentStep
+            }"
+            (click)="
+              step.step !== currentStep && step.step < currentStep ? toStep(step.step) : null
+            "
+          >
+            {{ step.title }}
+          </button>
         </span>
       </div>
       <div *ngIf="i < importSteps.length - 1" class="flex-grow h-0.5 bg-gray-200 mx-2"></div>
