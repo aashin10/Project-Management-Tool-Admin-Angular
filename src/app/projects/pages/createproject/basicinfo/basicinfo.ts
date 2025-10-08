@@ -76,9 +76,16 @@ export class BasicInformationComponent {
   }
 
   generateProjectKey() {
-    if (this.projectName) {
+    if (this.projectName && this.projectName.trim()) {
       const cleanName = this.projectName.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-      this.projectKey = `${cleanName.substring(0, 3)}-001`;
+      // Handle case where cleanName might be empty after removing all special chars
+      if (cleanName.length === 0) {
+        this.projectKey = 'PRJ-001';
+      } else {
+        // Ensure we always have at least 3 characters for the key
+        const keyPrefix = cleanName.length >= 3 ? cleanName.substring(0, 3) : cleanName.padEnd(3, 'X');
+        this.projectKey = `${keyPrefix}-001`;
+      }
     } else {
       this.projectKey = 'PRJ-001';
     }

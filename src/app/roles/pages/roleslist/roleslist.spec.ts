@@ -293,4 +293,17 @@ describe('Roleslist Component Suite', () => {
       expect(modal).toBeTruthy();
     });
   });
+    // Clone From functionality
+    it('should populate permissions when cloning from another role', () => {
+      component.newRole.cloneFrom = 'Manager';
+      component.onCloneFromChange();
+      const managerRole = component.roles.find(r => r.roleInfo.name === 'Manager');
+      expect(component.newRole.permissions).toEqual(managerRole?.permissions);
+    });
+
+    // Search edge case
+    it('should return empty filteredRoles when search has no matches', () => {
+      component.onSearch('NonExistentRole');
+      expect(component.filteredRoles.length).toBe(0);
+    });
 });

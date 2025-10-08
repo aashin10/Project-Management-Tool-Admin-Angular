@@ -9,7 +9,7 @@
             <input
               #selectAllCheckbox
               type="checkbox"
-              class="rounded border-gray-300"
+              class="rounded border-gray-300 accent-blue-600 cursor-pointer"
               (change)="toggleAll()"
             />
           </th>
@@ -39,7 +39,7 @@
           <td *ngIf="showCheckbox" class="w-12 px-6 py-4" (click)="$event.stopPropagation()">
             <input
               type="checkbox"
-              class="rounded border-gray-300"
+              class="rounded border-gray-300 accent-blue-600 cursor-pointer"
               [checked]="isRowSelected(i)"
               (change)="toggleRow(i)"
             />

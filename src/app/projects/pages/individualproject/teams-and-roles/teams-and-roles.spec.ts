@@ -424,16 +424,6 @@ describe('TeamsAndRoles Component', () => {
       expect(filtered[0].name).toBe('Asha Varma');
     });
 
-    it('should handle search with whitespace (not trimmed in main search)', () => {
-      // Note: The filteredMembers getter doesn't trim, so whitespace affects search
-      component.searchQuery = 'Asha'; // Without extra spaces
-      
-      const filtered = component.filteredMembers;
-      
-      expect(filtered.length).toBe(1);
-      expect(filtered[0].name).toBe('Asha Varma');
-    });
-
     it('should handle empty employee list in add modal', () => {
       component.employees = [];
       component.addMemberSearchQuery = 'any query';

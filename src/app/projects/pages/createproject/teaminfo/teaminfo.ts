@@ -110,6 +110,9 @@ export class TeamOrganizationComponent {
   }
 
   selectManager(u: {user:string,email:string}) {
+    if (!u || typeof u.user !== 'string') {
+      return;
+    }
     this.manager = u.user;
     this.managerChange.emit(this.manager);
     this.showManagerSuggestions = false;
