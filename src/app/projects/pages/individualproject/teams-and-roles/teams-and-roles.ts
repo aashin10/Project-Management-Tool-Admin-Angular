@@ -33,6 +33,7 @@ export class TeamsAndRoles {
   selectedStatus: string = 'all';
   selectedRows: any[] = [];
   clearTableSelections: boolean = false;
+  selectedMemberIds: string[] = [];
 
   // Delete modal properties
   showDeleteModal = false;
@@ -44,6 +45,8 @@ export class TeamsAndRoles {
   selectedEmployee: Employee | null = null;
   addMemberSelectedRoles: string[] = [];
   showValidationModal: boolean = false;
+  isEditMode: boolean = false;
+  memberToEdit: TeamMember | null = null;
   
   roleOptions = [
     { value: 'all', label: 'All Roles' },
@@ -174,7 +177,7 @@ export class TeamsAndRoles {
       header: 'Member Info',
       field: 'member',
       type: 'user',
-      sortable: true,
+      sortable: false,
       width: '25%'
     },
     {
@@ -219,7 +222,8 @@ export class TeamsAndRoles {
       sortable: false,
       width: '10%',
       actions: [
-        { label: '', icon: '/images/delete-user.svg', action: 'remove', class: 'danger' }
+        { label: 'Edit', icon: '/images/edit.svg', action: 'edit', class: 'primary' },
+        { label: 'Delete', icon: '/images/delete-user.svg', action: 'remove', class: 'danger' }
       ]
     }
   ];
@@ -229,7 +233,7 @@ export class TeamsAndRoles {
 
     // Filter by search query (name and email only)
     if (this.searchQuery.trim()) {
-      const query = this.searchQuery.toLowerCase();
+      const query = this.searchQuery.trim().toLowerCase();
       filtered = filtered.filter(member =>
         member.name.toLowerCase().includes(query) ||
         member.email.toLowerCase().includes(query)
@@ -258,20 +262,27 @@ export class TeamsAndRoles {
       roles: member.roles,
       email: member.email,
       status: member.status,
-      actions: member.id
+      actions: member.id,
+      selected: this.selectedMemberIds.includes(member.id)
     }));
   }
 
+  get selectedItems(): any[] {
+    return this.tableData.filter(item => item.selected);
+  }
+
   get selectedCount(): number {
-    return this.selectedRows.length;
+    return this.selectedMemberIds.length;
   }
 
   onSelectionChange(selectedRows: any[]): void {
     this.selectedRows = selectedRows;
+    // Store selected member IDs for persistence across filter changes
+    this.selectedMemberIds = selectedRows.map(row => row.actions);
   }
 
   onSearchChange(): void {
-    // Search happens automatically through getter
+    this.searchQuery = this.searchQuery.trim();
   }
 
   onRoleFilterChange(): void {
@@ -286,7 +297,9 @@ export class TeamsAndRoles {
     const member = this.teamMembers.find(m => m.id === event.row.actions);
 
     if (event.action) {
-      if (event.action === 'remove') {
+      if (event.action === 'edit') {
+        this.editMember(member || null);
+      } else if (event.action === 'remove') {
         this.memberToDelete = member || null;
         this.showDeleteModal = true;
       }
@@ -295,7 +308,7 @@ export class TeamsAndRoles {
 
 
   removeSelected(): void {
-    if (this.selectedRows.length === 0) return;
+    if (this.selectedMemberIds.length === 0) return;
     this.showDeleteModal = true;
   }
 
@@ -313,9 +326,8 @@ export class TeamsAndRoles {
       this.memberToDelete = null;
     } else {
       // Remove selected members (bulk removal)
-      const selectedIds = this.selectedRows.map(row => row.actions);
-      this.teamMembers = this.teamMembers.filter(member => !selectedIds.includes(member.id));
-      this.selectedRows = [];
+      this.teamMembers = this.teamMembers.filter(member => !this.selectedMemberIds.includes(member.id));
+      this.selectedMemberIds = [];
       console.log('Selected members removed');
     }
     this.showDeleteModal = false;
@@ -356,12 +368,20 @@ export class TeamsAndRoles {
 
   addMember(): void {
     if (this.selectedEmployee && this.addMemberSelectedRoles.length > 0) {
-      const newMember = {
-        ...this.selectedEmployee,
-        roles: this.addMemberSelectedRoles,
-        status: 'Active'
-      };
-      this.handleMemberAdded(newMember);
+      if (this.isEditMode && this.memberToEdit) {
+        // Update existing member
+        this.memberToEdit.roles = [...this.addMemberSelectedRoles];
+        console.log('Updated member:', this.memberToEdit.name);
+      } else {
+        // Add new member
+        const newMember = {
+          ...this.selectedEmployee,
+          roles: this.addMemberSelectedRoles,
+          status: 'Active'
+        };
+        this.handleMemberAdded(newMember);
+      }
+      this.closeAddModal();
     } else {
       this.showValidationModal = true;
     }
@@ -373,10 +393,27 @@ export class TeamsAndRoles {
     this.selectedEmployee = null;
     this.addMemberSelectedRoles = [];
     this.showValidationModal = false;
+    this.isEditMode = false;
+    this.memberToEdit = null;
   }
 
   addMemberModal(): void {
     this.showAddModal = true;
+  }
+
+  editMember(member: TeamMember | null): void {
+    if (member) {
+      this.isEditMode = true;
+      this.memberToEdit = member;
+      this.selectedEmployee = {
+        id: member.id,
+        name: member.name,
+        email: member.email,
+        status: member.status || 'active'
+      };
+      this.addMemberSelectedRoles = [...member.roles];
+      this.showAddModal = true;
+    }
   }
 
   handleMemberAdded(newMember: any): void {
