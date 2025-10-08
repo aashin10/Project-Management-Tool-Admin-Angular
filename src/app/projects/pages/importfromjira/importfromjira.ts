@@ -59,7 +59,7 @@ export class Importfromjira implements OnInit {
     }
   }
 
-  currentStep = 2;
+  currentStep = 1;
 
   importSteps = [
     {

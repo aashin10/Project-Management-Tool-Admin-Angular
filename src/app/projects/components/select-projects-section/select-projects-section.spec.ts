@@ -8,7 +8,7 @@ import { LoadingIndicator } from '../../../shared/loading-indicator/loading-indi
 import { CommonModule } from '@angular/common';
 import { By } from '@angular/platform-browser';
 
-fdescribe('SelectProjectsSection', () => {
+describe('SelectProjectsSection', () => {
   let component: SelectProjectsSection;
   let fixture: ComponentFixture<SelectProjectsSection>;
   let mockJiraService: jasmine.SpyObj<Jiraservice>;

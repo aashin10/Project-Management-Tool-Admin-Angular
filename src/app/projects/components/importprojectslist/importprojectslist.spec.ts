@@ -10,11 +10,11 @@ describe('Importprojectslist', () => {
   let fixture: ComponentFixture<Importprojectslist>;
 
   const mockProjects = [
-    { name: 'Project 1', key: 'P1', id: '1' },
-    { name: 'Project 2', key: 'P2', id: '2' },
-    { name: 'Project 3', key: 'P3', id: '3' },
-    { name: 'Project 4', key: 'P4', id: '4' },
-    { name: 'Project 5', key: 'P5', id: '5' },
+    { name: 'Project 1', key: 'P1', id: '1', selected: false },
+    { name: 'Project 2', key: 'P2', id: '2', selected: false },
+    { name: 'Project 3', key: 'P3', id: '3', selected: false },
+    { name: 'Project 4', key: 'P4', id: '4', selected: false },
+    { name: 'Project 5', key: 'P5', id: '5', selected: false },
   ];
 
   beforeEach(async () => {
