@@ -18,6 +18,13 @@ export class SelectProjectsSection implements OnInit {
   projects: any[] = [];
   allProjects: any[] = [];
   loadingProjects: boolean = true;
+  cloudIds: any[] | undefined = [];
+
+  dropdownOpen: boolean = false;
+
+  toggleDropdown(): void {
+    this.dropdownOpen = !this.dropdownOpen;
+  }
 
   onSearch(term: string) {
     if (term && term.trim() !== '') {
@@ -36,23 +43,41 @@ export class SelectProjectsSection implements OnInit {
     const token = sessionStorage.getItem('jira_access_token');
     if (token) {
       const ids = await this.jiraService.getAccessibleResources(token);
+      this.cloudIds = ids;
       console.log('Cloud IDs:', ids);
       if (ids && ids.length > 0) {
-        const cloudId = ids[1].id;
-        const importedProjects: any = await this.jiraService.fetchJiraProjects(token, cloudId);
-        console.log('Jira Projects:', importedProjects);
-        importedProjects.forEach((project: any) => {
-          this.allProjects.push({
-            name: project.name,
-            key: project.key,
-            id: project.id,
-            selected: false,
-          });
-        });
+        await this.fetchProjectsByCloudId(ids[0].id); // Load default cloudId
       }
     }
     this.projects = [...this.allProjects];
     this.loadingProjects = false;
+    this.cdr.detectChanges();
+  }
+
+  async fetchProjectsByCloudId(cloudId: string): Promise<void> {
+    const token = sessionStorage.getItem('jira_access_token');
+    if (token) {
+      this.loadingProjects = true;
+      this.allProjects = [];
+      this.projects = [];
+
+      const importedProjects: any = await this.jiraService.fetchJiraProjects(token, cloudId);
+      this.allProjects = importedProjects.map((project: any) => ({
+        name: project.name,
+        key: project.key,
+        id: project.id,
+        selected: false,
+      }));
+
+      this.projects = [...this.allProjects];
+      this.loadingProjects = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  onCloudIdChange(event: Event): void {
+    const newCloudId = (event.target as HTMLSelectElement).value;
+    this.fetchProjectsByCloudId(newCloudId);
     this.cdr.detectChanges();
   }
 
