@@ -1,6 +1,10 @@
 <ng-container>
   <div class="flex w-full justify-between">
-    <app-search-bar class="w-full" [placeholder]="'Select Projects..'"></app-search-bar>
+    <app-search-bar
+      class="w-full"
+      [placeholder]="'Select Projects..'"
+      (search)="onSearch($event)"
+    ></app-search-bar>
     <app-custom-button
       label="Select All"
       shortLabel="Select All"
@@ -22,7 +26,8 @@
   <app-custom-button
     label="Import Selected Projects"
     shortLabel="Import"
-    bgClass="bg-[#0052cc] border border-gray-300 hover:bg-gray-50 w-full"
+    bgClass="bg-[#0052cc] border border-gray-300 w-full"
+    [hoverClass]="'hover:bg-[#0052cce6]'"
     [textColor]="'text-white'"
     class="w-full"
     [icon]="'/images/import.svg'"
