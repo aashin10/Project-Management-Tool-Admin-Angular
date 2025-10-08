@@ -43,7 +43,7 @@ describe('AdvancedFilters', () => {
 
   it('should accept input properties correctly', () => {
     component.showFilters = true;
-    component.projects = [{ id: '1', name: 'Test', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'John Doe', managerInitials: 'JD', teamSize: 5 }];
+    component.projects = [{ id: '1', name: 'Test', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'John Doe', teamSize: 5 }];
     component.statusOptions = ['Ongoing', 'Completed'];
     component.priorityOptions = ['High', 'Medium'];
 
@@ -74,9 +74,9 @@ describe('AdvancedFilters', () => {
 
   it('should compute unique managers from projects data', () => {
     component.projects = [
-      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'John Doe', managerInitials: 'JD', teamSize: 5 },
-      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'John Doe', managerInitials: 'JD', teamSize: 3 },
-      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Jane Smith', managerInitials: 'JS', teamSize: 8 }
+      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'John Doe', teamSize: 5 },
+      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'John Doe', teamSize: 3 },
+      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Jane Smith', teamSize: 8 }
     ];
 
     expect(component.uniqueManagers).toEqual(['Jane Smith', 'John Doe']);
@@ -84,9 +84,9 @@ describe('AdvancedFilters', () => {
 
   it('should filter managers based on search query', () => {
     component.projects = [
-      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'John Doe', managerInitials: 'JD', teamSize: 5 },
-      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'Jane Smith', managerInitials: 'JS', teamSize: 3 },
-      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Bob Wilson', managerInitials: 'BW', teamSize: 8 }
+      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'John Doe', teamSize: 5 },
+      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'Jane Smith', teamSize: 3 },
+      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Bob Wilson', teamSize: 8 }
     ];
 
     component.managerSearchQuery = 'John';
@@ -101,11 +101,11 @@ describe('AdvancedFilters', () => {
 
   it('should limit filtered managers to first 4 when showAllManagers is false', () => {
     component.projects = [
-      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'Alice', managerInitials: 'AL', teamSize: 5 },
-      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'Bob', managerInitials: 'BO', teamSize: 3 },
-      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Charlie', managerInitials: 'CH', teamSize: 8 },
-      { id: '4', name: 'Test4', projectCode: 'TST-004', status: 'On Hold', priority: 'High', projectManager: 'Diana', managerInitials: 'DI', teamSize: 6 },
-      { id: '5', name: 'Test5', projectCode: 'TST-005', status: 'Archived', priority: 'Medium', projectManager: 'Eve', managerInitials: 'EV', teamSize: 4 }
+      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'Alice', teamSize: 5 },
+      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'Bob', teamSize: 3 },
+      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Charlie', teamSize: 8 },
+      { id: '4', name: 'Test4', projectCode: 'TST-004', status: 'On Hold', priority: 'High', projectManager: 'Diana', teamSize: 6 },
+      { id: '5', name: 'Test5', projectCode: 'TST-005', status: 'Archived', priority: 'Medium', projectManager: 'Eve', teamSize: 4 }
     ];
 
     expect(component.showAllManagers).toBe(false);
@@ -114,9 +114,9 @@ describe('AdvancedFilters', () => {
 
   it('should show all managers when showAllManagers is true', () => {
     component.projects = [
-      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'Alice', managerInitials: 'AL', teamSize: 5 },
-      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'Bob', managerInitials: 'BO', teamSize: 3 },
-      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Charlie', managerInitials: 'CH', teamSize: 8 }
+      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'Alice', teamSize: 5 },
+      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'Bob', teamSize: 3 },
+      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Charlie', teamSize: 8 }
     ];
 
     component.toggleShowAllManagers();
@@ -126,9 +126,9 @@ describe('AdvancedFilters', () => {
 
   it('should return correct displayed manager count', () => {
     component.projects = [
-      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'Alice', managerInitials: 'AL', teamSize: 5 },
-      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'Bob', managerInitials: 'BO', teamSize: 3 },
-      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Charlie', managerInitials: 'CH', teamSize: 8 }
+      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'Alice', teamSize: 5 },
+      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'Bob', teamSize: 3 },
+      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Charlie', teamSize: 8 }
     ];
 
     expect(component.displayedManagerCount).toBe(3);
@@ -136,9 +136,9 @@ describe('AdvancedFilters', () => {
 
   it('should return correct total manager count', () => {
     component.projects = [
-      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'Alice', managerInitials: 'AL', teamSize: 5 },
-      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'Bob', managerInitials: 'BO', teamSize: 3 },
-      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Charlie', managerInitials: 'CH', teamSize: 8 }
+      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'Alice', teamSize: 5 },
+      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'Bob', teamSize: 3 },
+      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Charlie', teamSize: 8 }
     ];
 
     expect(component.totalManagerCount).toBe(3);
@@ -299,7 +299,7 @@ describe('AdvancedFilters', () => {
 
   it('should handle case insensitive manager search', () => {
     component.projects = [
-      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'John Doe', managerInitials: 'JD', teamSize: 5 }
+      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'John Doe', teamSize: 5 }
     ];
 
     component.managerSearchQuery = 'JOHN';
@@ -311,9 +311,9 @@ describe('AdvancedFilters', () => {
 
   it('should handle null and undefined project managers', () => {
     component.projects = [
-      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: null, managerInitials: 'JD', teamSize: 5 },
-      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: undefined, managerInitials: 'JS', teamSize: 3 },
-      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: '', managerInitials: 'BW', teamSize: 4 }
+      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: null, teamSize: 5 },
+      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: undefined, teamSize: 3 },
+      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: '', teamSize: 4 }
     ] as any;
 
     const uniqueManagers = component.uniqueManagers as any[];
@@ -356,9 +356,9 @@ describe('AdvancedFilters', () => {
 
   it('should handle multiple manager filtering with search', () => {
     component.projects = [
-      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'John Smith', managerInitials: 'JS', teamSize: 5 },
-      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'John Doe', managerInitials: 'JD', teamSize: 3 },
-      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Jane Smith', managerInitials: 'JS', teamSize: 8 }
+      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'John Smith', teamSize: 5 },
+      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'John Doe', teamSize: 3 },
+      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Jane Smith', teamSize: 8 }
     ];
 
     component.managerSearchQuery = 'John';

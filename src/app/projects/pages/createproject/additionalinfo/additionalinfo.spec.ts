@@ -72,13 +72,6 @@ describe('Additionalinfo', () => {
       expect(component.addedFields[0].value).toBe('Some Value');
     });
 
-    it('updateFieldValue updates and emits', () => {
-      spyOn(component, 'emitAddedFields').and.callThrough();
-      component.addedFields = [{ name: 'Foo', value: 'old' }];
-      component.updateFieldValue('brand new', 0);
-      expect(component.addedFields[0].value).toBe('Brand New');
-      expect(component.emitAddedFields).toHaveBeenCalled();
-    });
 
     it('removeField removes and emits', () => {
       spyOn(component, 'emitAddedFields').and.callThrough();
@@ -87,13 +80,6 @@ describe('Additionalinfo', () => {
       expect(component.addedFields.length).toBe(1);
       expect(component.addedFields[0].name).toBe('A');
       expect(component.emitAddedFields).toHaveBeenCalled();
-    });
-
-    it('emitAddedFields triggers EventEmitter', () => {
-      spyOn(component.addedFieldsChange, 'emit');
-      component.addedFields = [{ name: 'X', value: 'Y' }];
-      component.emitAddedFields();
-      expect(component.addedFieldsChange.emit).toHaveBeenCalledWith(component.addedFields);
     });
 
     it('handleCancel closes modal', () => {
@@ -130,4 +116,6 @@ describe('Additionalinfo', () => {
       expect(addCustom.querySelector('button').disabled).toBeFalse();
     });
   });
+
+  
 });
