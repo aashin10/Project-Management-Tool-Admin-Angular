@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Importprocesssection } from './importprocesssection';
+import { CommonModule } from '@angular/common';
 
 describe('Importprocesssection', () => {
   let component: Importprocesssection;
@@ -7,7 +8,7 @@ describe('Importprocesssection', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Importprocesssection],
+      imports: [Importprocesssection, CommonModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(Importprocesssection);
