@@ -1,24 +1,13 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { OverviewDashboardCard } from './overview-dashboard-card/overview-dashboard-card';
+import { OverviewDashboardCard, SprintData, WorkItemsData } from './overview-dashboard-card/overview-dashboard-card';
 import { WorkItemDistributionComponent, WorkItemDistributionItem } from './work-item-distribution/work-item-distribution';
 import { IndividualSprintData, SprintAnalyticsComponent } from './sprint-analytics/sprint-analytics';
 import { WorkTypeData, WorkTypesComponent } from './types-of-work/types-of-work';
 import { TeamMember, TeamMembersComponent } from './team-members/team-members';
 
 
-interface SprintData {
-  totalIterations: number;
-  active: number;
-  completed: number;
-}
 
-interface WorkItemsData {
-  total: number;
-  toDo: number;
-  inProgress: number;
-  done: number;
-}
 
 @Component({
   selector: 'app-overview',
@@ -29,7 +18,7 @@ interface WorkItemsData {
     WorkItemDistributionComponent, 
     SprintAnalyticsComponent,
     WorkTypesComponent,
-    TeamMembersComponent // Add this import
+    TeamMembersComponent 
   ],
   templateUrl: './overview.html',
   styleUrl: './overview.css'
@@ -174,5 +163,5 @@ export class OverviewComponent implements OnInit {
     console.log('Export report requested');
   }
 
-  // Remove getWorkTypeIcon method from here since it's now in WorkTypesComponent
+ 
 }
