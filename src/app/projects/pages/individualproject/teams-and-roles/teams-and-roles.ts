@@ -8,7 +8,6 @@ import { Modal } from '../../../../shared/modal/modal';
 interface TeamMember {
   id: string;
   name: string;
-  department: string;
   status?: string;
   roles: string[];
   email: string;
@@ -17,7 +16,6 @@ interface TeamMember {
 interface Employee {
   id: string;
   name: string;
-  department: string;
   email: string;
   status: string;
 }
@@ -67,11 +65,11 @@ export class TeamsAndRoles {
 
   // Employee list for add member modal
   employees: Employee[] = [
-    { id: '101', name: 'Amit Sharma', department: 'Engineering', email: 'amit.sharma@company.com', status: 'active' },
-    { id: '102', name: 'Riya Das', department: 'Design', email: 'riya.das@company.com', status: 'active' },
-    { id: '103', name: 'Kevin Thomas', department: 'Engineering', email: 'kevin.thomas@company.com', status: 'inactive' },
-    { id: '104', name: 'Sofia Mehta', department: 'Business', email: 'sofia.mehta@company.com', status: 'active' },
-    { id: '105', name: 'John Paul', department: 'Quality Assurance', email: 'john.paul@company.com', status: 'active' },
+    { id: '101', name: 'Amit Sharma', email: 'amit.sharma@company.com', status: 'active' },
+    { id: '102', name: 'Riya Das', email: 'riya.das@company.com', status: 'active' },
+    { id: '103', name: 'Kevin Thomas', email: 'kevin.thomas@company.com', status: 'inactive' },
+    { id: '104', name: 'Sofia Mehta', email: 'sofia.mehta@company.com', status: 'active' },
+    { id: '105', name: 'John Paul', email: 'john.paul@company.com', status: 'active' },
   ];
 
   addMemberRoleOptions = [
@@ -88,7 +86,6 @@ export class TeamsAndRoles {
     {
       id: '1',
       name: 'Asha Varma',
-      department: 'Engineering',
       roles: ['Project Manager'],
       email: 'asha.varma@company.com',
       status: 'Active'
@@ -96,7 +93,6 @@ export class TeamsAndRoles {
     {
       id: '2',
       name: 'Pranav Iyer',
-      department: 'Engineering',
       roles: ['Tech Lead'],
       email: 'pranav.iyer@company.com',
       status: 'Active'
@@ -104,7 +100,6 @@ export class TeamsAndRoles {
     {
       id: '3',
       name: 'Sarah Chen',
-      department: 'Design',
       roles: ['UI/UX Designer'],
       email: 'sarah.chen@company.com',
       status: 'Inactive'
@@ -112,7 +107,6 @@ export class TeamsAndRoles {
     {
       id: '4',
       name: 'Mike Johnson',
-      department: 'Engineering',
       roles: ['Senior Developer'],
       email: 'mike.johnson@company.com',
       status: 'Active'
@@ -120,7 +114,6 @@ export class TeamsAndRoles {
     {
       id: '5',
       name: 'Lisa Wong',
-      department: 'Quality Assurance',
       roles: ['QA Engineer'],
       email: 'lisa.wong@company.com',
       status: 'Active'
@@ -128,7 +121,6 @@ export class TeamsAndRoles {
     {
       id: '6',
       name: 'David Kumar',
-      department: 'Engineering',
       roles: ['DevOps Engineer'],
       email: 'david.kumar@company.com',
       status: 'Active'
@@ -136,7 +128,6 @@ export class TeamsAndRoles {
     {
       id: '7',
       name: 'Emma Thompson',
-      department: 'Business',
       roles: ['Business Analyst'],
       email: 'emma.thompson@company.com',
       status: 'Inactive'
@@ -144,7 +135,6 @@ export class TeamsAndRoles {
     {
       id: '8',
       name: 'James Wilson',
-      department: 'Engineering',
       roles: ['Senior Developer'],
       email: 'james.wilson@company.com',
       status: 'Suspended'
@@ -152,7 +142,6 @@ export class TeamsAndRoles {
     {
       id: '9',
       name: 'Olivia Martinez',
-      department: 'Design',
       roles: ['UI/UX Designer'],
       email: 'olivia.martinez@company.com',
       status: 'Inactive'
@@ -160,7 +149,6 @@ export class TeamsAndRoles {
     {
       id: '10',
       name: 'Ethan Brown',
-      department: 'Quality Assurance',
       roles: ['QA Engineer','Senior Developer','Project Manager'],
       email: 'ethan.brown@company.com',
       status: 'Active'
@@ -168,7 +156,6 @@ export class TeamsAndRoles {
     {
       id: '11',
       name: 'Sophia Davis',
-      department: 'Business',
       roles: ['Business Analyst'],
       email: 'sophia.davis@company.com',
       status: 'Inactive'
@@ -176,7 +163,6 @@ export class TeamsAndRoles {
     {
       id: '12',
       name: 'Liam Smith',
-      department: 'Engineering',
       roles: ['Senior Developer'],
       email: 'liam.smith@company.com',
       status: 'Active'
@@ -410,7 +396,6 @@ export class TeamsAndRoles {
     this.teamMembers.push({
       id: newId,
       name: newMember.name,
-      department: newMember.department,
       roles: newMember.roles,
       email: newMember.email,
       status: newMember.status || 'Active'

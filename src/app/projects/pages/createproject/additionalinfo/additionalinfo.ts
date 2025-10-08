@@ -30,9 +30,13 @@ export class Additionalinfo {
   }
 
   addFromModal() {
-    // Require both name and value to be present
-    if (!this.newFieldName || !this.newFieldValue) return;
-    const info = { name: this.toTitleCase(this.newFieldName), value: this.toTitleCase(this.newFieldValue) };
+    // Require both name and value to be present and not just whitespace
+    const trimmedName = this.newFieldName?.trim();
+    const trimmedValue = this.newFieldValue?.trim();
+    
+    if (!trimmedName || !trimmedValue) return;
+    
+    const info = { name: this.toTitleCase(trimmedName), value: this.toTitleCase(trimmedValue) };
     this.addedFields.push(info);
     this.newFieldName = '';
     this.newFieldValue = '';
@@ -41,8 +45,10 @@ export class Additionalinfo {
   }
 
   updateFieldValue(value: string, idx: number) {
-    this.addedFields[idx].value = this.toTitleCase(value || '');
-    this.emitAddedFields();
+    if (idx >= 0 && idx < this.addedFields.length) {
+      this.addedFields[idx].value = this.toTitleCase(value || '');
+      this.emitAddedFields();
+    }
   }
 
   toTitleCase(str: string) {
@@ -55,8 +61,10 @@ export class Additionalinfo {
   }
 
   removeField(idx: number) {
-    this.addedFields.splice(idx, 1);
-    this.emitAddedFields();
+    if (idx >= 0 && idx < this.addedFields.length) {
+      this.addedFields.splice(idx, 1);
+      this.emitAddedFields();
+    }
   }
 
   emitAddedFields() {
