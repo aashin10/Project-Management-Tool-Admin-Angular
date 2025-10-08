@@ -97,15 +97,15 @@
       </div>
 
       <div class="overflow-x-auto" *ngIf="paginatedProjects.length > 0">
-        <table class="w-full min-w-[900px] table-fixed">
-          <thead class="bg-gray-50 border-b border-gray-200">
+        <table class="w-full min-w-[900px] table-fixed align-top">
+          <thead class="bg-gray-50 border-b border-gray-200 align-middle">
             <tr>
-              <th class="w-1 lg:px-4 py-4">
+              <th class="w-12 px-2 lg:px-4 py-4 text-center align-middle">
                 <input
                   #selectAllCheckbox
                   type="checkbox"
                   (change)="toggleSelectAll()"
-                  class="w-4 h-4 rounded border-gray-300 cursor-pointer"
+                  class="w-3 h-3 rounded border-gray-300 cursor-pointer"
                 />
               </th>
               <th class="w-64 px-2 lg:px-4 py-3 text-left text-sm font-semibold text-gray-700">
@@ -288,18 +288,18 @@
               *ngFor="let project of paginatedProjects"
               [class.bg-blue-50]="project.selected"
               (click)="onRowClick(project)"
-              class="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
+              class="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer align-middle"
             >
-              <td class="w-12 px-2 lg:px-4 py-4">
+              <td class="w-12 px-2 lg:px-4 py-4 text-center align-middle">
                 <input
                   type="checkbox"
                   [(ngModel)]="project.selected"
                   (ngModelChange)="onSelectionChange()"
                   (click)="$event.stopPropagation()"
-                  class="w-4 h-4 rounded border-gray-300 cursor-pointer"
+                  class="w-3 h-3 rounded border-gray-300 cursor-pointer"
                 />
               </td>
-              <td class="w-64 px-2 lg:px-4 py-4">
+              <td class="w-64 px-2 lg:px-4 py-4 align-middle">
                 <div class="flex items-center gap-2 lg:gap-3">
                   <div
                     class="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs lg:text-sm font-semibold flex-shrink-0"
@@ -314,7 +314,7 @@
                   </div>
                 </div>
               </td>
-              <td class="w-28 px-2 lg:px-4 py-4">
+              <td class="w-28 px-2 lg:px-4 py-4 align-middle">
                 <span
                   [ngClass]="{
                     'bg-green-100 text-green-800': project.status === 'Ongoing',
@@ -328,7 +328,7 @@
                   {{ project.status }}
                 </span>
               </td>
-              <td class="w-24 px-2 lg:px-4 py-4">
+              <td class="w-24 px-2 lg:px-4 py-4 align-middle">
                 <span
                   [ngClass]="{
                     'bg-red-100 text-red-800':
@@ -341,25 +341,25 @@
                   {{ project.priority }}
                 </span>
               </td>
-              <td class="w-48 px-2 lg:px-4 py-4">
+              <td class="w-48 px-2 lg:px-4 py-4 align-middle">
                 <div class="flex items-center gap-2 overflow-hidden">
                   <span
                     class="inline-flex items-center justify-center w-5 h-5 lg:w-6 lg:h-6 rounded-full bg-gray-200 text-gray-700 text-xs font-semibold flex-shrink-0"
                   >
-                    {{ project.managerInitials }}
+                    {{ getInitials(project.projectManager) }}
                   </span>
                   <span class="text-xs lg:text-sm text-gray-900 truncate">{{
                     project.projectManager
                   }}</span>
                 </div>
               </td>
-              <td class="w-28 px-2 lg:px-4 py-4">
+              <td class="w-28 px-2 lg:px-4 py-4 align-middle">
                 <div class="flex items-center gap-2">
                   <img src="/images/team-size.svg" alt="" class="w-4 h-4 flex-shrink-0" />
                   <span class="text-xs lg:text-sm text-gray-900">{{ project.teamSize }}</span>
                 </div>
               </td>
-              <td class="w-20 px-2 lg:px-4 py-4 relative">
+              <td class="w-20 px-2 lg:px-4 py-4 relative align-middle">
                 <button
                   (click)="toggleActionsMenu(project.id, $event)"
                   class="text-gray-600 hover:text-gray-900 text-xl leading-none p-1 lg:p-2 hover:bg-gray-100 rounded transition-colors cursor-pointer"

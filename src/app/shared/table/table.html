@@ -6,7 +6,12 @@
         <tr>
           <!-- Checkbox column -->
           <th *ngIf="showCheckbox" class="w-12 px-6 py-3">
-            <input type="checkbox" class="rounded border-gray-300" (change)="toggleAll()" />
+            <input
+              #selectAllCheckbox
+              type="checkbox"
+              class="rounded border-gray-300 accent-blue-600 cursor-pointer"
+              (change)="toggleAll()"
+            />
           </th>
 
           <!-- Dynamic columns -->
@@ -26,14 +31,15 @@
       <tbody class="bg-white divide-y divide-gray-200">
         <tr
           *ngFor="let row of paginatedData; let i = index"
-          class="hover:bg-gray-50 transition-colors"
+          class="hover:bg-gray-50 transition-colors cursor-pointer"
           [class.bg-blue-50]="isRowSelected(i)"
+          (click)="showCheckbox ? toggleRow(i) : null"
         >
           <!-- Checkbox -->
-          <td *ngIf="showCheckbox" class="w-12 px-6 py-4">
+          <td *ngIf="showCheckbox" class="w-12 px-6 py-4" (click)="$event.stopPropagation()">
             <input
               type="checkbox"
-              class="rounded border-gray-300"
+              class="rounded border-gray-300 accent-blue-600 cursor-pointer"
               [checked]="isRowSelected(i)"
               (change)="toggleRow(i)"
             />
@@ -126,7 +132,7 @@
             </div>
 
             <!-- Actions type -->
-            <div *ngIf="column.type === 'actions'" class="relative">
+            <div *ngIf="column.type === 'actions'" class="relative" (click)="$event.stopPropagation()">
               <!-- Single action - show directly -->
               <button
                 *ngIf="column.actions && column.actions.length === 1"

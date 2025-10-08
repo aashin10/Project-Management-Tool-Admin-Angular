@@ -13,10 +13,13 @@
     </div>
     
       <ng-container *ngIf="showViewAll">
-        <span class="text-sm font-semibold text-blue-600 cursor-pointer hover:text-blue-700 transition-colors"
-              (click)="onViewAll()">
-          View All →
-        </span>
+          <span
+            *ngIf="showViewAll"
+            class="text-sm font-semibold text-blue-600 cursor-pointer hover:text-blue-700 transition-colors"
+            (click)="onViewAll()"
+            data-testid="view-all">
+            View All →
+          </span>
       </ng-container>
   </div>
 

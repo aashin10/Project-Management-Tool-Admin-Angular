@@ -642,6 +642,24 @@ describe('Userslist', () => {
     });
 
     it('should delete selected users when confirmed', () => {
+      // Setup selected users for bulk delete
+      component.selectedUsers = [
+        { 
+          user: { name: 'Alice Johnson', email: 'alice.johnson@company.com', avatar: 'AJ' },
+          type: 'Internal', 
+          status: 'Active',
+          created: '23-09-2025',
+          lastActivity: '25-09-2025'
+        },
+        { 
+          user: { name: 'Bob Smith', email: 'bob.smith@external.com', avatar: 'BS' },
+          type: 'External', 
+          status: 'Inactive',
+          created: '27-09-2025',
+          lastActivity: '30-09-2025'
+        }
+      ];
+      
       const initialCount = component.users.length;
       component.pendingDeleteAction = 'bulk';
       
@@ -784,6 +802,160 @@ describe('Userslist', () => {
       component.confirmDelete();
       
       expect(component.selectedUsers).toEqual([]);
+    });
+  });
+
+  describe('Select All Across Pages', () => {
+    let tableComponent: Table;
+    let tableFixture: ComponentFixture<Table>;
+
+    beforeEach(() => {
+      tableFixture = TestBed.createComponent(Table);
+      tableComponent = tableFixture.componentInstance;
+      
+      // Set up table with 50 users (5 pages of 10 each)
+      tableComponent.data = component.paginatedUsers;
+      tableComponent.columns = component.tableColumns;
+      tableComponent.showCheckbox = true;
+      tableComponent.itemsPerPage = 10;
+      tableComponent.currentPage = 1;
+      tableFixture.detectChanges();
+    });
+
+    it('should select all 50 users when select all checkbox is clicked', () => {
+      // Initially no users selected
+      expect(tableComponent.selectedRows.size).toBe(0);
+      
+      // Click select all
+      tableComponent.toggleAll();
+      tableFixture.detectChanges();
+      
+      // Should select all 50 users across all pages
+      expect(tableComponent.selectedRows.size).toBe(component.paginatedUsers.length);
+      expect(tableComponent.isAllSelected()).toBeTrue();
+      expect(tableComponent.isSomeSelected()).toBeFalse();
+    });
+
+    it('should maintain selection when changing pages', () => {
+      // Select all users
+      tableComponent.toggleAll();
+      tableFixture.detectChanges();
+      
+      expect(tableComponent.selectedRows.size).toBe(component.paginatedUsers.length);
+      
+      // Navigate to page 2
+      tableComponent.goToPage(2);
+      tableFixture.detectChanges();
+      
+      // All users should still be selected
+      expect(tableComponent.selectedRows.size).toBe(component.paginatedUsers.length);
+      
+      // Check that first row on page 2 is selected (index 0 on paginated view = index 10 absolute)
+      expect(tableComponent.isRowSelected(0)).toBeTrue();
+      expect(tableComponent.isAllSelected()).toBeTrue();
+    });
+
+    it('should show correct selection when changing items per page', () => {
+      // Select all users with 10 per page
+      tableComponent.toggleAll();
+      tableFixture.detectChanges();
+      
+      expect(tableComponent.selectedRows.size).toBe(component.paginatedUsers.length);
+      
+      // Change to 50 items per page
+      tableComponent.itemsPerPage = 50;
+      tableComponent.goToPage(1);
+      tableFixture.detectChanges();
+      
+      // All 50 users should still be selected
+      expect(tableComponent.selectedRows.size).toBe(component.paginatedUsers.length);
+      expect(tableComponent.isAllSelected()).toBeTrue();
+      
+      // Check specific rows are selected
+      for (let i = 0; i < Math.min(50, component.paginatedUsers.length); i++) {
+        expect(tableComponent.isRowSelected(i)).toBeTrue();
+      }
+    });
+
+    it('should show indeterminate state when some but not all users are selected', () => {
+      // Select only first 5 users
+      for (let i = 0; i < 5; i++) {
+        tableComponent.toggleRow(i);
+      }
+      tableFixture.detectChanges();
+      
+      expect(tableComponent.selectedRows.size).toBe(5);
+      expect(tableComponent.isAllSelected()).toBeFalse();
+      expect(tableComponent.isSomeSelected()).toBeTrue();
+    });
+
+    it('should deselect all users when clicking select all checkbox when all are selected', () => {
+      // Select all users
+      tableComponent.toggleAll();
+      tableFixture.detectChanges();
+      
+      expect(tableComponent.selectedRows.size).toBe(component.paginatedUsers.length);
+      
+      // Click select all again to deselect
+      tableComponent.toggleAll();
+      tableFixture.detectChanges();
+      
+      expect(tableComponent.selectedRows.size).toBe(0);
+      expect(tableComponent.isAllSelected()).toBeFalse();
+      expect(tableComponent.isSomeSelected()).toBeFalse();
+    });
+
+    it('should emit selection change with all selected users across pages', () => {
+      spyOn(tableComponent.selectionChange, 'emit');
+      
+      // Select all users
+      tableComponent.toggleAll();
+      tableFixture.detectChanges();
+      
+      // Should emit array with all users
+      expect(tableComponent.selectionChange.emit).toHaveBeenCalled();
+      const emittedData = (tableComponent.selectionChange.emit as jasmine.Spy).calls.mostRecent().args[0];
+      expect(emittedData.length).toBe(component.paginatedUsers.length);
+    });
+
+    it('should select individual user on different page correctly', () => {
+      // Navigate to page 3
+      tableComponent.goToPage(3);
+      tableFixture.detectChanges();
+      
+      // Select first user on page 3 (absolute index 20)
+      tableComponent.toggleRow(0);
+      tableFixture.detectChanges();
+      
+      expect(tableComponent.selectedRows.size).toBe(1);
+      expect(tableComponent.selectedRows.has(20)).toBeTrue();
+      
+      // Navigate to page 1
+      tableComponent.goToPage(1);
+      tableFixture.detectChanges();
+      
+      // User on page 3 should still be selected
+      expect(tableComponent.selectedRows.size).toBe(1);
+      expect(tableComponent.selectedRows.has(20)).toBeTrue();
+    });
+
+    it('should handle bulk delete with users selected across multiple pages', () => {
+      // Select all users
+      tableComponent.toggleAll();
+      tableFixture.detectChanges();
+      
+      // Emit selection change to update component
+      tableComponent.emitSelectionChange();
+      
+      // Update component's selected users
+      component.selectedUsers = Array.from(tableComponent.selectedRows).map(index => component.paginatedUsers[index]);
+      
+      expect(component.selectedUsers.length).toBe(component.paginatedUsers.length);
+      
+      // Perform bulk delete
+      component.onBulkDelete();
+      expect(component.showDeleteConfirmModal).toBeTrue();
+      expect(component.pendingDeleteAction).toBe('bulk');
     });
   });
 });
