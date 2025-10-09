@@ -31,7 +31,10 @@
             "outputMode": "server",
             "ssr": {
               "entry": "src/server.ts"
-            }
+            },
+            "allowedCommonJsDependencies": [
+              "papaparse"
+            ]
           },
           "configurations": {
             "production": {
