@@ -391,8 +391,8 @@ describe('SidebarHome', () => {
       // Start with collapsed sidebar
       component.isCollapsed = true;
 
-      // Navigate to projects create page
-      routerEventsSubject.next(new NavigationEnd(1, '/projects/create', '/projects/create'));
+      // Navigate to projects create page using router
+      router.navigate(['/projects/create']);
       tick();
 
       // Click on projects section (should expand sidebar and section)

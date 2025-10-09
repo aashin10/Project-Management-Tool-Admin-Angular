@@ -8,7 +8,6 @@ import { Modal } from '../../../../shared/modal/modal';
 interface TeamMember {
   id: string;
   name: string;
-  department: string;
   status?: string;
   roles: string[];
   email: string;
@@ -17,7 +16,6 @@ interface TeamMember {
 interface Employee {
   id: string;
   name: string;
-  department: string;
   email: string;
   status: string;
 }
@@ -35,6 +33,7 @@ export class TeamsAndRoles {
   selectedStatus: string = 'all';
   selectedRows: any[] = [];
   clearTableSelections: boolean = false;
+  selectedMemberIds: string[] = [];
 
   // Delete modal properties
   showDeleteModal = false;
@@ -46,6 +45,8 @@ export class TeamsAndRoles {
   selectedEmployee: Employee | null = null;
   addMemberSelectedRoles: string[] = [];
   showValidationModal: boolean = false;
+  isEditMode: boolean = false;
+  memberToEdit: TeamMember | null = null;
   
   roleOptions = [
     { value: 'all', label: 'All Roles' },
@@ -67,11 +68,11 @@ export class TeamsAndRoles {
 
   // Employee list for add member modal
   employees: Employee[] = [
-    { id: '101', name: 'Amit Sharma', department: 'Engineering', email: 'amit.sharma@company.com', status: 'active' },
-    { id: '102', name: 'Riya Das', department: 'Design', email: 'riya.das@company.com', status: 'active' },
-    { id: '103', name: 'Kevin Thomas', department: 'Engineering', email: 'kevin.thomas@company.com', status: 'inactive' },
-    { id: '104', name: 'Sofia Mehta', department: 'Business', email: 'sofia.mehta@company.com', status: 'active' },
-    { id: '105', name: 'John Paul', department: 'Quality Assurance', email: 'john.paul@company.com', status: 'active' },
+    { id: '101', name: 'Amit Sharma', email: 'amit.sharma@company.com', status: 'active' },
+    { id: '102', name: 'Riya Das', email: 'riya.das@company.com', status: 'active' },
+    { id: '103', name: 'Kevin Thomas', email: 'kevin.thomas@company.com', status: 'inactive' },
+    { id: '104', name: 'Sofia Mehta', email: 'sofia.mehta@company.com', status: 'active' },
+    { id: '105', name: 'John Paul', email: 'john.paul@company.com', status: 'active' },
   ];
 
   addMemberRoleOptions = [
@@ -88,7 +89,6 @@ export class TeamsAndRoles {
     {
       id: '1',
       name: 'Asha Varma',
-      department: 'Engineering',
       roles: ['Project Manager'],
       email: 'asha.varma@company.com',
       status: 'Active'
@@ -96,7 +96,6 @@ export class TeamsAndRoles {
     {
       id: '2',
       name: 'Pranav Iyer',
-      department: 'Engineering',
       roles: ['Tech Lead'],
       email: 'pranav.iyer@company.com',
       status: 'Active'
@@ -104,7 +103,6 @@ export class TeamsAndRoles {
     {
       id: '3',
       name: 'Sarah Chen',
-      department: 'Design',
       roles: ['UI/UX Designer'],
       email: 'sarah.chen@company.com',
       status: 'Inactive'
@@ -112,7 +110,6 @@ export class TeamsAndRoles {
     {
       id: '4',
       name: 'Mike Johnson',
-      department: 'Engineering',
       roles: ['Senior Developer'],
       email: 'mike.johnson@company.com',
       status: 'Active'
@@ -120,7 +117,6 @@ export class TeamsAndRoles {
     {
       id: '5',
       name: 'Lisa Wong',
-      department: 'Quality Assurance',
       roles: ['QA Engineer'],
       email: 'lisa.wong@company.com',
       status: 'Active'
@@ -128,7 +124,6 @@ export class TeamsAndRoles {
     {
       id: '6',
       name: 'David Kumar',
-      department: 'Engineering',
       roles: ['DevOps Engineer'],
       email: 'david.kumar@company.com',
       status: 'Active'
@@ -136,7 +131,6 @@ export class TeamsAndRoles {
     {
       id: '7',
       name: 'Emma Thompson',
-      department: 'Business',
       roles: ['Business Analyst'],
       email: 'emma.thompson@company.com',
       status: 'Inactive'
@@ -144,7 +138,6 @@ export class TeamsAndRoles {
     {
       id: '8',
       name: 'James Wilson',
-      department: 'Engineering',
       roles: ['Senior Developer'],
       email: 'james.wilson@company.com',
       status: 'Suspended'
@@ -152,7 +145,6 @@ export class TeamsAndRoles {
     {
       id: '9',
       name: 'Olivia Martinez',
-      department: 'Design',
       roles: ['UI/UX Designer'],
       email: 'olivia.martinez@company.com',
       status: 'Inactive'
@@ -160,7 +152,6 @@ export class TeamsAndRoles {
     {
       id: '10',
       name: 'Ethan Brown',
-      department: 'Quality Assurance',
       roles: ['QA Engineer','Senior Developer','Project Manager'],
       email: 'ethan.brown@company.com',
       status: 'Active'
@@ -168,7 +159,6 @@ export class TeamsAndRoles {
     {
       id: '11',
       name: 'Sophia Davis',
-      department: 'Business',
       roles: ['Business Analyst'],
       email: 'sophia.davis@company.com',
       status: 'Inactive'
@@ -176,7 +166,6 @@ export class TeamsAndRoles {
     {
       id: '12',
       name: 'Liam Smith',
-      department: 'Engineering',
       roles: ['Senior Developer'],
       email: 'liam.smith@company.com',
       status: 'Active'
@@ -188,7 +177,7 @@ export class TeamsAndRoles {
       header: 'Member Info',
       field: 'member',
       type: 'user',
-      sortable: true,
+      sortable: false,
       width: '25%'
     },
     {
@@ -233,7 +222,8 @@ export class TeamsAndRoles {
       sortable: false,
       width: '10%',
       actions: [
-        { label: '', icon: '/images/delete-user.svg', action: 'remove', class: 'danger' }
+        { label: 'Edit', icon: '/images/edit.svg', action: 'edit', class: 'primary' },
+        { label: 'Delete', icon: '/images/delete-user.svg', action: 'remove', class: 'danger' }
       ]
     }
   ];
@@ -243,7 +233,7 @@ export class TeamsAndRoles {
 
     // Filter by search query (name and email only)
     if (this.searchQuery.trim()) {
-      const query = this.searchQuery.toLowerCase();
+      const query = this.searchQuery.trim().toLowerCase();
       filtered = filtered.filter(member =>
         member.name.toLowerCase().includes(query) ||
         member.email.toLowerCase().includes(query)
@@ -272,20 +262,27 @@ export class TeamsAndRoles {
       roles: member.roles,
       email: member.email,
       status: member.status,
-      actions: member.id
+      actions: member.id,
+      selected: this.selectedMemberIds.includes(member.id)
     }));
   }
 
+  get selectedItems(): any[] {
+    return this.tableData.filter(item => item.selected);
+  }
+
   get selectedCount(): number {
-    return this.selectedRows.length;
+    return this.selectedMemberIds.length;
   }
 
   onSelectionChange(selectedRows: any[]): void {
     this.selectedRows = selectedRows;
+    // Store selected member IDs for persistence across filter changes
+    this.selectedMemberIds = selectedRows.map(row => row.actions);
   }
 
   onSearchChange(): void {
-    // Search happens automatically through getter
+    this.searchQuery = this.searchQuery.trim();
   }
 
   onRoleFilterChange(): void {
@@ -300,7 +297,9 @@ export class TeamsAndRoles {
     const member = this.teamMembers.find(m => m.id === event.row.actions);
 
     if (event.action) {
-      if (event.action === 'remove') {
+      if (event.action === 'edit') {
+        this.editMember(member || null);
+      } else if (event.action === 'remove') {
         this.memberToDelete = member || null;
         this.showDeleteModal = true;
       }
@@ -309,7 +308,7 @@ export class TeamsAndRoles {
 
 
   removeSelected(): void {
-    if (this.selectedRows.length === 0) return;
+    if (this.selectedMemberIds.length === 0) return;
     this.showDeleteModal = true;
   }
 
@@ -327,9 +326,8 @@ export class TeamsAndRoles {
       this.memberToDelete = null;
     } else {
       // Remove selected members (bulk removal)
-      const selectedIds = this.selectedRows.map(row => row.actions);
-      this.teamMembers = this.teamMembers.filter(member => !selectedIds.includes(member.id));
-      this.selectedRows = [];
+      this.teamMembers = this.teamMembers.filter(member => !this.selectedMemberIds.includes(member.id));
+      this.selectedMemberIds = [];
       console.log('Selected members removed');
     }
     this.showDeleteModal = false;
@@ -370,12 +368,20 @@ export class TeamsAndRoles {
 
   addMember(): void {
     if (this.selectedEmployee && this.addMemberSelectedRoles.length > 0) {
-      const newMember = {
-        ...this.selectedEmployee,
-        roles: this.addMemberSelectedRoles,
-        status: 'Active'
-      };
-      this.handleMemberAdded(newMember);
+      if (this.isEditMode && this.memberToEdit) {
+        // Update existing member
+        this.memberToEdit.roles = [...this.addMemberSelectedRoles];
+        console.log('Updated member:', this.memberToEdit.name);
+      } else {
+        // Add new member
+        const newMember = {
+          ...this.selectedEmployee,
+          roles: this.addMemberSelectedRoles,
+          status: 'Active'
+        };
+        this.handleMemberAdded(newMember);
+      }
+      this.closeAddModal();
     } else {
       this.showValidationModal = true;
     }
@@ -387,10 +393,27 @@ export class TeamsAndRoles {
     this.selectedEmployee = null;
     this.addMemberSelectedRoles = [];
     this.showValidationModal = false;
+    this.isEditMode = false;
+    this.memberToEdit = null;
   }
 
   addMemberModal(): void {
     this.showAddModal = true;
+  }
+
+  editMember(member: TeamMember | null): void {
+    if (member) {
+      this.isEditMode = true;
+      this.memberToEdit = member;
+      this.selectedEmployee = {
+        id: member.id,
+        name: member.name,
+        email: member.email,
+        status: member.status || 'active'
+      };
+      this.addMemberSelectedRoles = [...member.roles];
+      this.showAddModal = true;
+    }
   }
 
   handleMemberAdded(newMember: any): void {
@@ -410,7 +433,6 @@ export class TeamsAndRoles {
     this.teamMembers.push({
       id: newId,
       name: newMember.name,
-      department: newMember.department,
       roles: newMember.roles,
       email: newMember.email,
       status: newMember.status || 'Active'

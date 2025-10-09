@@ -99,6 +99,7 @@
       [itemsPerPage]="10"
       [selectAllAcrossPages]="true"
       [clearSelections]="clearTableSelections"
+      [selectedItems]="selectedItems"
       (actionClick)="handleTableAction($event)"
       (selectionChange)="onSelectionChange($event)"
     ></app-table>
@@ -198,12 +199,12 @@
     <div class="px-6 py-6 max-h-[80vh] overflow-hidden flex flex-col">
       <!-- Modal Header -->
       <div class="mb-4">
-        <h2 class="text-lg font-semibold text-gray-900 mb-2">Add New Team Member</h2>
+        <h2 class="text-lg font-semibold text-gray-900 mb-2">{{ isEditMode ? 'Edit Team Member' : 'Add New Team Member' }}</h2>
         <div class="w-12 h-1 bg-blue-500 rounded-full"></div>
       </div>
 
-      <!-- Search Field -->
-      <div class="mb-3 flex-shrink-0">
+      <!-- Search Field (only show in add mode) -->
+      <div *ngIf="!isEditMode" class="mb-3 flex-shrink-0">
         <input
           type="text"
           [(ngModel)]="addMemberSearchQuery"
@@ -212,8 +213,8 @@
         />
       </div>
 
-      <!-- Employee List -->
-      <div class="flex-1 min-h-0 mb-3">
+      <!-- Employee List (only show in add mode) -->
+      <div *ngIf="!isEditMode" class="flex-1 min-h-0 mb-3">
         <ul *ngIf="addMemberSearchQuery && filteredEmployees.length > 0" class="max-h-40 overflow-y-auto border rounded">
         <li
           *ngFor="let emp of filteredEmployees"
@@ -230,7 +231,7 @@
       <!-- Selected Employee -->
       <div *ngIf="selectedEmployee" class="mb-3 p-3 border rounded bg-gray-50 flex-shrink-0">
         <p class="text-sm font-medium text-gray-800">{{ selectedEmployee.name }}</p>
-        <p class="text-xs text-gray-500">{{ selectedEmployee.department }} | {{ selectedEmployee.email }}</p>
+  <p class="text-xs text-gray-500">{{ selectedEmployee.email }}</p>
       </div>
 
       <!-- Role Selection -->
@@ -243,7 +244,7 @@
               [id]="'role-' + role"
               [checked]="isRoleSelected(role)"
               (change)="toggleRole(role)"
-              class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+              class="rounded border-gray-300 accent-blue-600 cursor-pointer"
             />
             <label [for]="'role-' + role" class="ml-2 text-sm font-medium text-gray-700 cursor-pointer">
               {{ role }}
@@ -267,7 +268,7 @@
         ></app-custom-button>
 
         <app-custom-button
-          label="Add Member"
+          label="{{ isEditMode ? 'Update Member' : 'Add Member' }}"
           [bgClass]="'bg-blue-600'"
           [hoverClass]="'hover:bg-blue-700'"
           [textColor]="'text-white'"

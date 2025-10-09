@@ -9,7 +9,6 @@ interface Project {
   status: 'Ongoing' | 'On Hold' | 'Completed' | 'Planning' | 'Archived';
   priority: 'High' | 'Medium' | 'Low' | 'Critical';
   projectManager: string;
-  managerInitials: string;
   teamSize: number;
   selected?: boolean;
 }

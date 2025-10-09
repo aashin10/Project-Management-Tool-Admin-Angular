@@ -49,8 +49,6 @@ describe('Userslist', () => {
       expect(component.searchQuery).toBe('');
       expect(component.selectedFileName).toBe('');
       expect(component.isDragging).toBeFalse();
-      expect(component.currentPage).toBe(1);
-      expect(component.pageSize).toBe(10);
     });
 
     it('should initialize with correct type and status options', () => {
@@ -332,7 +330,6 @@ describe('Userslist', () => {
       component.onSearchChange('test search');
 
       expect(component.searchQuery).toBe('test search');
-      expect(component.currentPage).toBe(1);
     });
 
     it('should toggle advanced filter', () => {
@@ -350,7 +347,6 @@ describe('Userslist', () => {
 
       expect(component.filterType).toBe('internal');
       expect(component.showTypeDropdown).toBeFalse();
-      expect(component.currentPage).toBe(1);
     });
 
     it('should select status filter', () => {
@@ -358,7 +354,6 @@ describe('Userslist', () => {
 
       expect(component.filterStatus).toBe('active');
       expect(component.showStatusDropdown).toBeFalse();
-      expect(component.currentPage).toBe(1);
     });
 
     it('should get correct type label', () => {
@@ -496,11 +491,11 @@ describe('Userslist', () => {
       )).toBeTrue();
     });
 
-    it('should return paginated users with correct structure', () => {
-      const paginated = component.paginatedUsers;
+    it('should return table data with correct structure', () => {
+      const tableData = component.getTableData();
 
-      expect(paginated.length).toBeGreaterThan(0);
-      paginated.forEach(user => {
+      expect(tableData.length).toBeGreaterThan(0);
+      tableData.forEach(user => {
         expect(user).toEqual(jasmine.objectContaining({
           user: jasmine.objectContaining({
             name: jasmine.any(String),
@@ -519,14 +514,14 @@ describe('Userslist', () => {
     it('should calculate total pages correctly', () => {
       const totalPages = component.totalPages();
 
-      expect(totalPages).toBe(Math.ceil(component.filteredUsers.length / component.pageSize));
+      expect(totalPages).toBe(1); // Table component now handles pagination
     });
   });
 
   describe('Data Transformation', () => {
-    it('should transform user data correctly in paginatedUsers', () => {
-      const paginated = component.paginatedUsers;
-      const firstUser = paginated[0];
+    it('should transform user data correctly in getTableData', () => {
+      const tableData = component.getTableData();
+      const firstUser = tableData[0];
 
       expect(firstUser.user.name).toBe(component.users[0].user);
       expect(firstUser.user.email).toBe(component.users[0].email);
@@ -571,21 +566,376 @@ describe('Userslist', () => {
 
       expect(filtered.length).toBe(component.users.length);
     });
+  });
 
-    it('should reset page on filter change', () => {
-      component.currentPage = 5;
-
-      component.selectType('internal');
-
-      expect(component.currentPage).toBe(1);
+  describe('Bulk Actions', () => {
+    beforeEach(() => {
+      component.selectedUsers = [
+        { 
+          user: { name: 'Alice Johnson', email: 'alice.johnson@company.com', avatar: 'AJ' },
+          type: 'Internal', 
+          status: 'Active',
+          created: '23-09-2025',
+          lastActivity: '25-09-2025'
+        },
+        { 
+          user: { name: 'Bob Smith', email: 'bob.smith@external.com', avatar: 'BS' },
+          type: 'External', 
+          status: 'Inactive',
+          created: '27-09-2025',
+          lastActivity: '30-09-2025'
+        }
+      ];
     });
 
-    it('should reset page on search change', () => {
-      component.currentPage = 5;
+    it('should show bulk actions section when users are selected', () => {
+      expect(component.selectedUsers.length).toBeGreaterThan(0);
+    });
 
-      component.onSearchChange('test');
+    it('should call onAssignProjects when Assign Projects button is clicked', () => {
+      spyOn(console, 'log');
+      component.onAssignProjects();
+      
+      expect(console.log).toHaveBeenCalledWith('Assign projects to selected users:', component.selectedUsers);
+    });
 
-      expect(component.currentPage).toBe(1);
+    it('should suspend selected users when Suspend button is clicked', () => {
+      const initialUsers = component.users.length;
+      component.onSuspendUsers();
+      
+      // Check that users status is updated
+      const aliceUser = component.users.find(u => u.user === 'Alice Johnson');
+      const bobUser = component.users.find(u => u.user === 'Bob Smith');
+      
+      expect(aliceUser?.status).toBe('Suspended');
+      expect(bobUser?.status).toBe('Suspended');
+      expect(component.selectedUsers.length).toBe(0);
+      expect(component.users.length).toBe(initialUsers);
+    });
+
+    it('should open delete confirmation modal when bulk delete is clicked', () => {
+      component.onBulkDelete();
+      
+      expect(component.showDeleteConfirmModal).toBeTrue();
+      expect(component.pendingDeleteAction).toBe('bulk');
+    });
+
+    it('should delete selected users when confirmed', () => {
+      // Setup selected users for bulk delete
+      component.selectedUsers = [
+        { 
+          user: { name: 'Alice Johnson', email: 'alice.johnson@company.com', avatar: 'AJ' },
+          type: 'Internal', 
+          status: 'Active',
+          created: '23-09-2025',
+          lastActivity: '25-09-2025'
+        },
+        { 
+          user: { name: 'Bob Smith', email: 'bob.smith@external.com', avatar: 'BS' },
+          type: 'External', 
+          status: 'Inactive',
+          created: '27-09-2025',
+          lastActivity: '30-09-2025'
+        }
+      ];
+      
+      const initialCount = component.users.length;
+      component.pendingDeleteAction = 'bulk';
+      
+      component.confirmDelete();
+      
+      expect(component.users.length).toBe(initialCount - 2);
+      expect(component.selectedUsers.length).toBe(0);
+      expect(component.showDeleteConfirmModal).toBeFalse();
+      
+      // Verify users are actually deleted
+      const aliceExists = component.users.some(u => u.user === 'Alice Johnson');
+      const bobExists = component.users.some(u => u.user === 'Bob Smith');
+      
+      expect(aliceExists).toBeFalse();
+      expect(bobExists).toBeFalse();
+    });
+
+    it('should close delete modal without deleting when cancelled', () => {
+      const initialCount = component.users.length;
+      component.showDeleteConfirmModal = true;
+      
+      component.closeDeleteConfirmModal();
+      
+      expect(component.showDeleteConfirmModal).toBeFalse();
+      expect(component.users.length).toBe(initialCount);
+      expect(component.userToDelete).toBeNull();
+    });
+  });
+
+  describe('Single User Delete', () => {
+    it('should open delete confirmation modal when delete action is clicked', () => {
+      const mockUser = {
+        user: { name: 'Alice Johnson', email: 'alice.johnson@company.com', avatar: 'AJ' },
+        type: 'Internal',
+        status: 'Active'
+      };
+      
+      component.onActionClick({ action: 'delete', row: mockUser });
+      
+      expect(component.showDeleteConfirmModal).toBeTrue();
+      expect(component.pendingDeleteAction).toBe('single');
+      expect(component.userToDelete).toEqual(mockUser);
+    });
+
+    it('should delete single user when confirmed', () => {
+      const initialCount = component.users.length;
+      const userToDelete = {
+        user: { name: 'Alice Johnson', email: 'alice.johnson@company.com', avatar: 'AJ' },
+        type: 'Internal',
+        status: 'Active'
+      };
+      
+      component.userToDelete = userToDelete;
+      component.pendingDeleteAction = 'single';
+      
+      component.confirmDelete();
+      
+      expect(component.users.length).toBe(initialCount - 1);
+      expect(component.showDeleteConfirmModal).toBeFalse();
+      expect(component.userToDelete).toBeNull();
+      
+      // Verify user is actually deleted
+      const aliceExists = component.users.some(u => u.user === 'Alice Johnson');
+      expect(aliceExists).toBeFalse();
+    });
+  });
+
+  describe('Bulk Actions Initialization', () => {
+    it('should initialize with no delete modal shown', () => {
+      expect(component.showDeleteConfirmModal).toBeFalse();
+    });
+
+    it('should initialize with bulk pending delete action', () => {
+      expect(component.pendingDeleteAction).toBe('bulk');
+    });
+
+    it('should initialize with null userToDelete', () => {
+      expect(component.userToDelete).toBeNull();
+    });
+  });
+
+  describe('Bulk Actions Edge Cases', () => {
+    it('should handle suspending users that do not exist', () => {
+      component.selectedUsers = [
+        { 
+          user: { name: 'Nonexistent User', email: 'nonexistent@test.com', avatar: 'NU' },
+          type: 'Internal',
+          status: 'Active'
+        }
+      ];
+      
+      const initialCount = component.users.length;
+      component.onSuspendUsers();
+      
+      expect(component.users.length).toBe(initialCount);
+      expect(component.selectedUsers.length).toBe(0);
+    });
+
+    it('should handle deleting users that do not exist', () => {
+      component.selectedUsers = [
+        { 
+          user: { name: 'Nonexistent User', email: 'nonexistent@test.com', avatar: 'NU' },
+          type: 'Internal',
+          status: 'Active'
+        }
+      ];
+      
+      const initialCount = component.users.length;
+      component.pendingDeleteAction = 'bulk';
+      
+      component.confirmDelete();
+      
+      expect(component.users.length).toBe(initialCount);
+    });
+
+    it('should clear selectedUsers after suspension', () => {
+      component.selectedUsers = [
+        { 
+          user: { name: 'Alice Johnson', email: 'alice.johnson@company.com', avatar: 'AJ' },
+          type: 'Internal',
+          status: 'Active'
+        }
+      ];
+      
+      component.onSuspendUsers();
+      
+      expect(component.selectedUsers).toEqual([]);
+    });
+
+    it('should clear selectedUsers after bulk delete', () => {
+      component.selectedUsers = [
+        { 
+          user: { name: 'Alice Johnson', email: 'alice.johnson@company.com', avatar: 'AJ' },
+          type: 'Internal',
+          status: 'Active'
+        }
+      ];
+      
+      component.pendingDeleteAction = 'bulk';
+      component.confirmDelete();
+      
+      expect(component.selectedUsers).toEqual([]);
+    });
+  });
+
+  describe('Select All Across Pages', () => {
+    let tableComponent: Table;
+    let tableFixture: ComponentFixture<Table>;
+
+    beforeEach(() => {
+      tableFixture = TestBed.createComponent(Table);
+      tableComponent = tableFixture.componentInstance;
+      
+      // Set up table with 50 users (5 pages of 10 each)
+      tableComponent.data = component.getTableData();
+      tableComponent.columns = component.tableColumns;
+      tableComponent.showCheckbox = true;
+      tableComponent.selectAllAcrossPages = true;
+      tableComponent.itemsPerPage = 10;
+      tableComponent.currentPage = 1;
+      tableFixture.detectChanges();
+    });
+
+    it('should select all 50 users when select all checkbox is clicked', () => {
+      // Initially no users selected
+      expect(tableComponent.selectedRows.size).toBe(0);
+      
+      // Click select all
+      tableComponent.toggleAll();
+      tableFixture.detectChanges();
+      
+      // Should select all 50 users across all pages
+      expect(tableComponent.selectedRows.size).toBe(component.getTableData().length);
+      expect(tableComponent.isAllSelected()).toBeTrue();
+      expect(tableComponent.isSomeSelected()).toBeFalse();
+    });
+
+    it('should maintain selection when changing pages', () => {
+      // Select all users
+      tableComponent.toggleAll();
+      tableFixture.detectChanges();
+      
+      expect(tableComponent.selectedRows.size).toBe(component.getTableData().length);
+      
+      // Navigate to page 2
+      tableComponent.goToPage(2);
+      tableFixture.detectChanges();
+      
+      // All users should still be selected
+      expect(tableComponent.selectedRows.size).toBe(component.getTableData().length);
+      
+      // Check that first row on page 2 is selected (index 0 on paginated view = index 10 absolute)
+      expect(tableComponent.isRowSelected(0)).toBeTrue();
+      expect(tableComponent.isAllSelected()).toBeTrue();
+    });
+
+    it('should show correct selection when changing items per page', () => {
+      // Select all users with 10 per page
+      tableComponent.toggleAll();
+      tableFixture.detectChanges();
+      
+      expect(tableComponent.selectedRows.size).toBe(component.getTableData().length);
+      
+      // Change to 50 items per page
+      tableComponent.itemsPerPage = 50;
+      tableComponent.goToPage(1);
+      tableFixture.detectChanges();
+      
+      // All 50 users should still be selected
+      expect(tableComponent.selectedRows.size).toBe(component.getTableData().length);
+      expect(tableComponent.isAllSelected()).toBeTrue();
+      
+      // Check specific rows are selected
+      for (let i = 0; i < Math.min(50, component.getTableData().length); i++) {
+        expect(tableComponent.isRowSelected(i)).toBeTrue();
+      }
+    });
+
+    it('should show indeterminate state when some but not all users are selected', () => {
+      // Select only first 5 users
+      for (let i = 0; i < 5; i++) {
+        tableComponent.toggleRow(i);
+      }
+      tableFixture.detectChanges();
+      
+      expect(tableComponent.selectedRows.size).toBe(5);
+      expect(tableComponent.isAllSelected()).toBeFalse();
+      expect(tableComponent.isSomeSelected()).toBeTrue();
+    });
+
+    it('should deselect all users when clicking select all checkbox when all are selected', () => {
+      // Select all users
+      tableComponent.toggleAll();
+      tableFixture.detectChanges();
+      
+      expect(tableComponent.selectedRows.size).toBe(component.getTableData().length);
+      
+      // Click select all again to deselect
+      tableComponent.toggleAll();
+      tableFixture.detectChanges();
+      
+      expect(tableComponent.selectedRows.size).toBe(0);
+      expect(tableComponent.isAllSelected()).toBeFalse();
+      expect(tableComponent.isSomeSelected()).toBeFalse();
+    });
+
+    it('should emit selection change with all selected users across pages', () => {
+      spyOn(tableComponent.selectionChange, 'emit');
+      
+      // Select all users
+      tableComponent.toggleAll();
+      tableFixture.detectChanges();
+      
+      // Should emit array with all users
+      expect(tableComponent.selectionChange.emit).toHaveBeenCalled();
+      const emittedData = (tableComponent.selectionChange.emit as jasmine.Spy).calls.mostRecent().args[0];
+      expect(emittedData.length).toBe(component.getTableData().length);
+    });
+
+    it('should select individual user on different page correctly', () => {
+      // Navigate to page 3
+      tableComponent.goToPage(3);
+      tableFixture.detectChanges();
+      
+      // Select first user on page 3 (absolute index 20)
+      tableComponent.toggleRow(0);
+      tableFixture.detectChanges();
+      
+      expect(tableComponent.selectedRows.size).toBe(1);
+      expect(tableComponent.selectedRows.has(20)).toBeTrue();
+      
+      // Navigate to page 1
+      tableComponent.goToPage(1);
+      tableFixture.detectChanges();
+      
+      // User on page 3 should still be selected
+      expect(tableComponent.selectedRows.size).toBe(1);
+      expect(tableComponent.selectedRows.has(20)).toBeTrue();
+    });
+
+    it('should handle bulk delete with users selected across multiple pages', () => {
+      // Select all users
+      tableComponent.toggleAll();
+      tableFixture.detectChanges();
+      
+      // Emit selection change to update component
+      tableComponent.emitSelectionChange();
+      
+      // Update component's selected users
+      component.selectedUsers = Array.from(tableComponent.selectedRows).map(index => component.getTableData()[index]);
+      
+      expect(component.selectedUsers.length).toBe(component.getTableData().length);
+      
+      // Perform bulk delete
+      component.onBulkDelete();
+      expect(component.showDeleteConfirmModal).toBeTrue();
+      expect(component.pendingDeleteAction).toBe('bulk');
     });
   });
 });

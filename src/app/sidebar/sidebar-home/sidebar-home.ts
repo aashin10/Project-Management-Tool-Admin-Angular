@@ -83,10 +83,8 @@ export class SidebarHome implements OnDestroy {
       label: 'Settings',
       icon: this.settingsIcon,
       expanded: false,
-      children: [
-        { label: 'Add Access', route: '/settings/add-access' },
-        { label: 'Import/Export', route: '/importexport' }
-      ]
+      route: '/settings',
+      children: []
     }
   ];
 
