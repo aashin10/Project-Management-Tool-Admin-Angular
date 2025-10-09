@@ -41,6 +41,7 @@ export class Table implements OnChanges, AfterViewChecked {
   @Input() itemsPerPage: number = 10;
   @Input() selectAllAcrossPages: boolean = false;
   @Input() clearSelections: boolean = false;
+  @Input() selectedItems: any[] = [];
   
   @Output() rowSelect = new EventEmitter<any>();
   @Output() actionClick = new EventEmitter<{action: string, row: any}>();
@@ -66,6 +67,24 @@ export class Table implements OnChanges, AfterViewChecked {
       });
       this.selectedRows = validIndices;
     }
+
+    // When selectedItems changes, update selections
+    if (changes['selectedItems']) {
+      this.selectedRows.clear();
+      if (this.selectedItems && this.selectedItems.length > 0) {
+        this.data.forEach((item, index) => {
+          if (this.selectedItems.some(selectedItem => this.isItemSelected(item, selectedItem))) {
+            this.selectedRows.add(index);
+          }
+        });
+      }
+      this.emitSelectionChange();
+    }
+  }
+
+  private isItemSelected(item: any, selectedItem: any): boolean {
+    // Compare based on actions field (which contains the ID)
+    return item.actions === selectedItem.actions;
   }
 
   ngAfterViewChecked(): void {
