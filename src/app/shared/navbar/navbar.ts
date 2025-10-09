@@ -24,9 +24,34 @@ export class Navbar {
     this.isUserMenuVisible = !this.isUserMenuVisible;
   }
 
-  onSearch(query: string): void {
-    console.log('Search query:', query);
-    // Implement your search logic here
+  searchResults: {
+    projects: any[];
+    users: any[];
+    reports: any[];
+  } | null = null;
+
+  onSearch(query: string) {
+    // Replace with actual search logic
+    this.searchResults = {
+      projects: this.searchProjects(query),
+      users: this.searchUsers(query),
+      reports: this.searchReports(query),
+    };
+  }
+
+  searchProjects(query: string) {
+    // Mock search logic for projects
+    return query ? [{ name: 'Project A' }, { name: 'Project B' }] : [];
+  }
+
+  searchUsers(query: string) {
+    // Mock search logic for users
+    return query ? [{ name: 'User A' }, { name: 'User B' }] : [];
+  }
+
+  searchReports(query: string) {
+    // Mock search logic for reports
+    return query ? [{ name: 'Report A' }, { name: 'Report B' }] : [];
   }
 
   onActionClick(action: string): void {
