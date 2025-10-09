@@ -25,9 +25,6 @@ export class AuthorizeWithJiraSection {
     'prompt=consent';
 
   onAuthorize() {
-    console.log('Authorizing with Jira...');
-    alert('Redirecting to: ' + this.url);
-    console.log('Redirecting to:', this.url);
     window.location.href = this.url;
   }
 }
