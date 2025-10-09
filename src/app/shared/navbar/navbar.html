@@ -23,3 +23,45 @@
     </div>
   </div>
 </nav>
+
+<div class="relative">
+  <div
+    *ngIf="
+      searchResults &&
+      (searchResults.projects?.length ||
+        searchResults.users?.length ||
+        searchResults.reports?.length)
+    "
+    class="absolute z-10 w-full lg:max-w-2xl bg-white p-4 space-y-6"
+  >
+    <!-- Projects -->
+    <div *ngIf="searchResults.projects?.length">
+      <h3 class="text-lg font-semibold text-gray-600">Projects</h3>
+      <ul class="">
+        <li *ngFor="let project of searchResults.projects" class="py-1 text-sm">
+          {{ project.name }}
+        </li>
+      </ul>
+    </div>
+
+    <!-- Users -->
+    <div *ngIf="searchResults.users?.length">
+      <h3 class="text-lg font-semibold text-gray-600">Users</h3>
+      <ul class="">
+        <li *ngFor="let user of searchResults.users" class="py-1 text-sm">
+          {{ user.name }}
+        </li>
+      </ul>
+    </div>
+
+    <!-- Reports -->
+    <div *ngIf="searchResults.reports?.length">
+      <h3 class="text-lg font-semibold text-gray-600">Reports</h3>
+      <ul class="">
+        <li *ngFor="let report of searchResults.reports" class="py-1 text-sm">
+          {{ report.name }}
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>

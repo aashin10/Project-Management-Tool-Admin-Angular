@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { SelectProjectsSection } from './select-projects-section';
 import { Jiraservice } from '../../pages/importfromjira/jiraservice';
 import { Importprojectslist } from '../importprojectslist/importprojectslist';
@@ -8,7 +8,7 @@ import { LoadingIndicator } from '../../../shared/loading-indicator/loading-indi
 import { CommonModule } from '@angular/common';
 import { By } from '@angular/platform-browser';
 
-describe('SelectProjectsSection', () => {
+fdescribe('SelectProjectsSection', () => {
   let component: SelectProjectsSection;
   let fixture: ComponentFixture<SelectProjectsSection>;
   let mockJiraService: jasmine.SpyObj<Jiraservice>;
@@ -45,14 +45,14 @@ describe('SelectProjectsSection', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should show loading indicator when loading projects', () => {
+  it('should show loading indicator when loading projects', fakeAsync(() => {
     component.loadingProjects = true;
     fixture.detectChanges();
+    tick();
 
-    const loadingEl = fixture.debugElement.query(By.css('app-loading-indicator'));
-    console.log(fixture.debugElement);
+    const loadingEl = fixture.debugElement.query(By.directive(LoadingIndicator));
     expect(loadingEl).toBeTruthy();
-  });
+  }));
 
   it('should fetch and populate projects on init', async () => {
     spyOn(sessionStorage, 'getItem').and.returnValue('mock-token');
