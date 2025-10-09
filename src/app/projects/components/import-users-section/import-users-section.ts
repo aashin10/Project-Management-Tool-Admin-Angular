@@ -3,7 +3,7 @@ import { CustomButton } from '../../../shared/custom-button/custom-button';
 import { Importnavigationservice } from '../../pages/importfromjira/importnavigationservice';
 import { CommonModule } from '@angular/common';
 import * as Papa from 'papaparse';
-import { ParseResult, ParseError } from 'papaparse';
+import { ParseResult } from 'papaparse';
 
 @Component({
   selector: 'app-import-users-section',
