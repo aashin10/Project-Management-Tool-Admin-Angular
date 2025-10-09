@@ -10,13 +10,6 @@ import { Importprojectcard } from '../importprojectcard/importprojectcard';
 import { CustomButton } from '../../../shared/custom-button/custom-button';
 import { CommonModule } from '@angular/common';
 
-interface Project {
-  name: string;
-  key: string;
-  id: string;
-  selected: boolean;
-}
-
 @Component({
   selector: 'app-importprojectslist',
   standalone: true,
@@ -27,8 +20,8 @@ interface Project {
 export class Importprojectslist implements OnInit, OnChanges {
   constructor(private cd: ChangeDetectorRef) {}
 
-  @Input() projects: Project[] = [];
-  paginatedProjects: Project[] = [];
+  @Input() projects: ImportProjectMinimal[] = [];
+  paginatedProjects: ImportProjectMinimal[] = [];
 
   currentPage = 1;
   itemsPerPage = 3;

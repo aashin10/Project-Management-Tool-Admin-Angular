@@ -15,17 +15,17 @@ export class ImportUsersSection {
   public constructor(private importNavigationService: Importnavigationservice) {}
 
   uploadSuccess: boolean = false;
-  parsedData: any[] = [];
+  parsedData: CSVUser[] = [];
 
   onFileUpload(event: Event): void {
     const input = event.target as HTMLInputElement;
 
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
-      Papa.parse(file as any, {
+      Papa.parse(file as File, {
         header: true,
         skipEmptyLines: true,
-        complete: (result: ParseResult<any>) => {
+        complete: (result: ParseResult<CSVUser>) => {
           if (result.errors && result.errors.length > 0) {
             console.error('CSV parsing errors:', result.errors);
             return;

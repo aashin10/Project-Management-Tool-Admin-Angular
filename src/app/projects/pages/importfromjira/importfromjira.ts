@@ -47,10 +47,12 @@ export class Importfromjira implements OnInit {
 
           try {
             const response = await this.jiraService.exchangeToken(authorization_code);
-            console.log('Access Token:', response.access_token);
+            console.log('Token Exchange Response:', response);
             sessionStorage.setItem('jira_access_token', response.access_token);
             this.toStep(3);
             this.cdr.detectChanges();
+            //Remove url params
+            window.history.replaceState({}, document.title, window.location.pathname);
           } catch (error) {
             console.error('Error exchanging token:', error);
           }
