@@ -17,7 +17,7 @@ export class SelectProjectsSection implements OnInit {
 
   projects: any[] = [];
   allProjects: any[] = [];
-  loadingProjects: boolean = true;
+  loadingProjects: boolean = false;
   cloudIds: any[] | undefined = [];
 
   dropdownOpen: boolean = false;
@@ -40,6 +40,7 @@ export class SelectProjectsSection implements OnInit {
   }
 
   async ngOnInit() {
+    this.loadingProjects = true;
     const token = sessionStorage.getItem('jira_access_token');
     if (token) {
       const ids = await this.jiraService.getAccessibleResources(token);
