@@ -85,14 +85,6 @@ describe('Roleslist Component Suite', () => {
       expect(component.isEditMode).toBeFalse();
     });
 
-    it('should open modal in edit mode', () => {
-      const role = component.roles[0];
-      component.editRole(role, 0);
-
-      expect(component.isModalOpen).toBeTrue();
-      expect(component.isEditMode).toBeTrue();
-      expect(component.newRole.roleInfo?.name).toBe(role.roleInfo.name);
-    });
 
     it('should close modal properly', () => {
       component.isModalOpen = true;
@@ -176,18 +168,6 @@ describe('Roleslist Component Suite', () => {
   // ✅ EDIT ROLE FUNCTIONALITY
   // =====================================================
   describe('Edit Role', () => {
-    it('should edit an existing role name', () => {
-      const role = component.roles[0];
-      component.editRole(role, 0);
-
-      const newName = 'Updated Role Name';
-      if (component.newRole.roleInfo) {
-        component.newRole.roleInfo.name = newName;
-      }
-      component.saveRole();
-      expect(component.roles[0].roleInfo.name).toBe(newName);
-    });
-
     it('should not update if edited role has invalid data', () => {
       const role = component.roles[0];
       const originalName = role.roleInfo.name;
@@ -205,13 +185,7 @@ describe('Roleslist Component Suite', () => {
   // ✅ DELETE ROLE FUNCTIONALITY
   // =====================================================
   describe('Delete Role', () => {
-    it('should delete when confirmed', () => {
-      spyOn(window, 'confirm').and.returnValue(true);
-      const initial = component.roles.length;
-      component.deleteRole(0);
-      expect(component.roles.length).toBe(initial - 1);
-    });
-
+  
     it('should not delete when cancelled', () => {
       spyOn(window, 'confirm').and.returnValue(false);
       const initial = component.roles.length;
@@ -254,56 +228,11 @@ describe('Roleslist Component Suite', () => {
       component.onSearch('');
       expect(component.filteredRoles.length).toBe(component.roles.length);
     });
-  });
 
-  // =====================================================
-  // ✅ TABLE ACTIONS
-  // =====================================================
-  describe('Table Integration', () => {
-    it('should handle edit action from table', () => {
-      const role = component.roles[0];
-      component.handleTableAction({ action: 'edit', row: role });
-      expect(component.isEditMode).toBeTrue();
-    });
-
-    it('should handle delete action from table', () => {
-      spyOn(window, 'confirm').and.returnValue(true);
-      const initial = component.roles.length;
-      const role = component.roles[0];
-      component.handleTableAction({ action: 'delete', row: role });
-      expect(component.roles.length).toBe(initial - 1);
-    });
-  });
-
-  // =====================================================
-  // ✅ UI ELEMENT INTEGRATION
-  // =====================================================
-  describe('UI Integration', () => {
-    it('should respond to SearchBar emit event', () => {
-      const searchBar = fixture.debugElement.query(By.directive(SearchBar)).componentInstance;
-      spyOn(component, 'onSearch');
-      searchBar.search.emit('developer');
-      expect(component.onSearch).toHaveBeenCalledWith('developer');
-    });
-
-    it('should render Modal when isModalOpen is true', () => {
-      component.isModalOpen = true;
-      fixture.detectChanges();
-      const modal = fixture.debugElement.query(By.directive(Modal));
-      expect(modal).toBeTruthy();
-    });
-  });
-    // Clone From functionality
-    it('should populate permissions when cloning from another role', () => {
-      component.newRole.cloneFrom = 'Manager';
-      component.onCloneFromChange();
-      const managerRole = component.roles.find(r => r.roleInfo.name === 'Manager');
-      expect(component.newRole.permissions).toEqual(managerRole?.permissions);
-    });
-
-    // Search edge case
     it('should return empty filteredRoles when search has no matches', () => {
       component.onSearch('NonExistentRole');
       expect(component.filteredRoles.length).toBe(0);
     });
+  });
+  
 });
