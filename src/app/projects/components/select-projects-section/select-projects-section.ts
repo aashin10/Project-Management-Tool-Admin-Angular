@@ -44,15 +44,19 @@ export class SelectProjectsSection implements OnInit {
     const token = sessionStorage.getItem('jira_access_token');
     if (token) {
       const ids = await this.jiraService.getAccessibleResources(token);
+      if (!ids) {
+        throw new Error('No accessible resources found');
+      }
       this.cloudIds = ids;
-      console.log('Cloud IDs:', ids);
       if (ids && ids.length > 0) {
         await this.fetchProjectsByCloudId(ids[0].id); // Load default cloudId
       }
+      this.projects = [...this.allProjects];
+      this.loadingProjects = false;
+      this.cdr.detectChanges();
+    } else {
+      throw new Error('No access token found in session storage.');
     }
-    this.projects = [...this.allProjects];
-    this.loadingProjects = false;
-    this.cdr.detectChanges();
   }
 
   async fetchProjectsByCloudId(cloudId: string): Promise<void> {
@@ -62,8 +66,11 @@ export class SelectProjectsSection implements OnInit {
       this.allProjects = [];
       this.projects = [];
 
-      const importedProjects: any = await this.jiraService.fetchJiraProjects(token, cloudId);
-      this.allProjects = importedProjects.map((project: any) => ({
+      const importedProjects: ImportProjectMinimal[] = await this.jiraService.fetchJiraProjects(
+        token,
+        cloudId
+      );
+      this.allProjects = importedProjects.map((project: ImportProjectMinimal) => ({
         name: project.name,
         key: project.key,
         id: project.id,
@@ -73,6 +80,8 @@ export class SelectProjectsSection implements OnInit {
       this.projects = [...this.allProjects];
       this.loadingProjects = false;
       this.cdr.detectChanges();
+    } else {
+      throw new Error('No access token found in session storage.');
     }
   }
 

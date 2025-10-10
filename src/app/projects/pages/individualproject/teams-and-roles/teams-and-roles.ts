@@ -177,7 +177,7 @@ export class TeamsAndRoles {
       header: 'Member Info',
       field: 'member',
       type: 'user',
-      sortable: true,
+      sortable: false,
       width: '25%'
     },
     {

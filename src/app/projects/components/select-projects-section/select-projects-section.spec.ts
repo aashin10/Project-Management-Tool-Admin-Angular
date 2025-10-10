@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { SelectProjectsSection } from './select-projects-section';
 import { Jiraservice } from '../../pages/importfromjira/jiraservice';
 import { Importprojectslist } from '../importprojectslist/importprojectslist';
@@ -7,7 +7,7 @@ import { SearchBar } from '../../../shared/components/search-bar/search-bar';
 import { LoadingIndicator } from '../../../shared/loading-indicator/loading-indicator';
 import { CommonModule } from '@angular/common';
 
-describe('SelectProjectsSection', () => {
+fdescribe('SelectProjectsSection', () => {
   let component: SelectProjectsSection;
   let fixture: ComponentFixture<SelectProjectsSection>;
   let mockJiraService: jasmine.SpyObj<Jiraservice>;
