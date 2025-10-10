@@ -1,11 +1,12 @@
 <ng-container>
   <app-custom-button
-    label="Authorize with JIRA"
+    class="w-3/4 flex justify-center items-center"
+    label="Authorize"
     shortLabel="Authorize"
-    bgClass="bg-[#0052cc] border border-gray-300 w-full"
+    bgClass="bg-[#0052cc] border border-gray-300 w-3/4"
     (action)="onAuthorize()"
     [hoverClass]="'hover:bg-[#0052cce6]'"
     [textColor]="'text-white'"
-    [icon]="'/images/import.svg'"
+    [icon]="'/images/jira.svg'"
   ></app-custom-button>
 </ng-container>
