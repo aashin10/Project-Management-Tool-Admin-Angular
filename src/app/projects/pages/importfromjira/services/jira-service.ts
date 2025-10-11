@@ -62,4 +62,20 @@ export class JiraService {
       throw new Error('Failed to fetch Jira projects');
     }
   }
+
+  async getMyDetails(accessToken: string): Promise<any> {
+    console.log('Getting user details with token:', accessToken);
+    try {
+      const response = await this.http
+        .get<any>(`https://api.atlassian.com/me`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        })
+        .toPromise();
+      return response;
+    } catch (error) {
+      throw new Error('Failed to fetch user details');
+    }
+  }
 }

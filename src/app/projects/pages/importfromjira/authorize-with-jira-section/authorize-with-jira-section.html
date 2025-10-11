@@ -1,5 +1,5 @@
 <ng-container class="flex flex-col items-center space-y-2">
-  <div class="w-full flex justify-center">
+  <div class="w-full flex justify-center mb-0">
     <app-custom-button
       class="w-3/4 flex justify-center items-center"
       [label]="buttonLabel"
@@ -9,6 +9,7 @@
       [hoverClass]="'hover:bg-[#0052cce6]'"
       [textColor]="'text-white'"
       [icon]="'/images/jira.svg'"
+      [loading]="isLoadingUserDetails"
     ></app-custom-button>
   </div>
 
@@ -21,11 +22,12 @@
   <div *ngIf="validAccessToken" class="w-full flex justify-center">
     <app-custom-button
       class="w-3/4 flex justify-center items-center mt-2"
-      [label]="'Continue'"
-      [shortLabel]="'Continue'"
+      [label]="'Continue as ' + userName"
+      [shortLabel]="'Continue as ' + userName"
       [bgClass]="'bg-green-600 border border-gray-300 w-3/4'"
       [hoverClass]="'hover:bg-green-700'"
       [textColor]="'text-white'"
+      (action)="onContinueAsExistingUser()"
     ></app-custom-button>
   </div>
 </ng-container>

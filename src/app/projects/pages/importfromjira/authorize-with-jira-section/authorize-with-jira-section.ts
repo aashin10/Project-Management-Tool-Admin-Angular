@@ -3,6 +3,7 @@ import { CustomButton } from '../../../../shared/custom-button/custom-button';
 import { ImportNavigationService } from '../services/import-navigation-service';
 import { environment } from '../../../../../environments/environment';
 import { CommonModule } from '@angular/common';
+import { JiraService } from '../services/jira-service';
 
 @Component({
   selector: 'app-authorize-with-jira-section',
@@ -11,20 +12,37 @@ import { CommonModule } from '@angular/common';
   styleUrl: './authorize-with-jira-section.css',
 })
 export class AuthorizeWithJiraSection implements OnInit {
-  public constructor(
+  constructor(
     private importNavigationService: ImportNavigationService,
-    private cdr: ChangeDetectorRef
-  ) {}
-
+    private cdr: ChangeDetectorRef,
+    private jiraService: JiraService
+  ) {
+    console.log('JiraService in constructor:', this.importNavigationService);
+  }
   validAccessToken: boolean = false;
+  isLoadingUserDetails: boolean = true;
   buttonLabel = 'Authorize';
-
-  ngOnInit() {
+  userName: string = '';
+  async ngOnInit() {
     const token = sessionStorage.getItem('jira_access_token');
     console.log('Token on init:', token);
     if (token && !this.isJwtExpired(token)) {
-      this.validAccessToken = true;
+      let localName = sessionStorage.getItem('jira_name');
+
+      if (!localName) {
+        const data = await this.jiraService.getMyDetails(token);
+        const name = data.name;
+        sessionStorage.setItem('jira_name', name);
+        localName = name || '';
+      }
+      if (!localName) {
+        localName = 'User';
+      }
+      this.userName = localName;
       this.buttonLabel = 'Use another account';
+      this.validAccessToken = true;
+      this.isLoadingUserDetails = false;
+      this.cdr.detectChanges();
     }
   }
 
@@ -34,7 +52,7 @@ export class AuthorizeWithJiraSection implements OnInit {
     'client_id=' +
     environment.jiraClientId +
     '&' +
-    'scope=read:jira-work read:jira-user&' +
+    'scope=read:jira-work read:jira-user read:me&' +
     'redirect_uri=' +
     environment.jiraRedirectUri +
     '&' +
@@ -44,6 +62,10 @@ export class AuthorizeWithJiraSection implements OnInit {
   onAuthorize() {
     alert('You will be redirected to Jira to authorize access.');
     window.location.href = this.url;
+  }
+
+  onContinueAsExistingUser() {
+    this.importNavigationService.onNext();
   }
 
   isJwtExpired(token: string): boolean {
