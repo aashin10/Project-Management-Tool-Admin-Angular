@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { JiraService } from './jira-service';
-import { url } from 'inspector';
 
 describe('JiraService', () => {
   let service: JiraService;

@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AuthorizeWithJiraSection } from './authorize-with-jira-section';
-import { Importnavigationservice } from '../services/import-navigation-service';
+import { ImportNavigationService } from '../services/import-navigation-service';
 
 describe('AuthorizeWithJiraSection', () => {
   let component: AuthorizeWithJiraSection;
   let fixture: ComponentFixture<AuthorizeWithJiraSection>;
-  let mockImportNavigationService: jasmine.SpyObj<Importnavigationservice>;
+  let mockImportNavigationService: jasmine.SpyObj<ImportNavigationService>;
 
   beforeEach(async () => {
     const importNavigationServiceSpy = {};
 
     await TestBed.configureTestingModule({
       imports: [AuthorizeWithJiraSection],
-      providers: [{ provide: Importnavigationservice, useValue: importNavigationServiceSpy }],
+      providers: [{ provide: ImportNavigationService, useValue: importNavigationServiceSpy }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AuthorizeWithJiraSection);
