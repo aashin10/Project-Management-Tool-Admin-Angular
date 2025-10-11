@@ -78,9 +78,6 @@ export class Table implements OnChanges, AfterViewChecked {
       const isIndeterminate = this.isSomeSelected();
       const allSelected = this.isAllSelected();
 
-      // When all selected, show indeterminate (dash) like many UI libraries do
-      // When some selected, show indeterminate (dash)
-      // When none selected, show unchecked
       checkbox.indeterminate = isIndeterminate || allSelected;
       checkbox.checked = false;
     }
