@@ -20,6 +20,19 @@ export class Deliveryunitslist {
   filteredDeliveryUnits: any[] = [];
   isModalOpen: boolean = false;
   selectedDeliveryUnits: any[] = [];
+  private _resetPagination: boolean = false;
+
+  get resetPagination(): boolean {
+    return this._resetPagination;
+  }
+
+  set resetPagination(value: boolean) {
+    this._resetPagination = value;
+    // Reset back to false after change detection
+    if (value) {
+      setTimeout(() => this._resetPagination = false, 0);
+    }
+  }
 
   // Form data model
   newDU = {
@@ -292,6 +305,8 @@ export class Deliveryunitslist {
 
   onSearchChange(query: string): void {
     this.searchQuery = query.toLowerCase();
+    // Reset pagination to first page when search changes
+    this.resetPagination = true;
     this.updateFilteredDeliveryUnits();
     // Update selections to only include delivery units that are still visible after filtering
     this.updateSelectionsForFilteredUnits();

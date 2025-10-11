@@ -42,6 +42,7 @@ export class Table implements OnChanges, AfterViewChecked {
   @Input() selectAllAcrossPages: boolean = false;
   @Input() clearSelections: boolean = false;
   @Input() rowClickAction: 'navigate' | 'select' = 'select';
+  @Input() resetPagination: boolean = false;
   
   @Output() rowSelect = new EventEmitter<any>();
   @Output() actionClick = new EventEmitter<{action: string, row: any}>();
@@ -58,7 +59,12 @@ export class Table implements OnChanges, AfterViewChecked {
       this.emitSelectionChange();
     }
 
-    // When data changes, reinitialize selections based on data items' selected property
+    // Reset pagination when explicitly requested (e.g., when filters are applied)
+    if (changes['resetPagination'] && changes['resetPagination'].currentValue === true) {
+      this.currentPage = 1;
+    }
+
+    // When data changes, reinitialize selections
     if (changes['data']) {
       // Clear existing selections
       this.selectedRows.clear();

@@ -63,7 +63,20 @@ export class Userslist {
   selectedFileName: string = '';
   isDragging: boolean = false;
   selectedUsers: any[] = [];
+  private _resetPagination: boolean = false;
   validationErrors: string[] = [];
+
+  get resetPagination(): boolean {
+    return this._resetPagination;
+  }
+
+  set resetPagination(value: boolean) {
+    this._resetPagination = value;
+    // Reset back to false after change detection
+    if (value) {
+      setTimeout(() => this._resetPagination = false, 0);
+    }
+  }
   pendingDeleteAction: 'single' | 'bulk' = 'bulk';
   userToDelete: any = null;
   
@@ -191,18 +204,24 @@ export class Userslist {
 
   onSearchChange(query: string) {
     this.searchQuery = query;
+    // Reset pagination to first page when search changes
+    this.resetPagination = true;
     // Update selections to only include users that are still visible after filtering
     this.updateSelectionsForFilteredUsers();
   }
 
   onTypeFilterChange(type: string) {
     this.filterType = type;
+    // Reset pagination to first page when filter changes
+    this.resetPagination = true;
     // Update selections to only include users that are still visible after filtering
     this.updateSelectionsForFilteredUsers();
   }
 
   onStatusFilterChange(status: string) {
     this.filterStatus = status;
+    // Reset pagination to first page when filter changes
+    this.resetPagination = true;
     // Update selections to only include users that are still visible after filtering
     this.updateSelectionsForFilteredUsers();
   }
@@ -260,12 +279,16 @@ export class Userslist {
   selectType(value: string) {
     this.filterType = value;
     this.showTypeDropdown = false;
+    // Reset pagination to first page when filter changes
+    this.resetPagination = true;
     // Update selections to only include users that are still visible after filtering
     this.updateSelectionsForFilteredUsers();
   }
   selectStatus(value: string) {
     this.filterStatus = value;
     this.showStatusDropdown = false;
+    // Reset pagination to first page when filter changes
+    this.resetPagination = true;
     // Update selections to only include users that are still visible after filtering
     this.updateSelectionsForFilteredUsers();
   }
