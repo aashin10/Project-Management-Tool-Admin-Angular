@@ -1,6 +1,6 @@
 <div *ngIf="projects.length === 0" class="text-center text-gray-500 py-8">No projects found</div>
 
-<app-importprojectcard
+<app-import-project-card
   *ngFor="let project of paginatedProjects"
   [title]="project.name"
   [key]="project.key"
@@ -8,7 +8,7 @@
   [selected]="project.selected"
   class="w-full"
   (selectChange)="onProjectSelect($event)"
-></app-importprojectcard>
+></app-import-project-card>
 
 <div *ngIf="projects.length > 0" class="flex w-full justify-center items-center gap-2 mt-6">
   <app-custom-button

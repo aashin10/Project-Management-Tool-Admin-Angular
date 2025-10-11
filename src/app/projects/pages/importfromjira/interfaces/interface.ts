@@ -10,10 +10,3 @@ interface ImportProjectMinimal {
   id: string;
   selected: boolean;
 }
-
-interface CSVUser {
-  name: string;
-  email: string;
-  id: string;
-  active: boolean;
-}

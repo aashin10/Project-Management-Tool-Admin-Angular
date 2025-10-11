@@ -6,18 +6,18 @@ import {
   SimpleChanges,
   ChangeDetectorRef,
 } from '@angular/core';
-import { Importprojectcard } from '../importprojectcard/importprojectcard';
-import { CustomButton } from '../../../shared/custom-button/custom-button';
+import { ImportProjectCard } from '../import-project-card/import-project-card';
 import { CommonModule } from '@angular/common';
+import { CustomButton } from '../../../../shared/custom-button/custom-button';
 
 @Component({
-  selector: 'app-importprojectslist',
+  selector: 'app-import-project-card-list',
   standalone: true,
-  imports: [Importprojectcard, CommonModule, CustomButton],
-  templateUrl: './importprojectslist.html',
-  styleUrl: './importprojectslist.css',
+  imports: [ImportProjectCard, CommonModule, CustomButton],
+  templateUrl: './import-project-card-list.html',
+  styleUrl: './import-project-card-list.css',
 })
-export class Importprojectslist implements OnInit, OnChanges {
+export class ImportProjectCardList implements OnInit, OnChanges {
   constructor(private cd: ChangeDetectorRef) {}
 
   @Input() projects: ImportProjectMinimal[] = [];

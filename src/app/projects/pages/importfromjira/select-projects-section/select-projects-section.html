@@ -33,11 +33,11 @@
     <app-loading-indicator></app-loading-indicator>
   </div>
 
-  <app-importprojectslist
+  <app-import-project-card-list
     *ngIf="!loadingProjects"
     class="w-full"
     [projects]="projects"
-  ></app-importprojectslist>
+  ></app-import-project-card-list>
 
   <div class="w-full md:max-w-md mt-4 flex justify-center">
     <app-custom-button

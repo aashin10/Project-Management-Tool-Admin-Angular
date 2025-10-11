@@ -2,12 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
-  selector: 'app-importprojectcard',
+  selector: 'app-import-project-card',
   imports: [CommonModule],
-  templateUrl: './importprojectcard.html',
-  styleUrl: './importprojectcard.css',
+  templateUrl: './import-project-card.html',
+  styleUrl: './import-project-card.css',
 })
-export class Importprojectcard {
+export class ImportProjectCard {
   @Input() title: string = '';
   @Input() key: string = '';
   @Input() selected: boolean = false;

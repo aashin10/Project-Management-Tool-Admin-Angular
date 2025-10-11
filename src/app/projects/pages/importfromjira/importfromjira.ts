@@ -2,12 +2,12 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
 import { LucideAngularModule, Users, Settings, Database } from 'lucide-angular';
 import { CommonModule } from '@angular/common';
-import { ImportProcessSection } from '../../components/import-process-section/import-process-section';
-import { Importnavigationservice } from './importnavigationservice';
+import { ImportNavigationService } from './services/import-navigation-service';
 import { ActivatedRoute } from '@angular/router';
-import { Jiraservice } from './jiraservice';
+import { JiraService } from './services/jira-service';
 import { HttpClientModule } from '@angular/common/http';
 import { CustomButton } from '../../../shared/custom-button/custom-button';
+import { ImportProcessSection } from './import-process-section/import-process-section';
 
 @Component({
   selector: 'app-importfromjira',
@@ -27,9 +27,9 @@ export class Importfromjira implements OnInit {
   sectionDescription = 'Import all your projects now from Jira';
 
   public constructor(
-    private importNavigationService: Importnavigationservice,
+    private importNavigationService: ImportNavigationService,
     private route: ActivatedRoute,
-    private jiraService: Jiraservice,
+    private jiraService: JiraService,
     private cdr: ChangeDetectorRef
   ) {}
 

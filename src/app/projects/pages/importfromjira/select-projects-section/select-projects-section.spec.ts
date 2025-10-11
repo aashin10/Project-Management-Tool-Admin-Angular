@@ -1,16 +1,16 @@
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { SelectProjectsSection } from './select-projects-section';
-import { Jiraservice } from '../../pages/importfromjira/jiraservice';
-import { Importprojectslist } from '../importprojectslist/importprojectslist';
-import { CustomButton } from '../../../shared/custom-button/custom-button';
-import { SearchBar } from '../../../shared/components/search-bar/search-bar';
-import { LoadingIndicator } from '../../../shared/loading-indicator/loading-indicator';
 import { CommonModule } from '@angular/common';
+import { JiraService } from '../services/jira-service';
+import { ImportProjectCardList } from '../import-projects-list/import-project-card-list';
+import { CustomButton } from '../../../../shared/custom-button/custom-button';
+import { SearchBar } from '../../../../shared/components/search-bar/search-bar';
+import { LoadingIndicator } from '../../../../shared/loading-indicator/loading-indicator';
 
-fdescribe('SelectProjectsSection', () => {
+describe('SelectProjectsSection', () => {
   let component: SelectProjectsSection;
   let fixture: ComponentFixture<SelectProjectsSection>;
-  let mockJiraService: jasmine.SpyObj<Jiraservice>;
+  let mockJiraService: jasmine.SpyObj<JiraService>;
 
   const mockProjects = [
     { name: 'Project A', key: 'PA', id: '1' },
@@ -27,19 +27,17 @@ fdescribe('SelectProjectsSection', () => {
       imports: [
         CommonModule,
         SelectProjectsSection,
-        Importprojectslist,
+        ImportProjectCardList,
         CustomButton,
         SearchBar,
         LoadingIndicator,
       ],
-      providers: [
-        { provide: Jiraservice, useValue: jiraServiceSpy },
-      ],
+      providers: [{ provide: JiraService, useValue: jiraServiceSpy }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(SelectProjectsSection);
     component = fixture.componentInstance;
-    mockJiraService = TestBed.inject(Jiraservice) as jasmine.SpyObj<Jiraservice>;
+    mockJiraService = TestBed.inject(JiraService) as jasmine.SpyObj<JiraService>;
   });
 
   it('should create the component', () => {
@@ -62,8 +60,25 @@ fdescribe('SelectProjectsSection', () => {
     spyOn(sessionStorage, 'getItem').and.returnValue('mock-token');
 
     // Mock the service calls to return resolved promises
-    mockJiraService.getAccessibleResources.and.returnValue(Promise.resolve([{ id: 'cloud-123' }]));
-    mockJiraService.fetchJiraProjects.and.returnValue(Promise.resolve(mockProjects));
+    mockJiraService.getAccessibleResources.and.returnValue(
+      Promise.resolve([{ id: 'cloud-123', name: 'Mock Cloud', url: '' }])
+    );
+    mockJiraService.fetchJiraProjects.and.returnValue(
+      Promise.resolve([
+        {
+          name: 'Project A',
+          key: 'PA',
+          id: '1',
+          selected: false,
+        },
+        {
+          name: 'Project B',
+          key: 'PB',
+          id: '2',
+          selected: false,
+        },
+      ])
+    );
 
     // Verify initial state
     expect(component.loadingProjects).toBe(false);
