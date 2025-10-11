@@ -17,7 +17,7 @@ describe('AdvancedFilters', () => {
 
     // Reset component state
     component.selectedStatuses = [];
-    component.selectedPriorities = [];
+    component.selectedDeliveryUnits = [];
     component.selectedManagers = [];
     component.managerSearchQuery = '';
     component.showAllManagers = false;
@@ -33,9 +33,9 @@ describe('AdvancedFilters', () => {
     expect(component.showFilters).toBe(false);
     expect(component.projects).toEqual([]);
     expect(component.statusOptions).toEqual([]);
-    expect(component.priorityOptions).toEqual([]);
+    expect(component.deliveryUnitOptions).toEqual([]);
     expect(component.selectedStatuses).toEqual([]);
-    expect(component.selectedPriorities).toEqual([]);
+    expect(component.selectedDeliveryUnits).toEqual([]);
     expect(component.selectedManagers).toEqual([]);
     expect(component.managerSearchQuery).toBe('');
     expect(component.showAllManagers).toBe(false);
@@ -43,14 +43,14 @@ describe('AdvancedFilters', () => {
 
   it('should accept input properties correctly', () => {
     component.showFilters = true;
-    component.projects = [{ id: '1', name: 'Test', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'John Doe', teamSize: 5 }];
+    component.projects = [{ id: '1', name: 'Test', projectCode: 'TST-001', status: 'Active', deliveryUnit: 'Engineering', projectManager: 'John Doe', teamSize: 5 }];
     component.statusOptions = ['Ongoing', 'Completed'];
-    component.priorityOptions = ['High', 'Medium'];
+    component.deliveryUnitOptions = ['Engineering', 'Product Management'];
 
     expect(component.showFilters).toBe(true);
     expect(component.projects.length).toBe(1);
     expect(component.statusOptions).toEqual(['Ongoing', 'Completed']);
-    expect(component.priorityOptions).toEqual(['High', 'Medium']);
+    expect(component.deliveryUnitOptions).toEqual(['Engineering', 'Product Management']);
   });
 
   it('should return false for hasActiveFilters when no filters selected', () => {
@@ -62,8 +62,8 @@ describe('AdvancedFilters', () => {
     expect(component.hasActiveFilters).toBe(true);
   });
 
-  it('should return true for hasActiveFilters when priorities are selected', () => {
-    component.selectedPriorities = ['High'];
+  it('should return true for hasActiveFilters when delivery units are selected', () => {
+    component.selectedDeliveryUnits = ['Engineering'];
     expect(component.hasActiveFilters).toBe(true);
   });
 
@@ -74,9 +74,9 @@ describe('AdvancedFilters', () => {
 
   it('should compute unique managers from projects data', () => {
     component.projects = [
-      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'John Doe', teamSize: 5 },
-      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'John Doe', teamSize: 3 },
-      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Jane Smith', teamSize: 8 }
+      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Active', deliveryUnit: 'Engineering', projectManager: 'John Doe', teamSize: 5 },
+      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', deliveryUnit: 'Engineering', projectManager: 'John Doe', teamSize: 3 },
+      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Active', deliveryUnit: 'Design', projectManager: 'Jane Smith', teamSize: 8 }
     ];
 
     expect(component.uniqueManagers).toEqual(['Jane Smith', 'John Doe']);
@@ -84,9 +84,9 @@ describe('AdvancedFilters', () => {
 
   it('should filter managers based on search query', () => {
     component.projects = [
-      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'John Doe', teamSize: 5 },
-      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'Jane Smith', teamSize: 3 },
-      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Bob Wilson', teamSize: 8 }
+      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Active', deliveryUnit: 'Engineering', projectManager: 'John Doe', teamSize: 5 },
+      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', deliveryUnit: 'Product Management', projectManager: 'Jane Smith', teamSize: 3 },
+      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Active', deliveryUnit: 'Design', projectManager: 'Bob Wilson', teamSize: 8 }
     ];
 
     component.managerSearchQuery = 'John';
@@ -101,11 +101,11 @@ describe('AdvancedFilters', () => {
 
   it('should limit filtered managers to first 4 when showAllManagers is false', () => {
     component.projects = [
-      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'Alice', teamSize: 5 },
-      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'Bob', teamSize: 3 },
-      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Charlie', teamSize: 8 },
-      { id: '4', name: 'Test4', projectCode: 'TST-004', status: 'On Hold', priority: 'High', projectManager: 'Diana', teamSize: 6 },
-      { id: '5', name: 'Test5', projectCode: 'TST-005', status: 'Archived', priority: 'Medium', projectManager: 'Eve', teamSize: 4 }
+      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Active', deliveryUnit: 'Engineering', projectManager: 'Alice', teamSize: 5 },
+      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', deliveryUnit: 'Product Management', projectManager: 'Bob', teamSize: 3 },
+      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Active', deliveryUnit: 'Design', projectManager: 'Charlie', teamSize: 8 },
+      { id: '4', name: 'Test4', projectCode: 'TST-004', status: 'Inactive', deliveryUnit: 'Engineering', projectManager: 'Diana', teamSize: 6 },
+      { id: '5', name: 'Test5', projectCode: 'TST-005', status: 'Completed', deliveryUnit: 'Product Management', projectManager: 'Eve', teamSize: 4 }
     ];
 
     expect(component.showAllManagers).toBe(false);
@@ -114,9 +114,9 @@ describe('AdvancedFilters', () => {
 
   it('should show all managers when showAllManagers is true', () => {
     component.projects = [
-      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'Alice', teamSize: 5 },
-      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'Bob', teamSize: 3 },
-      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Charlie', teamSize: 8 }
+      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Active', deliveryUnit: 'Engineering', projectManager: 'Alice', teamSize: 5 },
+      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', deliveryUnit: 'Product Management', projectManager: 'Bob', teamSize: 3 },
+      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Active', deliveryUnit: 'Design', projectManager: 'Charlie', teamSize: 8 }
     ];
 
     component.toggleShowAllManagers();
@@ -126,9 +126,9 @@ describe('AdvancedFilters', () => {
 
   it('should return correct displayed manager count', () => {
     component.projects = [
-      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'Alice', teamSize: 5 },
-      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'Bob', teamSize: 3 },
-      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Charlie', teamSize: 8 }
+      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Active', deliveryUnit: 'Engineering', projectManager: 'Alice', teamSize: 5 },
+      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', deliveryUnit: 'Product Management', projectManager: 'Bob', teamSize: 3 },
+      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Active', deliveryUnit: 'Design', projectManager: 'Charlie', teamSize: 8 }
     ];
 
     expect(component.displayedManagerCount).toBe(3);
@@ -136,34 +136,34 @@ describe('AdvancedFilters', () => {
 
   it('should return correct total manager count', () => {
     component.projects = [
-      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'Alice', teamSize: 5 },
-      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'Bob', teamSize: 3 },
-      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Charlie', teamSize: 8 }
+      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Active', deliveryUnit: 'Engineering', projectManager: 'Alice', teamSize: 5 },
+      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', deliveryUnit: 'Product Management', projectManager: 'Bob', teamSize: 3 },
+      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Active', deliveryUnit: 'Design', projectManager: 'Charlie', teamSize: 8 }
     ];
 
     expect(component.totalManagerCount).toBe(3);
   });
 
   it('should return correct active filter count', () => {
-    component.selectedStatuses = ['Ongoing', 'Completed'];
-    component.selectedPriorities = ['High'];
+    component.selectedStatuses = ['Active', 'Completed'];
+    component.selectedDeliveryUnits = ['Engineering'];
     component.selectedManagers = ['John Doe', 'Jane Smith'];
 
     expect(component.getActiveFilterCount()).toBe(5);
   });
 
   it('should check if status is selected correctly', () => {
-    component.selectedStatuses = ['Ongoing', 'Completed'];
+    component.selectedStatuses = ['Active', 'Completed'];
 
-    expect(component.isStatusSelected('Ongoing')).toBe(true);
-    expect(component.isStatusSelected('Planning')).toBe(false);
+    expect(component.isStatusSelected('Active')).toBe(true);
+    expect(component.isStatusSelected('Inactive')).toBe(false);
   });
 
-  it('should check if priority is selected correctly', () => {
-    component.selectedPriorities = ['High', 'Medium'];
+  it('should check if delivery unit is selected correctly', () => {
+    component.selectedDeliveryUnits = ['Engineering', 'Product Management'];
 
-    expect(component.isPrioritySelected('High')).toBe(true);
-    expect(component.isPrioritySelected('Low')).toBe(false);
+    expect(component.isDeliveryUnitSelected('Engineering')).toBe(true);
+    expect(component.isDeliveryUnitSelected('Design')).toBe(false);
   });
 
   it('should check if manager is selected correctly', () => {
@@ -176,32 +176,32 @@ describe('AdvancedFilters', () => {
   it('should toggle status filter correctly', () => {
     spyOn(component.filtersChanged, 'emit');
 
-    component.toggleStatusFilter('Ongoing');
-    expect(component.selectedStatuses).toEqual(['Ongoing']);
+    component.toggleStatusFilter('Active');
+    expect(component.selectedStatuses).toEqual(['Active']);
     expect(component.filtersChanged.emit).toHaveBeenCalledWith({
-      selectedStatuses: ['Ongoing'],
-      selectedPriorities: [],
+      selectedStatuses: ['Active'],
+      selectedDeliveryUnits: [],
       selectedManagers: []
     });
 
-    component.toggleStatusFilter('Ongoing'); // Remove
+    component.toggleStatusFilter('Active'); // Remove
     expect(component.selectedStatuses).toEqual([]);
     expect(component.filtersChanged.emit).toHaveBeenCalledTimes(2);
   });
 
-  it('should toggle priority filter correctly', () => {
+  it('should toggle delivery unit filter correctly', () => {
     spyOn(component.filtersChanged, 'emit');
 
-    component.togglePriorityFilter('High');
-    expect(component.selectedPriorities).toEqual(['High']);
+    component.toggleDeliveryUnitFilter('Engineering');
+    expect(component.selectedDeliveryUnits).toEqual(['Engineering']);
     expect(component.filtersChanged.emit).toHaveBeenCalledWith({
       selectedStatuses: [],
-      selectedPriorities: ['High'],
+      selectedDeliveryUnits: ['Engineering'],
       selectedManagers: []
     });
 
-    component.togglePriorityFilter('High'); // Remove
-    expect(component.selectedPriorities).toEqual([]);
+    component.toggleDeliveryUnitFilter('Engineering'); // Remove
+    expect(component.selectedDeliveryUnits).toEqual([]);
     expect(component.filtersChanged.emit).toHaveBeenCalledTimes(2);
   });
 
@@ -212,7 +212,7 @@ describe('AdvancedFilters', () => {
     expect(component.selectedManagers).toEqual(['John Doe']);
     expect(component.filtersChanged.emit).toHaveBeenCalledWith({
       selectedStatuses: [],
-      selectedPriorities: [],
+      selectedDeliveryUnits: [],
       selectedManagers: ['John Doe']
     });
 
@@ -229,20 +229,20 @@ describe('AdvancedFilters', () => {
     expect(component.selectedStatuses).toEqual(['Completed']);
     expect(component.filtersChanged.emit).toHaveBeenCalledWith({
       selectedStatuses: ['Completed'],
-      selectedPriorities: [],
+      selectedDeliveryUnits: [],
       selectedManagers: []
     });
   });
 
-  it('should remove priority filter correctly', () => {
+  it('should remove delivery unit filter correctly', () => {
     spyOn(component.filtersChanged, 'emit');
-    component.selectedPriorities = ['High', 'Medium'];
+    component.selectedDeliveryUnits = ['Engineering', 'Product Management'];
 
-    component.removePriorityFilter('High');
-    expect(component.selectedPriorities).toEqual(['Medium']);
+    component.removeDeliveryUnitFilter('Engineering');
+    expect(component.selectedDeliveryUnits).toEqual(['Product Management']);
     expect(component.filtersChanged.emit).toHaveBeenCalledWith({
       selectedStatuses: [],
-      selectedPriorities: ['Medium'],
+      selectedDeliveryUnits: ['Product Management'],
       selectedManagers: []
     });
   });
@@ -255,25 +255,25 @@ describe('AdvancedFilters', () => {
     expect(component.selectedManagers).toEqual(['Jane Smith']);
     expect(component.filtersChanged.emit).toHaveBeenCalledWith({
       selectedStatuses: [],
-      selectedPriorities: [],
+      selectedDeliveryUnits: [],
       selectedManagers: ['Jane Smith']
     });
   });
 
   it('should clear all filters correctly', () => {
     spyOn(component.filtersChanged, 'emit');
-    component.selectedStatuses = ['Ongoing'];
-    component.selectedPriorities = ['High'];
+    component.selectedStatuses = ['Active'];
+    component.selectedDeliveryUnits = ['Engineering'];
     component.selectedManagers = ['John Doe'];
 
     component.clearAllFilters();
 
     expect(component.selectedStatuses).toEqual([]);
-    expect(component.selectedPriorities).toEqual([]);
+    expect(component.selectedDeliveryUnits).toEqual([]);
     expect(component.selectedManagers).toEqual([]);
     expect(component.filtersChanged.emit).toHaveBeenCalledWith({
       selectedStatuses: [],
-      selectedPriorities: [],
+      selectedDeliveryUnits: [],
       selectedManagers: []
     });
   });
@@ -299,7 +299,7 @@ describe('AdvancedFilters', () => {
 
   it('should handle case insensitive manager search', () => {
     component.projects = [
-      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'John Doe', teamSize: 5 }
+      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Active', deliveryUnit: 'Engineering', projectManager: 'John Doe', teamSize: 5 }
     ];
 
     component.managerSearchQuery = 'JOHN';
@@ -311,9 +311,9 @@ describe('AdvancedFilters', () => {
 
   it('should handle null and undefined project managers', () => {
     component.projects = [
-      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: null, teamSize: 5 },
-      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: undefined, teamSize: 3 },
-      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: '', teamSize: 4 }
+      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Active', deliveryUnit: 'Engineering', projectManager: null, teamSize: 5 },
+      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', deliveryUnit: 'Product Management', projectManager: undefined, teamSize: 3 },
+      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Active', deliveryUnit: 'Design', projectManager: '', teamSize: 4 }
     ] as any;
 
     const uniqueManagers = component.uniqueManagers as any[];
@@ -327,38 +327,38 @@ describe('AdvancedFilters', () => {
     spyOn(component.filtersChanged, 'emit');
 
     component.selectedStatuses = ['Ongoing'];
-    component.selectedPriorities = ['High'];
+    component.selectedDeliveryUnits = ['Engineering'];
     component.selectedManagers = ['John Doe'];
 
     component.clearAllFilters();
 
     expect(component.filtersChanged.emit).toHaveBeenCalledWith({
       selectedStatuses: [],
-      selectedPriorities: [],
+      selectedDeliveryUnits: [],
       selectedManagers: []
     });
   });
 
   it('should maintain filter state independently', () => {
-    component.selectedStatuses = ['Ongoing'];
-    component.selectedPriorities = ['High'];
+    component.selectedStatuses = ['Active'];
+    component.selectedDeliveryUnits = ['Engineering'];
     component.selectedManagers = ['John Doe'];
 
-    expect(component.selectedStatuses).toEqual(['Ongoing']);
-    expect(component.selectedPriorities).toEqual(['High']);
+    expect(component.selectedStatuses).toEqual(['Active']);
+    expect(component.selectedDeliveryUnits).toEqual(['Engineering']);
     expect(component.selectedManagers).toEqual(['John Doe']);
 
-    component.removeStatusFilter('Ongoing');
+    component.removeStatusFilter('Active');
     expect(component.selectedStatuses).toEqual([]);
-    expect(component.selectedPriorities).toEqual(['High']); // Should remain
+    expect(component.selectedDeliveryUnits).toEqual(['Engineering']); // Should remain
     expect(component.selectedManagers).toEqual(['John Doe']); // Should remain
   });
 
   it('should handle multiple manager filtering with search', () => {
     component.projects = [
-      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'John Smith', teamSize: 5 },
-      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'John Doe', teamSize: 3 },
-      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Jane Smith', teamSize: 8 }
+      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Active', deliveryUnit: 'Engineering', projectManager: 'John Smith', teamSize: 5 },
+      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', deliveryUnit: 'Product Management', projectManager: 'John Doe', teamSize: 3 },
+      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Active', deliveryUnit: 'Design', projectManager: 'Jane Smith', teamSize: 8 }
     ];
 
     component.managerSearchQuery = 'John';
@@ -369,8 +369,8 @@ describe('AdvancedFilters', () => {
   });
 
   it('should handle complex filter combinations correctly', () => {
-    component.selectedStatuses = ['Ongoing', 'Completed'];
-    component.selectedPriorities = ['High', 'Medium'];
+    component.selectedStatuses = ['Active', 'Completed'];
+    component.selectedDeliveryUnits = ['Engineering', 'Product Management'];
     component.selectedManagers = ['John Doe'];
 
     expect(component.hasActiveFilters).toBe(true);

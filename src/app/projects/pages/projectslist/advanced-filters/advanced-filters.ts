@@ -6,8 +6,8 @@ interface Project {
   id: string;
   name: string;
   projectCode: string;
-  status: 'Ongoing' | 'On Hold' | 'Completed' | 'Planning' | 'Archived';
-  priority: 'High' | 'Medium' | 'Low' | 'Critical';
+  status: 'Active' | 'Inactive' | 'Completed';
+  deliveryUnit: string;
   projectManager: string;
   teamSize: number;
   selected?: boolean;
@@ -24,17 +24,17 @@ export class AdvancedFilters {
   @Input() showFilters = false;
   @Input() projects: Project[] = [];
   @Input() statusOptions: string[] = [];
-  @Input() priorityOptions: string[] = [];
+  @Input() deliveryUnitOptions: string[] = [];
 
   @Output() filtersChanged = new EventEmitter<{
     selectedStatuses: string[];
-    selectedPriorities: string[];
+    selectedDeliveryUnits: string[];
     selectedManagers: string[];
   }>();
 
   // Filter state
   selectedStatuses: string[] = [];
-  selectedPriorities: string[] = [];
+  selectedDeliveryUnits: string[] = [];
   selectedManagers: string[] = [];
 
   // Manager search
@@ -44,7 +44,7 @@ export class AdvancedFilters {
   // Getters
   get hasActiveFilters(): boolean {
     return this.selectedStatuses.length > 0 ||
-           this.selectedPriorities.length > 0 ||
+           this.selectedDeliveryUnits.length > 0 ||
            this.selectedManagers.length > 0;
   }
 
@@ -77,7 +77,7 @@ export class AdvancedFilters {
 
   getActiveFilterCount(): number {
     return this.selectedStatuses.length +
-           this.selectedPriorities.length +
+           this.selectedDeliveryUnits.length +
            this.selectedManagers.length;
   }
 
@@ -86,8 +86,8 @@ export class AdvancedFilters {
     return this.selectedStatuses.includes(status);
   }
 
-  isPrioritySelected(priority: string): boolean {
-    return this.selectedPriorities.includes(priority);
+  isDeliveryUnitSelected(deliveryUnit: string): boolean {
+    return this.selectedDeliveryUnits.includes(deliveryUnit);
   }
 
   isManagerSelected(manager: string): boolean {
@@ -104,12 +104,12 @@ export class AdvancedFilters {
     this.emitFiltersChanged();
   }
 
-  togglePriorityFilter(priority: string): void {
-    const index = this.selectedPriorities.indexOf(priority);
+  toggleDeliveryUnitFilter(deliveryUnit: string): void {
+    const index = this.selectedDeliveryUnits.indexOf(deliveryUnit);
     if (index > -1) {
-      this.selectedPriorities.splice(index, 1);
+      this.selectedDeliveryUnits.splice(index, 1);
     } else {
-      this.selectedPriorities.push(priority);
+      this.selectedDeliveryUnits.push(deliveryUnit);
     }
     this.emitFiltersChanged();
   }
@@ -129,8 +129,8 @@ export class AdvancedFilters {
     this.emitFiltersChanged();
   }
 
-  removePriorityFilter(priority: string): void {
-    this.selectedPriorities = this.selectedPriorities.filter(p => p !== priority);
+  removeDeliveryUnitFilter(deliveryUnit: string): void {
+    this.selectedDeliveryUnits = this.selectedDeliveryUnits.filter(d => d !== deliveryUnit);
     this.emitFiltersChanged();
   }
 
@@ -141,7 +141,7 @@ export class AdvancedFilters {
 
   clearAllFilters(): void {
     this.selectedStatuses = [];
-    this.selectedPriorities = [];
+    this.selectedDeliveryUnits = [];
     this.selectedManagers = [];
     this.emitFiltersChanged();
   }
@@ -153,7 +153,7 @@ export class AdvancedFilters {
   private emitFiltersChanged(): void {
     this.filtersChanged.emit({
       selectedStatuses: [...this.selectedStatuses],
-      selectedPriorities: [...this.selectedPriorities],
+      selectedDeliveryUnits: [...this.selectedDeliveryUnits],
       selectedManagers: [...this.selectedManagers]
     });
   }
