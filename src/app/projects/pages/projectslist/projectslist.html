@@ -91,7 +91,7 @@
       <app-custom-button
         (action)="deleteSelected()"
         label="Remove Selected"
-        icon="images/delete.svg"
+        icon="images/trash-white.svg"
         bgClass="bg-red-600"
         textColor="text-white"
         hoverClass="hover:bg-red-700"
@@ -107,8 +107,11 @@
       [data]="tableData"
       [showCheckbox]="true"
       [itemsPerPage]="10"
+      [selectAllAcrossPages]="true"
+      [rowClickAction]="'navigate'"
       (actionClick)="handleTableAction($event)"
       (selectionChange)="handleSelectionChange($event)"
+      (rowClick)="handleRowClick($event)"
     >
     </app-table>
   </div>

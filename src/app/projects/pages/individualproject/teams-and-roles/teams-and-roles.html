@@ -99,7 +99,7 @@
       [itemsPerPage]="10"
       [selectAllAcrossPages]="true"
       [clearSelections]="clearTableSelections"
-      [selectedItems]="selectedItems"
+      [rowClickAction]="'select'"
       (actionClick)="handleTableAction($event)"
       (selectionChange)="onSelectionChange($event)"
     ></app-table>

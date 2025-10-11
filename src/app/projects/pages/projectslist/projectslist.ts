@@ -109,7 +109,7 @@ export class Projectslist implements AfterViewChecked {
         { label: 'View Details', icon: 'images/eye.svg', action: 'view' },
         { label: 'Edit', icon: 'images/edit.svg', action: 'edit' },
         { label: 'Archive', icon: 'images/archive.svg', action: 'archive' },
-        { label: 'Delete', icon: 'images/delete.svg', action: 'delete', class: 'danger' }
+        { label: 'Delete', icon: 'images/trash-white.svg', action: 'delete', class: 'danger' }
       ]
     }
   ];
@@ -376,6 +376,14 @@ export class Projectslist implements AfterViewChecked {
         this.projectToDelete = project || null;
         this.showDeleteModal = true;
         break;
+    }
+  }
+
+  handleRowClick(event: { row: any; index: number }): void {
+    const projectId = event.row.actions; // The actions field contains the project ID
+    const project = this.projects.find(p => p.id === projectId);
+    if (project) {
+      this.onRowClick(project);
     }
   }
 

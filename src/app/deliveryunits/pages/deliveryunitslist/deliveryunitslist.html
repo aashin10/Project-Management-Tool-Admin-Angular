@@ -40,7 +40,9 @@
     [data]="filteredDeliveryUnits"
     [showCheckbox]="true"
     [itemsPerPage]="10"
+    [rowClickAction]="'select'"
     (actionClick)="onActionClick($event)"
+    (selectionChange)="onSelectionChange($event)"
   >
   </app-table>
 
