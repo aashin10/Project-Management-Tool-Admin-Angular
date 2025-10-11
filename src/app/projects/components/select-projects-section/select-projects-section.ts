@@ -15,10 +15,10 @@ import { LoadingIndicator } from '../../../shared/loading-indicator/loading-indi
 export class SelectProjectsSection implements OnInit {
   constructor(private jiraService: Jiraservice, private cdr: ChangeDetectorRef) {}
 
-  projects: ImportProjectMinimal[] = [];
-  allProjects: ImportProjectMinimal[] = [];
-  loadingProjects: boolean = true;
-  cloudIds: AccessibleResource[] = [];
+  projects: any[] = [];
+  allProjects: any[] = [];
+  loadingProjects: boolean = false;
+  cloudIds: any[] | undefined = [];
 
   dropdownOpen: boolean = false;
 
@@ -40,6 +40,7 @@ export class SelectProjectsSection implements OnInit {
   }
 
   async ngOnInit() {
+    this.loadingProjects = true;
     const token = sessionStorage.getItem('jira_access_token');
     if (token) {
       const ids = await this.jiraService.getAccessibleResources(token);

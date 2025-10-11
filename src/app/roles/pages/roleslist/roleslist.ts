@@ -19,6 +19,7 @@ interface Role {
   created: string;
   cloneFrom?: string;
   permissions?: string[];
+  isDefault?: boolean; // Flag for default roles
 }
  
 @Component({
@@ -40,42 +41,54 @@ export class Roleslist {
   isModalOpen = false;
   isEditMode = false;
   editingIndex: number = -1;
+  
+  // Tooltip properties for roles
+  hoveredRole: Role | null = null;
+  tooltipPosition = { x: 0, y: 0 };
+  private tooltipTimeout: any;
+
+  // Tooltip properties for actions
+  actionTooltip: string = '';
+  actionTooltipPosition = { x: 0, y: 0 };
  
   roles: Role[] = [
     { 
-      roleInfo: { icon: 'shield', name: 'Admin' }, 
-      description: 'Full access to system', 
-      users: 10, 
-      created: '2024-01-05', 
-      permissions: ['Sprint Creation', 'Admin to Admin Creation'] 
+      roleInfo: { icon: 'shield', name: 'Administrator' }, 
+      description: 'Full system access with all permissions', 
+      users: 3, 
+      created: '2024-01-01', 
+      permissions: ['Sprint Creation', 'Admin to Admin Creation', 'View Private Tickets', 'Public View'],
+      isDefault: true
+    },
+    { 
+      roleInfo: { icon: 'shield', name: 'Member' }, 
+      description: 'Standard member with private and public access', 
+      users: 15, 
+      created: '2024-01-01', 
+      permissions: ['View Private Tickets', 'Public View'],
+      isDefault: true
+    },
+    { 
+      roleInfo: { icon: 'shield', name: 'Customer' }, 
+      description: 'Customer with public view access only', 
+      users: 8, 
+      created: '2024-01-01', 
+      permissions: ['Public View'],
+      isDefault: true
     },
     { 
       roleInfo: { icon: 'shield', name: 'Manager' }, 
       description: 'Manage teams and projects', 
       users: 6, 
       created: '2024-02-12', 
-      permissions: ['Sprint Creation'] 
-    },
-    { 
-      roleInfo: { icon: 'shield', name: 'Employee' }, 
-      description: 'Basic access', 
-      users: 20, 
-      created: '2024-03-21', 
-      permissions: ['View Private Tickets'] 
+      permissions: ['Sprint Creation', 'View Private Tickets', 'Public View'] 
     },
     { 
       roleInfo: { icon: 'shield', name: 'HR' }, 
       description: 'Manages employee data', 
       users: 5, 
       created: '2024-04-10', 
-      permissions: ['Sprint Creation'] 
-    },
-    { 
-      roleInfo: { icon: 'shield', name: 'Finance' }, 
-      description: 'Handles financial records', 
-      users: 4, 
-      created: '2024-05-02', 
-      permissions: ['View Private Tickets'] 
+      permissions: ['Sprint Creation', 'Public View'] 
     }
   ];
  
@@ -84,16 +97,20 @@ export class Roleslist {
   columns: TableColumn[] = [
     { header: 'Role Name', field: 'roleInfo', type: 'roleIcon', width: '25%' },
     { header: 'Description', field: 'description', type: 'text', width: '35%' },
-    { header: 'Users', field: 'users', type: 'text' },
-    { header: 'Created', field: 'created', type: 'text' },
+    { 
+      header: 'Users', 
+      field: 'users', 
+      type: 'text',
+      width: '10%',
+      icon: 'images/team-size.svg',
+      align: 'left' as const
+    },
+    { header: 'Created', field: 'created', type: 'text', width: '15%' },
     {
       header: 'Actions',
       field: 'actions',
-      type: 'actions',
-      actions: [
-        { label: 'Edit', action: 'edit', icon: 'images/edit.svg' },
-        { label: 'Delete', action: 'delete', icon: 'images/delete.svg', class: 'danger' }
-      ]
+      type: 'text', // Changed to text to hide the 3-dot menu
+      width: '15%'
     }
   ];
  
@@ -106,7 +123,55 @@ export class Roleslist {
     permissions: []
   };
  
-  permissionsList = ['Sprint Creation', 'Admin to Admin Creation', 'View Private Tickets'];
+  permissionsList = [
+    'Sprint Creation', 
+    'Admin to Admin Creation', 
+    'View Private Tickets', 
+    'Public View'
+  ];
+
+  // Show role tooltip with delay
+  showRoleTooltip(event: MouseEvent, role: Role) {
+    clearTimeout(this.tooltipTimeout);
+    this.tooltipTimeout = setTimeout(() => {
+      this.hoveredRole = role;
+      this.updateTooltipPosition(event);
+    }, 300); // 300ms delay before showing
+  }
+
+  // Hide role tooltip
+  hideRoleTooltip() {
+    clearTimeout(this.tooltipTimeout);
+    this.hoveredRole = null;
+  }
+
+  // Update tooltip position to appear next to cursor
+  updateTooltipPosition(event: MouseEvent) {
+    this.tooltipPosition = {
+      x: event.clientX + 20,
+      y: event.clientY - 10
+    };
+  }
+
+  // Show action tooltip (Edit/Delete)
+  showActionTooltip(event: MouseEvent, action: string, isDisabled: boolean = false) {
+    if (isDisabled) {
+      this.actionTooltip = `${action} (Disabled for default roles)`;
+    } else {
+      this.actionTooltip = action;
+    }
+    
+    const rect = (event.target as HTMLElement).getBoundingClientRect();
+    this.actionTooltipPosition = {
+      x: rect.left + rect.width / 2 - 25,
+      y: rect.top - 32
+    };
+  }
+
+  // Hide action tooltip
+  hideActionTooltip() {
+    this.actionTooltip = '';
+  }
  
   // 🔍 Search filter
   onSearch(term: string) {
@@ -142,8 +207,45 @@ export class Roleslist {
     }
   }
  
+  // Handle edit button click
+  handleEditClick(role: Role, event: Event) {
+    event.stopPropagation();
+    if (role.isDefault) {
+      return;
+    }
+    
+    const index = this.roles.findIndex(r => 
+      r.roleInfo.name === role.roleInfo.name && r.created === role.created
+    );
+    
+    if (index !== -1) {
+      this.editRole(role, index);
+    }
+  }
+
+  // Handle delete button click
+  handleDeleteClick(role: Role, event: Event) {
+    event.stopPropagation();
+    if (role.isDefault) {
+      return;
+    }
+    
+    const index = this.roles.findIndex(r => 
+      r.roleInfo.name === role.roleInfo.name && r.created === role.created
+    );
+    
+    if (index !== -1) {
+      this.deleteRole(index);
+    }
+  }
+
   // ✏️ Edit role (prefills modal)
   editRole(role: Role, index: number) {
+    // Don't allow editing default roles
+    if (role.isDefault) {
+      return;
+    }
+
     this.isEditMode = true;
     this.editingIndex = index;
     this.newRole = {
@@ -202,7 +304,8 @@ export class Roleslist {
       users: this.newRole.users || 0,
       created: this.newRole.created || new Date().toISOString().split('T')[0],
       cloneFrom: this.newRole.cloneFrom,
-      permissions: [...this.newRole.permissions]
+      permissions: [...this.newRole.permissions],
+      isDefault: false
     };
  
     if (this.isEditMode && this.editingIndex > -1) {
@@ -229,7 +332,14 @@ export class Roleslist {
  
   // 🗑️ Delete role
   deleteRole(index: number) {
-    if (confirm(`Delete role "${this.roles[index].roleInfo.name}"?`)) {
+    const role = this.roles[index];
+    
+    // Don't allow deleting default roles
+    if (role.isDefault) {
+      return;
+    }
+
+    if (confirm(`Delete role "${role.roleInfo.name}"?`)) {
       this.roles.splice(index, 1);
       this.filteredRoles = [...this.roles];
       alert('Role deleted successfully!');
@@ -255,7 +365,7 @@ export class Roleslist {
     }
   }
  
-  // ⚙️ Table actions (Edit/Delete)
+  // ⚙️ Table actions (Edit/Delete) - Not used now as we have custom buttons
   handleTableAction(event: { action: string; row: Role; rowIndex?: number }) {
     const { action, row } = event;
     const index = this.roles.findIndex(r => 
@@ -264,6 +374,11 @@ export class Roleslist {
     
     if (index === -1) {
       console.error('Role not found:', row);
+      return;
+    }
+
+    // Don't allow actions on default roles
+    if (row.isDefault && (action === 'edit' || action === 'delete')) {
       return;
     }
  

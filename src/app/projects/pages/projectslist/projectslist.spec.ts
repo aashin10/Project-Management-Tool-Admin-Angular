@@ -33,14 +33,10 @@ describe('Projectslist Component', () => {
   function resetComponentState() {
     component.searchQuery = '';
     component.selectedStatuses = [];
-    component.selectedPriorities = [];
+    component.selectedDeliveryUnits = [];
     component.selectedManagers = [];
-    component.sortCriteria = null;
-    component.currentPage = 1;
-    component.rowsPerPage = 10;
     component.showDeleteModal = false;
-    component.showActionsMenu = false;
-    component.activeProjectId = null;
+    component.projectToDelete = null;
     component.projects.forEach(p => p.selected = false);
   }
 
@@ -53,10 +49,8 @@ describe('Projectslist Component', () => {
   it('should initialize with correct default properties', () => {
     expect(component.showFilters).toBe(false);
     expect(component.searchQuery).toBe('');
-    expect(component.currentPage).toBe(1);
-    expect(component.rowsPerPage).toBe(10);
-    expect(component.sortCriteria).toBeNull();
     expect(component.showDeleteModal).toBe(false);
+    expect(component.projectToDelete).toBeNull();
   });
 
   // Test 3: Projects Data
@@ -65,7 +59,8 @@ describe('Projectslist Component', () => {
     expect(component.projects[0]).toEqual(jasmine.objectContaining({
       id: '1',
       name: 'Atlas App',
-      status: 'Ongoing'
+      status: 'Active',
+      deliveryUnit: 'Engineering'
     }));
   });
 
@@ -81,69 +76,26 @@ describe('Projectslist Component', () => {
 
   // Test 5: Status Filtering
   it('should filter projects by status', () => {
-    component.selectedStatuses = ['Ongoing'];
+    component.selectedStatuses = ['Active'];
     const filtered = component.filteredProjects;
-    expect(filtered.every(p => p.status === 'Ongoing')).toBe(true);
+    expect(filtered.every(p => p.status === 'Active')).toBe(true);
   });
 
   // Test 6: Combined Filtering
   it('should apply multiple filters simultaneously', () => {
     component.searchQuery = 'App';
-    component.selectedStatuses = ['Ongoing'];
-    component.selectedPriorities = ['High'];
+    component.selectedStatuses = ['Active'];
+    component.selectedDeliveryUnits = ['Engineering'];
 
     const filtered = component.filteredProjects;
     expect(filtered.length).toBeGreaterThan(0);
     filtered.forEach(project => {
-      expect(project.status).toBe('Ongoing');
-      expect(project.priority).toBe('High');
+      expect(project.status).toBe('Active');
+      expect(project.deliveryUnit).toBe('Engineering');
     });
   });
 
-  // Test 7: Sorting by Name
-  it('should sort projects by name', () => {
-    component.sortBy('name');
-    expect(component.sortCriteria).toEqual({ field: 'name', direction: 'asc' });
 
-    component.sortBy('name'); // Toggle to desc
-    expect(component.sortCriteria?.direction).toBe('desc');
-
-    component.sortBy('name'); // Remove sorting
-    expect(component.sortCriteria).toBeNull();
-  });
-
-  // Test 8: Sorting by Status and Priority
-  it('should sort projects by status and priority', () => {
-    component.sortBy('status');
-    expect(component.sortCriteria?.field).toBe('status');
-    expect(component.getSortDirection('status')).toBe('asc');
-
-    component.sortBy('priority');
-    expect(component.sortCriteria?.field).toBe('priority');
-    expect(component.getFieldLabel('priority')).toBe('Priority');
-  });
-
-  // Test 9: Pagination Navigation
-  it('should handle pagination navigation', () => {
-    component.handleNextPage();
-    expect(component.currentPage).toBe(2);
-
-    component.handlePreviousPage();
-    expect(component.currentPage).toBe(1);
-
-    component.handleFirstPage();
-    expect(component.currentPage).toBe(1);
-
-    component.handleLastPage();
-    expect(component.currentPage).toBe(component.totalPages);
-  });
-
-  // Test 10: Rows Per Page Change
-  it('should handle rows per page changes', () => {
-    component.handleRowsPerPageChange(25);
-    expect(component.rowsPerPage).toBe(25);
-    expect(component.currentPage).toBe(1);
-  });
 
   // Test 11: Project Selection
   it('should handle individual project selection', () => {
@@ -166,18 +118,18 @@ describe('Projectslist Component', () => {
     expect(component.selectedProjects.length).toBe(0);
   });
 
-  // Test 13: Row Click Behavior
-  it('should handle row clicks correctly', () => {
-    // Without selections - navigate
-    component.onRowClick(component.projects[0]);
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/projects', component.projects[0].id]);
+  // Test 13: Selection Change Handling
+  it('should handle selection changes from shared table', () => {
+    const selectedRows = [
+      { actions: '1', projectInfo: { name: 'Atlas App', initials: 'AT' } },
+      { actions: '2', projectInfo: { name: 'RoadSim', initials: 'RO' } }
+    ];
 
-    // With selections - toggle selection
-    component.projects[1].selected = true;
-    routerSpy.navigate.calls.reset();
-    component.onRowClick(component.projects[0]);
+    component.handleSelectionChange(selectedRows);
+
     expect(component.projects[0].selected).toBe(true);
-    expect(routerSpy.navigate).not.toHaveBeenCalled();
+    expect(component.projects[1].selected).toBe(true);
+    expect(component.selectedProjects.length).toBe(2);
   });
 
   // Test 14: Navigation Methods
@@ -192,39 +144,25 @@ describe('Projectslist Component', () => {
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/projects/create']);
   });
 
-  // Test 15: Actions Menu
-  it('should toggle actions menu', () => {
-    const event = new Event('click');
-    spyOn(event, 'stopPropagation');
-
-    component.toggleActionsMenu('1', event);
-    expect(component.showActionsMenu).toBe(true);
-    expect(component.activeProjectId).toBe('1');
-
-    component.closeActionsMenu();
-    expect(component.showActionsMenu).toBe(false);
-    expect(component.activeProjectId).toBeNull();
-  });
 
   // Test 16: Filter Changes
   it('should handle filter changes', () => {
     const filters = {
-      selectedStatuses: ['Ongoing'],
-      selectedPriorities: ['High'],
+      selectedStatuses: ['Active'],
+      selectedDeliveryUnits: ['Engineering'],
       selectedManagers: ['Asha Varma']
     };
 
     component.onFiltersChanged(filters);
-    expect(component.selectedStatuses).toEqual(['Ongoing']);
-    expect(component.selectedPriorities).toEqual(['High']);
-    expect(component.currentPage).toBe(1);
+    expect(component.selectedStatuses).toEqual(['Active']);
+    expect(component.selectedDeliveryUnits).toEqual(['Engineering']);
   });
 
   // Test 17: Archive Project
   it('should archive project', () => {
     const project = component.projects.find(p => p.id === '1');
     component.archiveProject('1');
-    expect(project?.status).toBe('Archived');
+    expect(project?.status).toBe('Inactive');
   });
 
   // Test 18: Single Delete
@@ -248,7 +186,7 @@ describe('Projectslist Component', () => {
   // Test 20: Cancel Delete
   it('should cancel delete operation', () => {
     component.showDeleteModal = true;
-    component.projectToDelete = '1';
+    component.projectToDelete = component.projects[0];
 
     component.cancelDelete();
     expect(component.showDeleteModal).toBe(false);
@@ -261,19 +199,18 @@ describe('Projectslist Component', () => {
     expect(component.showDeleteModal).toBe(false);
   });
 
-  // Test 22: Search Change
-  it('should reset page on search change', () => {
-    component.currentPage = 3;
-    component.onSearchChange();
-    expect(component.currentPage).toBe(1);
-  });
+  // Test 23: Selection Change Handling
+  it('should handle selection changes from shared table', () => {
+    const selectedRows = [
+      { actions: '1', projectInfo: { name: 'Atlas App', initials: 'AT' } },
+      { actions: '2', projectInfo: { name: 'RoadSim', initials: 'RO' } }
+    ];
 
-  // Test 23: Helper Methods
-  it('should provide correct helper method results', () => {
-    expect(component.getProjectName('1')).toBe('Atlas App');
-    expect(component.getProjectName('999')).toBe('');
-    expect(component.getFieldLabel('name')).toBe('Project Name');
-    expect(component.hasActiveSorting).toBe(false);
+    component.handleSelectionChange(selectedRows);
+
+    expect(component.projects[0].selected).toBe(true);
+    expect(component.projects[1].selected).toBe(true);
+    expect(component.selectedProjects.length).toBe(2);
   });
 
   // Test 24: Edge Cases
@@ -286,27 +223,7 @@ describe('Projectslist Component', () => {
     component.viewDetails('999');
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/projects', '999']);
 
-    // Pagination bounds
-    component.currentPage = 1;
-    component.handlePreviousPage();
-    expect(component.currentPage).toBe(1);
   });
 
-  // Test 25: Complex Sorting
-  it('should handle complex sorting for all sortable fields', () => {
-    const sortFields: ('name' | 'status' | 'priority' | 'projectManager' | 'teamSize')[] =
-      ['name', 'status', 'priority', 'projectManager', 'teamSize'];
-
-    sortFields.forEach(field => {
-      component.sortBy(field);
-      expect(component.sortCriteria?.field).toBe(field);
-      expect(component.sortCriteria?.direction).toBe('asc');
-
-      component.sortBy(field); // Toggle direction
-      expect(component.sortCriteria?.direction).toBe('desc');
-
-      component.sortBy(field); // Remove sorting
-      expect(component.sortCriteria).toBeNull();
-    });
-  });
 });
+
