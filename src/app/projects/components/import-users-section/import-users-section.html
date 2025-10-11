@@ -24,7 +24,9 @@
       <p class="mb-2 text-sm">
         <span class="font-semibold">Upload CSV File </span>
       </p>
-      <p class="text-xs text-gray-500">CSV should contain: Name, Email, JIRA Id columns</p>
+      <p class="text-xs text-gray-500 hidden md:block">
+        CSV should contain: Name, Email, JIRA Id columns
+      </p>
     </div>
     <input
       id="dropzone-file"
@@ -57,17 +59,17 @@
     <span>File imported successfully!</span>
   </div>
 
-  <div class="flex justify-around w-full mt-6">
+  <div class="flex gap-2 justify-around w-full mt-6">
     <app-custom-button
       label="Skip for Now"
       shortLabel="Skip"
       (action)="onContinue()"
-      bgClass="bg-blue-white border border-gray-300 hover:bg-gray-50 w-52"
+      bgClass="bg-blue-white border border-gray-300 hover:bg-gray-50 md:w-48 w-24"
     ></app-custom-button>
     <app-custom-button
       label="Continue"
       shortLabel="Continue"
-      bgClass="bg-[#0052cc] border border-gray-300 w-52"
+      bgClass="bg-[#0052cc] border border-gray-300 md:w-48 w-24"
       [hoverClass]="'hover:bg-[#0052cce6]'"
       (action)="onContinue()"
       [textColor]="'text-white'"

@@ -39,13 +39,15 @@
     [projects]="projects"
   ></app-importprojectslist>
 
-  <app-custom-button
-    label="Import Selected Projects"
-    shortLabel="Import"
-    bgClass="bg-[#0052cc] border border-gray-300 w-full"
-    [hoverClass]="'hover:bg-[#0052cce6]'"
-    [textColor]="'text-white'"
-    class="w-full"
-    [icon]="'/images/import.svg'"
-  ></app-custom-button>
+  <div class="w-full md:max-w-md mt-4 flex justify-center">
+    <app-custom-button
+      label="Import Projects"
+      class="w-3/4 flex justify-center items-center"
+      shortLabel="Import"
+      bgClass="bg-[#0052cc] border border-gray-300 w-3/4"
+      [hoverClass]="'hover:bg-[#0052cce6]'"
+      [textColor]="'text-white'"
+      [icon]="'/images/import-white.svg'"
+    ></app-custom-button>
+  </div>
 </ng-container>
