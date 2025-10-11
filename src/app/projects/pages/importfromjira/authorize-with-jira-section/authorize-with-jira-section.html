@@ -1,12 +1,31 @@
-<ng-container>
-  <app-custom-button
-    class="w-3/4 flex justify-center items-center"
-    label="Authorize"
-    shortLabel="Authorize"
-    bgClass="bg-[#0052cc] border border-gray-300 w-3/4"
-    (action)="onAuthorize()"
-    [hoverClass]="'hover:bg-[#0052cce6]'"
-    [textColor]="'text-white'"
-    [icon]="'/images/jira.svg'"
-  ></app-custom-button>
+<ng-container class="flex flex-col items-center space-y-2">
+  <div class="w-full flex justify-center">
+    <app-custom-button
+      class="w-3/4 flex justify-center items-center"
+      [label]="buttonLabel"
+      shortLabel="Authorize"
+      bgClass="bg-[#0052cc] border border-gray-300 w-3/4"
+      (action)="onAuthorize()"
+      [hoverClass]="'hover:bg-[#0052cce6]'"
+      [textColor]="'text-white'"
+      [icon]="'/images/jira.svg'"
+    ></app-custom-button>
+  </div>
+
+  <div>
+    <p class="text-xs text-gray-500 mt-2 text-center" *ngIf="!validAccessToken">
+      By clicking Authorize, you will be redirected to Jira to authorize access.
+    </p>
+  </div>
+
+  <div *ngIf="validAccessToken" class="w-full flex justify-center">
+    <app-custom-button
+      class="w-3/4 flex justify-center items-center mt-2"
+      [label]="'Continue'"
+      [shortLabel]="'Continue'"
+      [bgClass]="'bg-green-600 border border-gray-300 w-3/4'"
+      [hoverClass]="'hover:bg-green-700'"
+      [textColor]="'text-white'"
+    ></app-custom-button>
+  </div>
 </ng-container>
