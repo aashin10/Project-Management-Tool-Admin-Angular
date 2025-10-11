@@ -1,19 +1,19 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { CustomButton } from '../../../shared/custom-button/custom-button';
-import { SearchBar } from '../../../shared/components/search-bar/search-bar';
-import { Importprojectslist } from '../importprojectslist/importprojectslist';
-import { Jiraservice } from '../../pages/importfromjira/jiraservice';
 import { CommonModule } from '@angular/common';
-import { LoadingIndicator } from '../../../shared/loading-indicator/loading-indicator';
+import { CustomButton } from '../../../../shared/custom-button/custom-button';
+import { SearchBar } from '../../../../shared/components/search-bar/search-bar';
+import { LoadingIndicator } from '../../../../shared/loading-indicator/loading-indicator';
+import { ImportProjectCardList } from '../import-projects-list/import-project-card-list';
+import { JiraService } from '../services/jira-service';
 
 @Component({
   selector: 'app-select-projects-section',
-  imports: [CustomButton, SearchBar, Importprojectslist, CommonModule, LoadingIndicator],
+  imports: [CustomButton, SearchBar, ImportProjectCardList, CommonModule, LoadingIndicator],
   templateUrl: './select-projects-section.html',
   styleUrl: './select-projects-section.css',
 })
 export class SelectProjectsSection implements OnInit {
-  constructor(private jiraService: Jiraservice, private cdr: ChangeDetectorRef) {}
+  constructor(private jiraService: JiraService, private cdr: ChangeDetectorRef) {}
 
   projects: any[] = [];
   allProjects: any[] = [];

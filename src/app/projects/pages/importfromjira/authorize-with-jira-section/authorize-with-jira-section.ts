@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
-import { CustomButton } from '../../../shared/custom-button/custom-button';
-import { Importnavigationservice } from '../../pages/importfromjira/importnavigationservice';
-import { environment } from '../../../../environments/environment';
+import { CustomButton } from '../../../../shared/custom-button/custom-button';
+import { ImportNavigationService } from '../services/import-navigation-service';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-authorize-with-jira-section',
@@ -10,7 +10,7 @@ import { environment } from '../../../../environments/environment';
   styleUrl: './authorize-with-jira-section.css',
 })
 export class AuthorizeWithJiraSection {
-  public constructor(private importNavigationService: Importnavigationservice) {}
+  public constructor(private importNavigationService: ImportNavigationService) {}
   url =
     'https://auth.atlassian.com/authorize?' +
     'audience=api.atlassian.com&' +

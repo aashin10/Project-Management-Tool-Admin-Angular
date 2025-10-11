@@ -1,11 +1,11 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { environment } from '../../../../environments/environment';
+import { environment } from '../../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
-export class Jiraservice {
+export class JiraService {
   constructor(private http: HttpClient) {}
 
   async exchangeToken(authCode: string): Promise<any> {

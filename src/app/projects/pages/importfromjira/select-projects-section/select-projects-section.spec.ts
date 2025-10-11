@@ -1,7 +1,7 @@
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { SelectProjectsSection } from './select-projects-section';
 import { Jiraservice } from '../../pages/importfromjira/jiraservice';
-import { Importprojectslist } from '../importprojectslist/importprojectslist';
+import { Importprojectslist } from '../import-project-card-list/import-project-card-list';
 import { CustomButton } from '../../../shared/custom-button/custom-button';
 import { SearchBar } from '../../../shared/components/search-bar/search-bar';
 import { LoadingIndicator } from '../../../shared/loading-indicator/loading-indicator';
@@ -32,9 +32,7 @@ fdescribe('SelectProjectsSection', () => {
         SearchBar,
         LoadingIndicator,
       ],
-      providers: [
-        { provide: Jiraservice, useValue: jiraServiceSpy },
-      ],
+      providers: [{ provide: Jiraservice, useValue: jiraServiceSpy }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(SelectProjectsSection);

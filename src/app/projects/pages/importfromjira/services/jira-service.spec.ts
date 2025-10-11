@@ -1,9 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { Jiraservice } from './jiraservice';
+import { JiraService } from './jira-service';
+import { url } from 'inspector';
 
 describe('JiraService', () => {
-  let service: Jiraservice;
+  let service: JiraService;
   let httpMock: HttpTestingController;
 
   const token = 'test-token';
@@ -16,10 +17,10 @@ describe('JiraService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [Jiraservice],
+      providers: [JiraService],
     });
 
-    service = TestBed.inject(Jiraservice);
+    service = TestBed.inject(JiraService);
     httpMock = TestBed.inject(HttpTestingController);
   });
 
@@ -62,7 +63,9 @@ describe('JiraService', () => {
 
   describe('getAccessibleResources', () => {
     it('should fetch accessible resources successfully', async () => {
-      const mockResources = [{ id: 'cloud-1', name: 'Cloud Instance 1' }];
+      const mockResources = [
+        { id: 'cloud-1', name: 'Cloud Instance 1', url: 'https://example.atlassian.net' },
+      ];
 
       const promise = service.getAccessibleResources(token);
 
@@ -105,7 +108,7 @@ describe('JiraService', () => {
 
   describe('fetchJiraProjects', () => {
     it('should fetch Jira projects successfully', async () => {
-      const mockProjects = [{ id: '1', name: 'Project A' }];
+      const mockProjects = [{ id: '1', name: 'Project A', key: 'PA', selected: false }];
 
       const promise = service.fetchJiraProjects(token, cloudId);
 

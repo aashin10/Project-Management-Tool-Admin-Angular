@@ -1,8 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Importfromjira } from './importfromjira';
-import { Importnavigationservice } from './importnavigationservice';
+import { Importnavigationservice } from './services/import-navigation-service';
 import { ActivatedRoute } from '@angular/router';
-import { Jiraservice } from './jiraservice';
+import { Jiraservice } from './services/jira-service';
 import { of } from 'rxjs';
 import { ImportProcessSection } from '../../components/import-process-section/import-process-section';
 import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';

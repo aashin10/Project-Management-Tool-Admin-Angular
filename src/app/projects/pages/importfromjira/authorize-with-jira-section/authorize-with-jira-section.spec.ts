@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Importnavigationservice } from '../../pages/importfromjira/importnavigationservice';
-
 import { AuthorizeWithJiraSection } from './authorize-with-jira-section';
+import { Importnavigationservice } from '../services/import-navigation-service';
 
 describe('AuthorizeWithJiraSection', () => {
   let component: AuthorizeWithJiraSection;
