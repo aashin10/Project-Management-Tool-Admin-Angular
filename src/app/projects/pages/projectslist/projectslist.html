@@ -62,12 +62,15 @@
 
     </div>
 
-    <!-- Advanced Filters Panel -->
+    <!-- Advanced Filters Panel - UPDATED with initial filter inputs -->
     <app-advanced-filters
       [showFilters]="showFilters"
       [projects]="projects"
       [statusOptions]="statusOptions"
       [deliveryUnitOptions]="deliveryUnitOptions"
+      [initialSelectedStatuses]="selectedStatuses"
+      [initialSelectedDeliveryUnits]="selectedDeliveryUnits"
+      [initialSelectedManagers]="selectedManagers"
       (filtersChanged)="onFiltersChanged($event)">
     </app-advanced-filters>
 
