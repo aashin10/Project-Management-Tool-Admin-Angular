@@ -44,6 +44,8 @@ export class AuthorizeWithJiraSection implements OnInit {
       this.isLoadingUserDetails = false;
       this.cdr.detectChanges();
     }
+    this.isLoadingUserDetails = false;
+    this.cdr.detectChanges();
   }
 
   url =
@@ -60,7 +62,6 @@ export class AuthorizeWithJiraSection implements OnInit {
     'prompt=consent';
 
   onAuthorize() {
-    alert('You will be redirected to Jira to authorize access.');
     window.location.href = this.url;
   }
 
