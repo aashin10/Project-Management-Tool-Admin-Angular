@@ -69,7 +69,20 @@ export class Userslist implements OnInit {
   selectedFileName: string = '';
   isDragging: boolean = false;
   selectedUsers: any[] = [];
+  private _resetPagination: boolean = false;
   validationErrors: string[] = [];
+
+  get resetPagination(): boolean {
+    return this._resetPagination;
+  }
+
+  set resetPagination(value: boolean) {
+    this._resetPagination = value;
+    // Reset back to false after change detection
+    if (value) {
+      setTimeout(() => this._resetPagination = false, 0);
+    }
+  }
   pendingDeleteAction: 'single' | 'bulk' = 'bulk';
   userToDelete: any = null;
   
@@ -197,7 +210,35 @@ export class Userslist implements OnInit {
 
   onSearchChange(query: string) {
     this.searchQuery = query;
-    // Table component now handles pagination
+    // Reset pagination to first page when search changes
+    this.resetPagination = true;
+    // Update selections to only include users that are still visible after filtering
+    this.updateSelectionsForFilteredUsers();
+  }
+
+  onTypeFilterChange(type: string) {
+    this.filterType = type;
+    // Reset pagination to first page when filter changes
+    this.resetPagination = true;
+    // Update selections to only include users that are still visible after filtering
+    this.updateSelectionsForFilteredUsers();
+  }
+
+  onStatusFilterChange(status: string) {
+    this.filterStatus = status;
+    // Reset pagination to first page when filter changes
+    this.resetPagination = true;
+    // Update selections to only include users that are still visible after filtering
+    this.updateSelectionsForFilteredUsers();
+  }
+
+  updateSelectionsForFilteredUsers() {
+    // Filter selected users to only include those that are still visible after filtering
+    const filteredUserKeys = new Set(this.filteredUsers.map(user => user.user + '|' + user.email));
+    this.selectedUsers = this.selectedUsers.filter(selectedUser => {
+      const userKey = selectedUser.user?.name + '|' + selectedUser.user?.email;
+      return filteredUserKeys.has(userKey);
+    });
   }
 
   exportToCSV() {
@@ -244,12 +285,18 @@ export class Userslist implements OnInit {
   selectType(value: string) {
     this.filterType = value;
     this.showTypeDropdown = false;
-    // Table component now handles pagination
+    // Reset pagination to first page when filter changes
+    this.resetPagination = true;
+    // Update selections to only include users that are still visible after filtering
+    this.updateSelectionsForFilteredUsers();
   }
   selectStatus(value: string) {
     this.filterStatus = value;
     this.showStatusDropdown = false;
-    // Table component now handles pagination
+    // Reset pagination to first page when filter changes
+    this.resetPagination = true;
+    // Update selections to only include users that are still visible after filtering
+    this.updateSelectionsForFilteredUsers();
   }
   getTypeLabel(): string {
     if (!this.filterType) return 'All Types';
@@ -458,7 +505,8 @@ projects: Project[] = [
       status: user.status,
       created: user.created,
       lastActivity: user.lastActivity,
-      actions: user // Pass the full user object for actions
+      actions: user, // Pass the full user object for actions
+      selected: this.selectedUsers.some(selectedUser => selectedUser.actions === user) // Check if user is selected
     }));
   }
   

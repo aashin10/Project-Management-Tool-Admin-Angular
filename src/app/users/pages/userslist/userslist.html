@@ -242,6 +242,8 @@
       [columns]="tableColumns"
       [showCheckbox]="true"
       [selectAllAcrossPages]="true"
+      [rowClickAction]="'select'"
+      [resetPagination]="resetPagination"
       (actionClick)="onActionClick($event)"
       (selectionChange)="onSelectionChange($event)"
     >

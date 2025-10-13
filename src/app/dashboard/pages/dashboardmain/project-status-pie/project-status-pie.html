@@ -1,0 +1,196 @@
+<div class="bg-white rounded-lg border border-gray-200 p-6 h-full shadow-sm">
+  <!-- Header -->
+  <div class="mb-4">
+    <div class="flex items-center gap-2 mb-1">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+      </svg>
+      <h3 class="text-base font-semibold text-gray-900">Project Status</h3>
+    </div>
+    <p class="text-xs text-gray-500">Distribution by delivery unit</p>
+  </div>
+
+  <!-- Delivery Unit Dropdown -->
+  <div class="mb-6 relative" (clickOutside)="dropdownOpen = false">
+    <button
+      type="button"
+      (click)="toggleDropdown()"
+      class="w-full px-3 py-2 text-sm text-left text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex items-center justify-between transition-all duration-200"
+    >
+      <span>{{ selectedDeliveryUnit }}</span>
+      <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        class="w-4 h-4 text-gray-400 transition-transform duration-200"
+        [class.rotate-180]="dropdownOpen"
+        fill="none" 
+        viewBox="0 0 24 24" 
+        stroke="currentColor"
+      >
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+      </svg>
+    </button>
+
+    <!-- Dropdown Menu -->
+    <div 
+      *ngIf="dropdownOpen"
+      class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
+    >
+      <div
+        *ngFor="let unit of deliveryUnits"
+        (click)="onDeliveryUnitChange(unit)"
+        [class]="selectedDeliveryUnit === unit ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50'"
+        class="px-3 py-2 text-sm cursor-pointer transition-colors duration-150"
+      >
+        {{ unit }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Pie Chart with modern effects -->
+  <div class="flex justify-center mb-6">
+    <div class="relative" style="width: 220px; height: 220px;">
+      <!-- Glow effect background -->
+      <div class="absolute inset-0 rounded-full opacity-20 blur-2xl" 
+           [style.background]="'radial-gradient(circle, ' + (chartSegments[0]?.color || '#2563eb') + ' 0%, transparent 70%)'">
+      </div>
+      
+      <svg viewBox="0 0 200 200" class="w-full h-full relative z-10" style="filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.1));">
+        <defs>
+          <!-- Gradients for each segment -->
+          <radialGradient *ngFor="let segment of chartSegments; let i = index" 
+                         [attr.id]="'gradient-' + i">
+            <stop offset="0%" [attr.stop-color]="segment.color" stop-opacity="0.9"/>
+            <stop offset="100%" [attr.stop-color]="segment.color" stop-opacity="1"/>
+          </radialGradient>
+          
+          <!-- Hover gradients -->
+          <radialGradient *ngFor="let segment of chartSegments; let i = index" 
+                         [attr.id]="'gradient-hover-' + i">
+            <stop offset="0%" [attr.stop-color]="segment.hoverColor" stop-opacity="0.95"/>
+            <stop offset="100%" [attr.stop-color]="segment.hoverColor" stop-opacity="1"/>
+          </radialGradient>
+
+          <!-- Shadow filter -->
+          <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+          </filter>
+        </defs>
+
+        <!-- Pie chart segments -->
+        <g *ngFor="let segment of chartSegments; let i = index">
+          <path
+            [attr.d]="getPathData(segment, i)"
+            [attr.fill]="isButtonHovered(segment.status) ? 'url(#gradient-hover-' + i + ')' : 'url(#gradient-' + i + ')'"
+            class="transition-all duration-300 ease-out cursor-pointer"
+            [style.transform]="isButtonHovered(segment.status) ? 'scale(1.05)' : 'scale(1)'"
+            [style.transform-origin]="'100px 100px'"
+            [style.filter]="isButtonHovered(segment.status) ? 'url(#shadow) brightness(1.1)' : 'url(#shadow)'"
+            (mouseenter)="onSegmentHover(segment.status)"
+            (mouseleave)="onSegmentLeave()"
+          />
+          
+          <!-- Subtle separator lines -->
+          <line
+            *ngIf="i < chartSegments.length - 1"
+            [attr.x1]="100"
+            [attr.y1]="100"
+            [attr.x2]="getLineEndX(segment, i)"
+            [attr.y2]="getLineEndY(segment, i)"
+            stroke="white"
+            stroke-width="1.5"
+            opacity="0.5"
+          />
+        </g>
+
+        <!-- Center circle for depth effect -->
+        <circle cx="100" cy="100" r="2" fill="white" opacity="0.8"/>
+      </svg>
+      
+      <!-- Hover tooltip with animation -->
+      <div 
+        *ngIf="hoveredSegment"
+        class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20 animate-fade-in"
+      >
+        <div class="bg-white px-4 py-2 rounded-lg shadow-xl border border-gray-200 text-center backdrop-blur-sm bg-opacity-95">
+          <div class="text-xs font-medium text-gray-500 mb-1">{{ hoveredSegment }}</div>
+          <div class="text-lg font-bold text-gray-900">{{ getHoveredSegmentCount() }}</div>
+          <div class="text-xs text-gray-400">projects</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Legend with modern styling -->
+  <div class="space-y-2">
+    <div 
+      *ngFor="let segment of chartSegments"
+      class="flex items-center justify-between cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-200"
+      [class.bg-gray-50]="isButtonHovered(segment.status)"
+      (mouseenter)="onSegmentHover(segment.status)"
+      (mouseleave)="onSegmentLeave()"
+    >
+      <div class="flex items-center gap-3">
+        <div class="relative">
+          <div 
+            class="w-3 h-3 rounded-full transition-all duration-200"
+            [style.backgroundColor]="segment.color"
+            [style.box-shadow]="isButtonHovered(segment.status) ? '0 0 8px ' + segment.color : 'none'"
+          ></div>
+          <div 
+            *ngIf="isButtonHovered(segment.status)"
+            class="absolute inset-0 w-3 h-3 rounded-full animate-ping"
+            [style.backgroundColor]="segment.color"
+            style="opacity: 0.4;"
+          ></div>
+        </div>
+        <span 
+          class="text-sm font-medium transition-colors duration-200"
+          [class.text-gray-900]="isButtonHovered(segment.status)"
+          [class.text-gray-600]="!isButtonHovered(segment.status)"
+        >
+          {{ segment.status }}
+        </span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="text-xs text-gray-500 font-medium">{{ segment.percentage.toFixed(1) }}%</div>
+        <span 
+          class="text-sm font-bold transition-all duration-200"
+          [class.text-gray-900]="isButtonHovered(segment.status)"
+          [class.scale-110]="isButtonHovered(segment.status)"
+          [class.text-gray-700]="!isButtonHovered(segment.status)"
+        >
+          {{ segment.count }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="totalProjects === 0" class="flex items-center justify-center py-12 text-gray-400">
+    <div class="text-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+      </svg>
+      <p class="text-sm">No project data available</p>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+</style>
