@@ -1,8 +1,8 @@
 // projectslist.component.ts
-import { Component, ViewChild, ElementRef, AfterViewChecked, ChangeDetectorRef } from '@angular/core';
+import { Component, ViewChild, ElementRef, AfterViewChecked, ChangeDetectorRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { CustomButton } from '../../../shared/custom-button/custom-button';
 import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
 import { Modal } from '../../../shared/modal/modal';
@@ -27,8 +27,6 @@ interface TableHeader {
   minWidth: string;
 }
 
-// Removed sorting functionality
-
 @Component({
   selector: 'app-projectslist',
   standalone: true,
@@ -36,7 +34,7 @@ interface TableHeader {
   templateUrl: './projectslist.html',
   styleUrl: './projectslist.css'
 })
-export class Projectslist implements AfterViewChecked {
+export class Projectslist implements AfterViewChecked, OnInit {
   @ViewChild('selectAllCheckbox') selectAllCheckbox!: ElementRef<HTMLInputElement>;
 
   showFilters = false;
@@ -50,7 +48,6 @@ export class Projectslist implements AfterViewChecked {
   set searchQuery(value: string) {
     if (this._searchQuery !== value) {
       this._searchQuery = value;
-      // Reset pagination when search changes
       this.resetPagination = true;
     }
   }
@@ -71,19 +68,37 @@ export class Projectslist implements AfterViewChecked {
 
   set resetPagination(value: boolean) {
     this._resetPagination = value;
-    // Reset back to false after change detection
     if (value) {
       setTimeout(() => this._resetPagination = false, 0);
     }
   }
 
-  constructor(private router: Router, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private router: Router, 
+    private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
+    // Subscribe to query parameters
+    this.route.queryParams.subscribe(params => {
+      if (params['status']) {
+        // Apply filter based on query param
+        this.selectedStatuses = [params['status']];
+        this.showFilters = true; // Automatically show filters
+        this.resetPagination = true;
+        
+        // Force change detection
+        this.cdr.detectChanges();
+      }
+    });
+  }
 
   // Available filter options
   statusOptions = ['Active', 'Inactive', 'Completed'];
   deliveryUnitOptions = ['Engineering', 'Product Management', 'Design'];
 
-  // Table columns configuration for shared table
+  // Table columns configuration
   tableColumns: TableColumn[] = [
     {
       header: 'Project Info',
@@ -193,7 +208,6 @@ export class Projectslist implements AfterViewChecked {
   ];
 
   // Getters
-
   get hasActiveFilters(): boolean {
     return this.selectedStatuses.length > 0 ||
            this.selectedDeliveryUnits.length > 0 ||
@@ -230,8 +244,6 @@ export class Projectslist implements AfterViewChecked {
       );
     }
 
-    // Sorting functionality removed
-
     return filtered;
   }
 
@@ -255,17 +267,14 @@ export class Projectslist implements AfterViewChecked {
   }
 
   get selectedProjects(): Project[] {
-    // Return only selected projects that are currently visible in filtered results
     return this.filteredProjects.filter(p => p.selected);
   }
 
   get allSelectedProjects(): Project[] {
-    // Return all selected projects from the entire dataset
     return this.projects.filter(p => p.selected);
   }
 
   get deleteCount(): number {
-    // Return the count for delete operations
     return this.allSelectedProjects.length;
   }
 
@@ -274,7 +283,6 @@ export class Projectslist implements AfterViewChecked {
     return filteredProjects.length > 0 &&
            filteredProjects.every(p => p.selected);
   }
-
 
   ngAfterViewChecked(): void {
     this.updateCheckboxState();
@@ -286,7 +294,6 @@ export class Projectslist implements AfterViewChecked {
       const isIndeterminate = this.isIndeterminateSelection();
       const allSelected = this.allSelected;
 
-      // Show indeterminate state for both partial selection and full selection
       checkbox.indeterminate = isIndeterminate || allSelected;
       checkbox.checked = false;
     }
@@ -298,7 +305,6 @@ export class Projectslist implements AfterViewChecked {
     return selectedCount > 0 && selectedCount < filteredProjects.length;
   }
 
-  // Get initials from project manager name
   getInitials(managerName: string): string {
     const parts = managerName.split(' ');
     if (parts.length >= 2) {
@@ -309,21 +315,13 @@ export class Projectslist implements AfterViewChecked {
     return '';
   }
 
-  // Filter change handler
   onFiltersChanged(filters: { selectedStatuses: string[]; selectedDeliveryUnits: string[]; selectedManagers: string[] }): void {
     this.selectedStatuses = filters.selectedStatuses;
     this.selectedDeliveryUnits = filters.selectedDeliveryUnits;
     this.selectedManagers = filters.selectedManagers;
-
-    // Reset pagination to first page when filters change
     this.resetPagination = true;
-
-    // Force change detection to update checkbox state
     this.cdr.detectChanges();
   }
-
-
-  // Other Methods
 
   toggleFilters(): void {
     this.showFilters = !this.showFilters;
@@ -332,53 +330,37 @@ export class Projectslist implements AfterViewChecked {
   toggleSelectAll(): void {
     const allSelected = this.allSelected;
     const someSelected = this.isIndeterminateSelection();
-
     let newSelectionState: boolean;
 
     if (allSelected || someSelected) {
-      // All or some selected (showing dash) - deselect all
       newSelectionState = false;
     } else {
-      // None selected (empty) - select all
       newSelectionState = true;
     }
 
-    // Apply the new selection state to all filtered projects (across all pages)
     this.filteredProjects.forEach(project => {
       project.selected = newSelectionState;
     });
 
-    // Explicitly update checkbox state immediately after selection changes
     this.updateCheckboxState();
-
-    // Force change detection
     this.cdr.detectChanges();
   }
-
-  // Sorting functionality removed
-
 
   viewDetails(projectId: string): void {
     console.log('View details:', projectId);
     this.router.navigate(['/projects', projectId]);
   }
 
-  // Smart row click handler: toggle selection if projects selected, navigate if none selected
   onRowClick(project: Project): void {
     if (this.allSelectedProjects.length > 0) {
-      // If any projects are selected globally, toggle this project's selection
       project.selected = !project.selected;
-      // Force change detection to update checkbox and bulk actions popup
       this.cdr.detectChanges();
     } else {
-      // If no projects are selected, navigate to project details
       this.viewProjectDetails(project.id);
     }
   }
 
-  // Handle individual checkbox changes to ensure UI updates
   onSelectionChange(): void {
-    // Force change detection when individual selections change
     this.cdr.detectChanges();
   }
 
@@ -387,7 +369,7 @@ export class Projectslist implements AfterViewChecked {
   }
 
   handleTableAction(event: { action: string; row: any }): void {
-    const projectId = event.row.actions; // The actions field contains the project ID
+    const projectId = event.row.actions;
     const project = this.projects.find(p => p.id === projectId);
 
     switch (event.action) {
@@ -408,7 +390,7 @@ export class Projectslist implements AfterViewChecked {
   }
 
   handleRowClick(event: { row: any; index: number }): void {
-    const projectId = event.row.actions; // The actions field contains the project ID
+    const projectId = event.row.actions;
     const project = this.projects.find(p => p.id === projectId);
     if (project) {
       this.onRowClick(project);
@@ -416,21 +398,18 @@ export class Projectslist implements AfterViewChecked {
   }
 
   handleSelectionChange(selectedRows: any[]): void {
-    // Clear all selections first
     this.projects.forEach(project => {
       project.selected = false;
     });
 
-    // Set selected state for the selected rows
     selectedRows.forEach(selectedRow => {
-      const projectId = selectedRow.actions; // The actions field contains the project ID
+      const projectId = selectedRow.actions;
       const project = this.projects.find(p => p.id === projectId);
       if (project) {
         project.selected = true;
       }
     });
 
-    // Force change detection to update the UI
     this.cdr.detectChanges();
   }
 
@@ -463,13 +442,8 @@ export class Projectslist implements AfterViewChecked {
   }
 
   exportToCSV(): void {
-    // Determine which projects to export
     const projectsToExport = this.selectedProjects.length > 0 ? this.selectedProjects : this.filteredProjects;
-
-    // Prepare CSV headers
     const headers = ['Project Name', 'Project Code', 'Status', 'Delivery Unit', 'Project Manager', 'Team Size'];
-
-    // Prepare CSV rows
     const rows = projectsToExport.map(project => [
       project.name,
       project.projectCode,
@@ -479,13 +453,11 @@ export class Projectslist implements AfterViewChecked {
       project.teamSize.toString()
     ]);
 
-    // Combine headers and rows
     const csvContent = [
       headers.join(','),
       ...rows.map(row => row.join(','))
     ].join('\n');
 
-    // Create blob and download
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
@@ -509,8 +481,6 @@ export class Projectslist implements AfterViewChecked {
     this.router.navigate(['/projects/create']);
   }
 
-
-  // Modal handlers
   cancelDelete(): void {
     this.showDeleteModal = false;
     this.projectToDelete = null;
@@ -518,20 +488,15 @@ export class Projectslist implements AfterViewChecked {
 
   confirmDelete(): void {
     if (this.projectToDelete) {
-      // Remove individual project
       this.projects = this.projects.filter(project => project.id !== this.projectToDelete!.id);
       console.log('Project deleted:', this.projectToDelete.name);
       this.projectToDelete = null;
     } else {
-      // Remove selected projects (bulk removal)
       this.projects = this.projects.filter(project => !this.selectedProjects.some(selected => selected.id === project.id));
       console.log('Selected projects removed');
     }
 
     this.showDeleteModal = false;
-
-    // Force change detection to ensure all UI updates properly
     this.cdr.detectChanges();
   }
-
 }
