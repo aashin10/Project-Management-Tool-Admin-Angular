@@ -28,13 +28,12 @@
 
   <div class="mr-2 mt-4">
     <app-custom-button
-      label="Add User"
-      (click)="onAddUser()"
-      [bgClass]="'bg-[#0052CC]'"
-      [hoverClass]="'hover:bg-[#0052cce6]'"
+      label="Refresh"
+      (click)="refreshData()"
+      [bgClass]="'bg-gray-500'"
+      [hoverClass]="'hover:bg-gray-600'"
       [textColor]="'text-white'"
-      [extraClasses]="'font-bold'"
-      [icon]="'images/plus.svg'"
+      [icon]="'images/filter.svg'"
       [fontSize]="'text-[14px]'"
     ></app-custom-button>
   </div>
@@ -202,7 +201,42 @@
 </div>
 
 <div class="mt-6">
-  <div class="overflow-x-auto">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="flex items-center justify-center py-12">
+    <div class="text-center">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#0052CC]"></div>
+      <p class="mt-4 text-sm text-gray-600">Loading users...</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!isLoading && loadingError" class="bg-red-50 border border-red-200 rounded-md p-6 text-center">
+    <svg class="mx-auto h-12 w-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+    </svg>
+    <h3 class="mt-4 text-sm font-medium text-red-900">{{ loadingError }}</h3>
+    <div class="mt-4 flex justify-center gap-3">
+      <app-custom-button
+        label="Retry"
+        (click)="fetchUsers()"
+        [bgClass]="'bg-[#0052CC]'"
+        [hoverClass]="'hover:bg-[#0052cce6]'"
+        [textColor]="'text-white'"
+        [fontSize]="'text-[14px]'"
+      ></app-custom-button>
+      <app-custom-button
+        label="Load Sample Data"
+        (click)="loadSampleDataManually()"
+        [bgClass]="'bg-gray-500'"
+        [hoverClass]="'hover:bg-gray-600'"
+        [textColor]="'text-white'"
+        [fontSize]="'text-[14px]'"
+      ></app-custom-button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div *ngIf="!isLoading && !loadingError" class="overflow-x-auto">
     <app-table
       [data]="getTableData()"
       [columns]="tableColumns"
