@@ -1,13 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Importprojectslist } from './importprojectslist';
-import { Importprojectcard } from '../importprojectcard/importprojectcard';
-import { CustomButton } from '../../../shared/custom-button/custom-button';
+import { ImportProjectCardList } from './import-project-card-list';
+import { ImportProjectCard } from '../import-project-card/import-project-card';
 import { CommonModule } from '@angular/common';
 import { By } from '@angular/platform-browser';
+import { CustomButton } from '../../../../shared/custom-button/custom-button';
 
-describe('Importprojectslist', () => {
-  let component: Importprojectslist;
-  let fixture: ComponentFixture<Importprojectslist>;
+describe('ImportProjectCardList', () => {
+  let component: ImportProjectCardList;
+  let fixture: ComponentFixture<ImportProjectCardList>;
 
   const mockProjects = [
     { name: 'Project 1', key: 'P1', id: '1', selected: false },
@@ -19,10 +19,10 @@ describe('Importprojectslist', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CommonModule, Importprojectslist, Importprojectcard, CustomButton],
+      imports: [CommonModule, ImportProjectCardList, ImportProjectCard, CustomButton],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(Importprojectslist);
+    fixture = TestBed.createComponent(ImportProjectCardList);
     component = fixture.componentInstance;
     component.projects = mockProjects;
     fixture.detectChanges();

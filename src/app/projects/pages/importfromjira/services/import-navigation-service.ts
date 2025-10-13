@@ -4,7 +4,7 @@ import { Subject } from 'rxjs';
 @Injectable({
   providedIn: 'root',
 })
-export class Importnavigationservice {
+export class ImportNavigationService {
   private nextSubject = new Subject<void>();
   private previousSubject = new Subject<void>();
 

@@ -1,11 +1,11 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { environment } from '../../../../environments/environment';
+import { environment } from '../../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
-export class Jiraservice {
+export class JiraService {
   constructor(private http: HttpClient) {}
 
   async exchangeToken(authCode: string): Promise<any> {
@@ -60,6 +60,22 @@ export class Jiraservice {
       return response ?? [];
     } catch (error) {
       throw new Error('Failed to fetch Jira projects');
+    }
+  }
+
+  async getMyDetails(accessToken: string): Promise<any> {
+    console.log('Getting user details with token:', accessToken);
+    try {
+      const response = await this.http
+        .get<any>(`https://api.atlassian.com/me`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        })
+        .toPromise();
+      return response;
+    } catch (error) {
+      throw new Error('Failed to fetch user details');
     }
   }
 }

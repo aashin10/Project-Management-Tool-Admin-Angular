@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
-import { CustomButton } from '../../../shared/custom-button/custom-button';
-import { Importnavigationservice } from '../../pages/importfromjira/importnavigationservice';
 import { CommonModule } from '@angular/common';
 import * as Papa from 'papaparse';
 import { ParseResult } from 'papaparse';
+import { CustomButton } from '../../../../shared/custom-button/custom-button';
+import { ImportNavigationService } from '../services/import-navigation-service';
 
 @Component({
   selector: 'app-import-users-section',
@@ -12,10 +12,10 @@ import { ParseResult } from 'papaparse';
   styleUrl: './import-users-section.css',
 })
 export class ImportUsersSection {
-  public constructor(private importNavigationService: Importnavigationservice) {}
+  public constructor(private importNavigationService: ImportNavigationService) {}
 
   uploadSuccess: boolean = false;
-  parsedData: CSVUser[] = [];
+  parsedData: any[] = [];
 
   onFileUpload(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -25,7 +25,7 @@ export class ImportUsersSection {
       Papa.parse(file as File, {
         header: true,
         skipEmptyLines: true,
-        complete: (result: ParseResult<CSVUser>) => {
+        complete: (result: ParseResult<any>) => {
           if (result.errors && result.errors.length > 0) {
             console.error('CSV parsing errors:', result.errors);
             return;

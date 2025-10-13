@@ -1,12 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ImportUsersSection } from './import-users-section';
-import { Importnavigationservice } from '../../pages/importfromjira/importnavigationservice';
 import Papa from 'papaparse';
+import { ImportNavigationService } from '../services/import-navigation-service';
 
 describe('ImportUsersSection', () => {
   let component: ImportUsersSection;
   let fixture: ComponentFixture<ImportUsersSection>;
-  let mockImportNavigationService: jasmine.SpyObj<Importnavigationservice>;
+  let mockImportNavigationService: jasmine.SpyObj<ImportNavigationService>;
 
   beforeEach(async () => {
     // Create a spy for the navigation service
@@ -14,14 +14,14 @@ describe('ImportUsersSection', () => {
 
     await TestBed.configureTestingModule({
       imports: [ImportUsersSection],
-      providers: [{ provide: Importnavigationservice, useValue: importNavigationServiceSpy }],
+      providers: [{ provide: ImportNavigationService, useValue: importNavigationServiceSpy }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ImportUsersSection);
     component = fixture.componentInstance;
     mockImportNavigationService = TestBed.inject(
-      Importnavigationservice
-    ) as jasmine.SpyObj<Importnavigationservice>;
+      ImportNavigationService
+    ) as jasmine.SpyObj<ImportNavigationService>;
 
     // Mock Papa.parse to simulate successful parsing
     spyOn(Papa, 'parse').and.callFake((_file: any, options: any) =>
