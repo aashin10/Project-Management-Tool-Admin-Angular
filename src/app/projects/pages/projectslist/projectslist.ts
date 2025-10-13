@@ -40,8 +40,20 @@ export class Projectslist implements AfterViewChecked {
   @ViewChild('selectAllCheckbox') selectAllCheckbox!: ElementRef<HTMLInputElement>;
 
   showFilters = false;
-  searchQuery = '';
+  private _searchQuery = '';
   sidebarCollapsed = false;
+
+  get searchQuery(): string {
+    return this._searchQuery;
+  }
+
+  set searchQuery(value: string) {
+    if (this._searchQuery !== value) {
+      this._searchQuery = value;
+      // Reset pagination when search changes
+      this.resetPagination = true;
+    }
+  }
 
   // Delete modal properties
   showDeleteModal = false;
@@ -51,6 +63,19 @@ export class Projectslist implements AfterViewChecked {
   selectedStatuses: string[] = [];
   selectedDeliveryUnits: string[] = [];
   selectedManagers: string[] = [];
+  private _resetPagination: boolean = false;
+
+  get resetPagination(): boolean {
+    return this._resetPagination;
+  }
+
+  set resetPagination(value: boolean) {
+    this._resetPagination = value;
+    // Reset back to false after change detection
+    if (value) {
+      setTimeout(() => this._resetPagination = false, 0);
+    }
+  }
 
   constructor(private router: Router, private cdr: ChangeDetectorRef) {}
 
@@ -109,7 +134,7 @@ export class Projectslist implements AfterViewChecked {
         { label: 'View Details', icon: 'images/eye.svg', action: 'view' },
         { label: 'Edit', icon: 'images/edit.svg', action: 'edit' },
         { label: 'Archive', icon: 'images/archive.svg', action: 'archive' },
-        { label: 'Delete', icon: 'images/delete.svg', action: 'delete', class: 'danger' }
+        { label: 'Delete', icon: 'images/trash-white.svg', action: 'delete', class: 'danger' }
       ]
     }
   ];
@@ -290,6 +315,9 @@ export class Projectslist implements AfterViewChecked {
     this.selectedDeliveryUnits = filters.selectedDeliveryUnits;
     this.selectedManagers = filters.selectedManagers;
 
+    // Reset pagination to first page when filters change
+    this.resetPagination = true;
+
     // Force change detection to update checkbox state
     this.cdr.detectChanges();
   }
@@ -376,6 +404,14 @@ export class Projectslist implements AfterViewChecked {
         this.projectToDelete = project || null;
         this.showDeleteModal = true;
         break;
+    }
+  }
+
+  handleRowClick(event: { row: any; index: number }): void {
+    const projectId = event.row.actions; // The actions field contains the project ID
+    const project = this.projects.find(p => p.id === projectId);
+    if (project) {
+      this.onRowClick(project);
     }
   }
 

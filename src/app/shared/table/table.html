@@ -33,7 +33,7 @@
           *ngFor="let row of paginatedData; let i = index"
           class="hover:bg-gray-50 transition-colors cursor-pointer"
           [class.bg-blue-50]="isRowSelected(i)"
-          (click)="showCheckbox ? toggleRow(i) : null"
+          (click)="handleRowClick(row, i); $event.stopPropagation()"
         >
           <!-- Checkbox -->
           <td *ngIf="showCheckbox" class="w-12 px-6 py-4" (click)="$event.stopPropagation()">
@@ -153,7 +153,7 @@
               <div *ngIf="column.actions && column.actions.length > 1">
                 <button
                   (click)="toggleActionsMenu(i); $event.stopPropagation()"
-                  class="text-gray-400 hover:text-gray-600 p-2"
+                  class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded cursor-pointer transition-colors"
                 >
                   <span class="text-xl">⋯</span>
                 </button>
