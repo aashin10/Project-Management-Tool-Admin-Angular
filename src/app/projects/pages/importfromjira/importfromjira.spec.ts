@@ -1,28 +1,28 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Importfromjira } from './importfromjira';
-import { Importnavigationservice } from './importnavigationservice';
+import { ImportNavigationService } from './services/import-navigation-service';
 import { ActivatedRoute } from '@angular/router';
-import { Jiraservice } from './jiraservice';
+import { JiraService } from './services/jira-service';
 import { of } from 'rxjs';
-import { ImportProcessSection } from '../../components/import-process-section/import-process-section';
 import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
 import { CustomButton } from '../../../shared/custom-button/custom-button';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
+import { ImportProcessSection } from './import-process-section/import-process-section';
 
 describe('Importfromjira', () => {
   let component: Importfromjira;
   let fixture: ComponentFixture<Importfromjira>;
-  let mockNavigationService: jasmine.SpyObj<Importnavigationservice>;
-  let mockJiraService: jasmine.SpyObj<Jiraservice>;
+  let mockNavigationService: jasmine.SpyObj<ImportNavigationService>;
+  let mockJiraService: jasmine.SpyObj<JiraService>;
 
   beforeEach(async () => {
-    const navSpy = jasmine.createSpyObj('Importnavigationservice', ['next$', 'previous$'], {
+    const navSpy = jasmine.createSpyObj('ImportNavigationService', ['next$', 'previous$'], {
       next$: of(null),
       previous$: of(null),
     });
 
-    const jiraSpy = jasmine.createSpyObj('Jiraservice', ['exchangeToken']);
+    const jiraSpy = jasmine.createSpyObj('JiraService', ['exchangeToken']);
 
     await TestBed.configureTestingModule({
       imports: [CommonModule, LucideAngularModule],
@@ -32,8 +32,8 @@ describe('Importfromjira', () => {
         Sectiontitle,
         ImportProcessSection,
         CustomButton,
-        { provide: Importnavigationservice, useValue: navSpy },
-        { provide: Jiraservice, useValue: jiraSpy },
+        { provide: ImportNavigationService, useValue: navSpy },
+        { provide: JiraService, useValue: jiraSpy },
         {
           provide: ActivatedRoute,
           useValue: {
@@ -46,9 +46,9 @@ describe('Importfromjira', () => {
     fixture = TestBed.createComponent(Importfromjira);
     component = fixture.componentInstance;
     mockNavigationService = TestBed.inject(
-      Importnavigationservice
-    ) as jasmine.SpyObj<Importnavigationservice>;
-    mockJiraService = TestBed.inject(Jiraservice) as jasmine.SpyObj<Jiraservice>;
+      ImportNavigationService
+    ) as jasmine.SpyObj<ImportNavigationService>;
+    mockJiraService = TestBed.inject(JiraService) as jasmine.SpyObj<JiraService>;
 
     spyOn(sessionStorage, 'setItem');
   });

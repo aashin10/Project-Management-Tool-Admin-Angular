@@ -1,0 +1,32 @@
+<div *ngIf="projects.length === 0" class="text-center text-gray-500 py-8">No projects found</div>
+
+<app-import-project-card
+  *ngFor="let project of paginatedProjects"
+  [title]="project.name"
+  [key]="project.key"
+  [id]="project.id"
+  [selected]="project.selected"
+  class="w-full"
+  (selectChange)="onProjectSelect($event)"
+></app-import-project-card>
+
+<div *ngIf="projects.length > 0" class="flex w-full justify-center items-center gap-2 mt-6">
+  <app-custom-button
+    (action)="goToPage(currentPage - 1)"
+    [label]="'Previous'"
+    [disabled]="currentPage === 1"
+  ></app-custom-button>
+
+  <app-custom-button
+    *ngFor="let page of pageNumbers"
+    (action)="goToPage(page)"
+    [label]="page.toString()"
+    [bgClass]="currentPage === page ? 'bg-[#0052cc] text-white' : 'bg-white'"
+  ></app-custom-button>
+
+  <app-custom-button
+    [label]="'Next'"
+    (action)="goToPage(currentPage + 1)"
+    [disabled]="currentPage === totalPages"
+  ></app-custom-button>
+</div>

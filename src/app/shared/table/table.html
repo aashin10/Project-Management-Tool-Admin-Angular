@@ -33,7 +33,7 @@
           *ngFor="let row of paginatedData; let i = index"
           class="hover:bg-gray-50 transition-colors cursor-pointer"
           [class.bg-blue-50]="isRowSelected(i)"
-          (click)="showCheckbox ? toggleRow(i) : null"
+          (click)="handleRowClick(row, i); $event.stopPropagation()"
         >
           <!-- Checkbox -->
           <td *ngIf="showCheckbox" class="w-12 px-6 py-4" (click)="$event.stopPropagation()">
@@ -145,6 +145,41 @@
               >
                 <img *ngIf="actionItem.icon" [src]="actionItem.icon" class="w-6 h-6" alt="" />
               </button>
+
+              <!-- Multiple actions - show 3-dots menu -->
+              <div *ngIf="column.actions && column.actions.length > 1">
+                <button
+                  (click)="toggleActionsMenu(i); $event.stopPropagation()"
+                  class="text-gray-400 hover:text-gray-600 p-2"
+                >
+                  <span class="text-xl">⋯</span>
+                </button>
+
+                <!-- Dropdown Menu -->
+                <div
+                  *ngIf="openActionMenuIndex === i"
+                  [class.bottom-full]="isLastRows(i)"
+                  [class.mb-2]="isLastRows(i)"
+                  [class.mt-2]="!isLastRows(i)"
+                  class="absolute right-0 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50"
+                >
+                  <div class="py-1">
+                    <button
+                      *ngFor="let actionItem of column.actions"
+                      (click)="
+                        handleAction(actionItem.action, row);
+                        closeActionsMenu();
+                        $event.stopPropagation()
+                      "
+                      [class]="getActionClass(actionItem.class)"
+                      class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-3"
+                    >
+                      <img *ngIf="actionItem.icon" [src]="actionItem.icon" class="w-4 h-4" alt="" />
+                      {{ actionItem.label }}
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
             <!-- Empty State -->
             <tbody *ngIf="data.length === 0" class="bg-white">

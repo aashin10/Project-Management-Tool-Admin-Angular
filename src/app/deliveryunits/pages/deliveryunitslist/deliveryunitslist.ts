@@ -19,6 +19,20 @@ export class Deliveryunitslist {
   searchQuery: string = '';
   filteredDeliveryUnits: any[] = [];
   isModalOpen: boolean = false;
+  selectedDeliveryUnits: any[] = [];
+  private _resetPagination: boolean = false;
+
+  get resetPagination(): boolean {
+    return this._resetPagination;
+  }
+
+  set resetPagination(value: boolean) {
+    this._resetPagination = value;
+    // Reset back to false after change detection
+    if (value) {
+      setTimeout(() => this._resetPagination = false, 0);
+    }
+  }
 
   // Form data model
   newDU = {
@@ -77,7 +91,12 @@ export class Deliveryunitslist {
     }
   ];
 
- deliveryUnits = [
+  onSelectionChange(selectedRows: any[]) {
+    this.selectedDeliveryUnits = selectedRows;
+    console.log('Selected delivery units:', selectedRows);
+  }
+
+  deliveryUnits = [
   { duInfo: { initials: 'EN', name: 'Engineering', subtitle: 'Software Development & Architecture', bgColor: 'bg-blue-500' }, duCode: 'ENG-001', duHead: { avatar: 'SC', name: 'Sarah Chen', email: 'sarah.chen@company.com', bgColor: 'bg-gray-200' }, activeMembers: '24', activeProjects: '8' },
   { duInfo: { initials: 'PR', name: 'Product Management', subtitle: 'Product Strategy & Planning', bgColor: 'bg-purple-500' }, duCode: 'PM-002', duHead: { avatar: 'MR', name: 'Michael Rodriguez', email: 'michael.rodriguez@company.com', bgColor: 'bg-gray-200' }, activeMembers: '12', activeProjects: '5' },
   { duInfo: { initials: 'DE', name: 'Design', subtitle: 'UX/UI Design & Research', bgColor: 'bg-blue-500' }, duCode: 'DES-003', duHead: { avatar: 'ET', name: 'Emma Thompson', email: 'emma.thompson@company.com', bgColor: 'bg-gray-200' }, activeMembers: '8', activeProjects: '6' },
@@ -112,7 +131,7 @@ export class Deliveryunitslist {
 
 
   constructor(private router: Router) {
-    this.filteredDeliveryUnits = [...this.deliveryUnits];
+    this.updateFilteredDeliveryUnits();
   }
 
   onAddNewDU(): void {
@@ -286,9 +305,19 @@ export class Deliveryunitslist {
 
   onSearchChange(query: string): void {
     this.searchQuery = query.toLowerCase();
-    
+    // Reset pagination to first page when search changes
+    this.resetPagination = true;
+    this.updateFilteredDeliveryUnits();
+    // Update selections to only include delivery units that are still visible after filtering
+    this.updateSelectionsForFilteredUnits();
+  }
+
+  updateFilteredDeliveryUnits(): void {
     if (!this.searchQuery) {
-      this.filteredDeliveryUnits = [...this.deliveryUnits];
+      this.filteredDeliveryUnits = [...this.deliveryUnits].map(du => ({
+        ...du,
+        selected: this.selectedDeliveryUnits.some(selected => selected.duCode === du.duCode)
+      }));
       return;
     }
 
@@ -300,6 +329,17 @@ export class Deliveryunitslist {
         du.duHead.name.toLowerCase().includes(this.searchQuery) ||
         du.duHead.email.toLowerCase().includes(this.searchQuery)
       );
+    }).map(du => ({
+      ...du,
+      selected: this.selectedDeliveryUnits.some(selected => selected.duCode === du.duCode)
+    }));
+  }
+
+  updateSelectionsForFilteredUnits(): void {
+    // Filter selected delivery units to only include those that are still visible after filtering
+    const filteredUnitCodes = new Set(this.filteredDeliveryUnits.map(du => du.duCode));
+    this.selectedDeliveryUnits = this.selectedDeliveryUnits.filter(selectedUnit => {
+      return filteredUnitCodes.has(selectedUnit.duCode);
     });
   }
 
