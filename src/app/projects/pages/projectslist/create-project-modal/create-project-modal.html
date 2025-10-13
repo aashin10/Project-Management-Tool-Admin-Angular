@@ -1,0 +1,204 @@
+<!-- create-project-modal.html -->
+<app-modal [isOpen]="true" (close)="onCancel()">
+  <div class="max-w-4xl mx-auto p-6 h-[600px] flex flex-col">
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-2 flex-shrink-0">
+      <button 
+        class="p-2 hover:bg-gray-100 rounded-md transition-colors -ml-2"
+        (click)="onBack()"
+      >
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 5l-5 5 5 5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <h1 class="text-2xl font-semibold text-gray-900">Project Details</h1>
+    </div>
+
+    <p class="text-gray-500 text-sm mb-6 flex-shrink-0">Creating a {{ selectedTemplate || 'Scrum' }} project</p>
+
+    <div class="flex-1 overflow-y-auto px-1">
+      <!-- Selected Template Box -->
+      <div class="border border-gray-200 rounded-lg p-4 mb-6 bg-gray-50">
+        <div class="flex items-center gap-3">
+          <div class="bg-blue-50 rounded-lg p-2.5 flex-shrink-0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <rect x="4" y="5" width="16" height="3" rx="1" fill="#2563EB"/>
+              <rect x="4" y="11" width="16" height="3" rx="1" fill="#2563EB"/>
+              <rect x="4" y="17" width="16" height="3" rx="1" fill="#2563EB"/>
+            </svg>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 mb-0.5">Selected Template</p>
+            <p class="text-base font-semibold text-gray-900">{{ selectedTemplate || 'Scrum' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Project Name -->
+      <div class="mb-5">
+        <label class="block text-sm font-semibold text-gray-900 mb-2">
+          Project Name <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="projectName"
+          (input)="onProjectNameChange()"
+          placeholder="Enter project name"
+          class="w-full px-3 py-2 border border-gray-300 rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          required
+        />
+      </div>
+
+      <!-- Project Key -->
+      <div class="mb-2">
+        <label class="block text-sm font-semibold text-gray-900 mb-2">
+          Project Key <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="projectKey"
+          placeholder="Auto-generated from project name"
+          class="w-full px-3 py-2 border border-gray-300 rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ml-0"
+          required
+        />
+      </div>
+      
+      <p class="text-xs text-gray-500 mb-5">Auto-generated from project name (editable)</p>
+
+      <!-- Share Settings Checkbox -->
+      <div class="mb-6">
+        <label class="flex items-start cursor-pointer">
+          <input
+            type="checkbox"
+            [(ngModel)]="shareWithExisting"
+            (change)="onShareSettingsChange()"
+            class="mt-0.5 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
+          />
+          <span class="ml-2 text-sm font-medium text-gray-900">Share settings with existing project</span>
+        </label>
+      </div>
+
+      <!-- Select Project Dropdown (shown when checkbox is checked) -->
+      <div *ngIf="shareWithExisting" class="mb-6">
+        <label class="block text-sm font-semibold text-gray-900 mb-2">
+          Select Project
+        </label>
+        
+        <!-- Search Input -->
+        <div class="relative mb-2">
+          <input
+            type="text"
+            [(ngModel)]="projectSearchQuery"
+            (input)="onProjectSearchChange()"
+            placeholder="Search projects..."
+            class="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          <svg 
+            class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" 
+            width="16" 
+            height="16" 
+            viewBox="0 0 16 16" 
+            fill="none" 
+            stroke="currentColor" 
+            stroke-width="2"
+          >
+            <circle cx="7" cy="7" r="5"/>
+            <path d="M12 12l3 3"/>
+          </svg>
+        </div>
+
+        <!-- Project List -->
+        <div class="border border-gray-300 rounded-md max-h-48 overflow-y-auto">
+          <div 
+            *ngFor="let project of filteredProjects"
+            (click)="selectedProject = project.id"
+            class="px-4 py-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+            [class.bg-blue-50]="selectedProject === project.id"
+          >
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-900">{{ project.name }}</p>
+                <p class="text-xs text-gray-500">{{ project.projectCode }} • {{ project.status }}</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="text-xs text-gray-400">
+                  {{ project.teamSize }} members
+                </div>
+                <div *ngIf="selectedProject === project.id" class="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M10 3L4.5 8.5L2 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="filteredProjects.length === 0" class="px-3 py-4 text-center text-gray-500 text-sm">
+            No projects found
+          </div>
+        </div>
+        
+        <p class="text-xs text-gray-500 mt-2">Settings like workflows, issue types, and configurations will be copied</p>
+      </div>
+
+      <!-- Project Preview -->
+      <div class="border border-gray-200 rounded-lg p-4 mb-6 bg-gray-50">
+        <h3 class="text-sm font-semibold text-gray-900 mb-3">Project Preview</h3>
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-xs text-gray-500">Project Name:</span>
+            <span class="text-sm font-medium text-gray-900">{{ projectName || 'Not specified' }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-xs text-gray-500">Project Key:</span>
+            <span class="text-sm font-medium text-gray-900">{{ projectKey || 'Not generated' }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-xs text-gray-500">Template:</span>
+            <span class="text-sm font-medium text-gray-900">{{ selectedTemplate || 'Scrum' }}</span>
+          </div>
+          <div class="flex justify-between items-center" *ngIf="shareWithExisting">
+            <span class="text-xs text-gray-500">Share Settings:</span>
+            <span class="text-sm font-medium text-gray-900">{{ getSelectedProjectName() || 'None selected' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex justify-end gap-3 flex-shrink-0 mt-6">
+      <app-custom-button
+        label="Cancel"
+        bgClass="bg-white"
+        textColor="text-gray-700"
+        hoverClass="hover:bg-gray-50"
+        borderClass="border border-gray-300"
+        height="h-10"
+        padding="px-4"
+        fontSize="text-sm"
+        fontWeight="font-medium"
+        rounded="rounded-md"
+        (action)="onCancel()"
+      ></app-custom-button>
+
+      <app-custom-button
+        label="Create Project"
+        bgClass="bg-blue-500"
+        textColor="text-white"
+        hoverClass="hover:bg-blue-600"
+        borderClass="border-0"
+        height="h-10"
+        padding="px-4"
+        fontSize="text-sm"
+        fontWeight="font-medium"
+        rounded="rounded-md"
+        extraClasses="gap-2"
+        [disabled]="!projectName.trim()"
+        (action)="onCreate()"
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" class="flex-shrink-0">
+          <path d="M5.707 4.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L10 3.414V12a1 1 0 11-2 0V3.414L6.293 4.707a1 1 0 01-1.414 0z" transform="rotate(90 8 8)"/>
+        </svg>
+      </app-custom-button>
+    </div>
+  </div>
+</app-modal>
