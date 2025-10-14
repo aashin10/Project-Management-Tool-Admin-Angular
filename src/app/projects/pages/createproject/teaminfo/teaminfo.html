@@ -7,12 +7,12 @@
   </div>
   <p class="text-gray-500 text-sm mb-6">Assign leadership and organizational structure</p>
   <!-- <div class="h-6"></div> -->
-  <div class="flex gap-6 mb-6">
-    <div class="flex-1 min-w-[220px]">
+  <div class="flex gap-4 mb-1">
+      <div class="flex-1 min-w-[220px]">
       <label for="manager" class="block text-sm font-medium text-gray-700 mb-1">
         Project Manager <span class="text-red-500">*</span>
       </label>
-      <div class="h-2"></div>
+      <div class="h-1"></div>
         <div class="relative">
           <!-- <input id="managerInput" type="text" class="w-[220px] h-9 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200" placeholder="Search Project Manager"
             [(ngModel)]="manager" (ngModelChange)="onManagerInput($event)" autocomplete="off" /> -->
@@ -20,13 +20,17 @@
             <input
               type="text"
               id="managerInput"
+              name="manager"
               placeholder="Select project manager"
               [(ngModel)]="manager"
+              #managerRef="ngModel"
               (ngModelChange)="onManagerInput($event)"
               autocomplete="off"
+              required
               class="w-[220px] h-9 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 placeholder:text-gray-400 font-normal placeholder:font-normal"
               [ngClass]="manager === '' ? 'text-gray-400' : 'text-black'"
             />
+            <div *ngIf="managerRef.invalid && managerRef.touched" class="text-red-600 text-xs mt-1">Project Manager is required.</div>
 
 
           <!-- <button *ngIf="manager" type="button" (click)="clearManager()" class="absolute right-1 top-1 text-gray-400 hover:text-gray-600" aria-label="Clear manager">
@@ -41,21 +45,25 @@
           </ul>
         </div>
     </div>
-    <div class="flex-1 min-w-[220px]">
+      <div class="flex-1 min-w-[220px]">
       <label for="deliveryUnit" class="block text-sm font-medium text-gray-700 mb-1">
         Delivery Unit <span class="text-red-500">*</span>
       </label>
-      <div class="h-2"></div>
+      <div class="h-1"></div>
       <select 
         id="deliveryUnit" 
+        name="deliveryUnit"
         [(ngModel)]="deliveryUnit" 
+        #duRef="ngModel"
         (ngModelChange)="deliveryUnitChange.emit($event)"
+        required
         class="w-[220px] h-9 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 font-normal"
         [ngClass]="deliveryUnit === '' ? 'text-gray-400' : 'text-black'"
       >
         <option value="" class="text-gray-400" style="font-weight:400">Select delivery unit</option>
         <option *ngFor="let du of deliveryUnits" [value]="du.duCode" class="text-black">{{ du.duInfo.name }} — {{ du.duInfo.subtitle }}</option>
       </select>
+      <div *ngIf="duRef.invalid && duRef.touched" class="text-red-600 text-xs mt-1">Delivery Unit is required.</div>
     </div>
   </div>
 </div>

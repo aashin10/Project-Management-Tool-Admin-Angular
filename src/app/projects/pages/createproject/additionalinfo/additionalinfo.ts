@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CustomButton } from '../../../../shared/custom-button/custom-button';
 import { Modal } from '../../../../shared/modal/modal';
+import { Input } from '@angular/core';
 
 @Component({
   selector: 'app-additionalinfo',
@@ -14,8 +15,8 @@ export class Additionalinfo {
   modalOpen: boolean = false;
   newFieldName: string = '';
   newFieldValue: string = '';
-  addedFields: Array<{name: string, value: string}> = [];
   @Output() addedFieldsChange = new EventEmitter<Array<{name: string, value: string}>>();
+  @Input() addedFields: Array<{ name: string; value: string }> = [];
 
   onAddInfo() {
     this.modalOpen = true;

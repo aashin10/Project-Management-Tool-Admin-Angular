@@ -10,8 +10,8 @@
   <!-- <div class="h-2"></div> -->
 
   <!-- Row: Project Name & Project Key -->
-  <div class="flex gap-6 mb-6">
-    <div class="flex-1 min-w-[220px]">
+  <div class="flex gap-6 mb-1">
+      <div class="flex-1 min-w-[220px]">
       <label for="projectName" class="block text-sm font-medium text-gray-700 mb-1">
         Project Name <span class="text-red-500">*</span>
       </label>
@@ -19,11 +19,17 @@
       <input 
         type="text" 
         id="projectName" 
+        name="projectName"
         placeholder="Enter project name"
         [(ngModel)]="projectName"
+        #projectNameRef="ngModel"
         (input)="onProjectNameChange()"
+        required
         class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 placeholder:text-gray-400"
       >
+      <div *ngIf="projectNameRef.invalid && projectNameRef.touched" class="text-red-600 text-xs mt-1">
+        <div *ngIf="projectNameRef.errors?.['required']">Project name is required.</div>
+      </div>
     </div>
     <div class="flex-1 min-w-[220px]">
       <label for="projectKey" class="block text-sm font-medium text-gray-700 mb-1">
@@ -32,20 +38,30 @@
       <div class="h-2"></div>
       <input 
         type="text" 
-        id="projectKey" 
+        id="projectKey"
+        name="projectKey"
         placeholder="Auto-generated from name"
         [(ngModel)]="projectKey"
+        #projectKeyRef="ngModel"
+        required
+        minlength="3"
+        maxlength="3"
+        pattern="[A-Z0-9]{3}"
         class="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100 text-sm text-gray-600 placeholder:text-gray-400"
       >
+      <div *ngIf="projectKeyRef.invalid && projectKeyRef.touched" class="text-red-600 text-xs mt-1">
+        <div *ngIf="projectKeyRef.errors?.['required']">Project Key is required.</div>
+        <div *ngIf="projectKeyRef.errors?.['pattern'] || projectKeyRef.errors?.['minlength']">Project Key must be 3 uppercase letters or numbers.</div>
+      </div>
       <small class="block mt-1 text-xs text-gray-400">
-        Format: PRJ-001. Auto-generated if empty.
+        Format: 3 characters (A-Z, 0-9). Auto-generated.
       </small>
     </div>
   </div>
   <!-- <div class="h-3"></div> -->
 
   <!-- Project Description -->
-  <div class="mb-6">
+  <div class="mb-3">
     <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
       Project Description
     </label>
@@ -63,22 +79,23 @@
   <div class="flex gap-6">
     <div class="flex-1 min-w-[220px]">
       <label class="block text-sm font-medium text-gray-700 mb-1">
-        Priority Level <span class="text-red-500">*</span>
+        Initial Status
       </label>
       <div class="h-2"></div>
       <div class="relative">
-        <button type="button"
-          class="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white"
-          (click)="togglePriorityDropdown()"
-        >
-          <span class="flex items-center gap-2" [ngClass]="selectedPriority.value === '' ? 'text-gray-400' : 'text-black'">
-            <span *ngIf="selectedPriority.value" class="inline-block w-2 h-2 rounded-full" [ngStyle]="{background: selectedPriority.color}"></span>
-            {{ selectedPriority.label }}
+          <button type="button"
+            class="flex items-center justify-between px-3 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white"
+            style="width:220px; height:36px;"
+            (click)="toggleStatusDropdown()"
+          >
+          <span class="flex items-center gap-2" [ngClass]="selectedStatus.value === '' ? 'text-gray-400' : 'text-black'">
+            <span *ngIf="selectedStatus.value" class="inline-block w-2 h-2 rounded-full" [ngStyle]="{background: selectedStatus.color}"></span>
+            {{ selectedStatus.label }}
           </span>
           <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
         </button>
-        <ul *ngIf="priorityDropdownOpen" class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded shadow-lg">
-          <li *ngFor="let opt of priorityOptions" (click)="selectPriority(opt.value)"
+          <ul *ngIf="statusDropdownOpen" class="absolute z-10 mt-1 bg-white border border-gray-200 rounded shadow-lg" style="width:220px;">
+          <li *ngFor="let opt of statusOptions" (click)="selectStatus(opt.value)"
             class="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-gray-100 text-sm"
             [ngClass]="opt.value === '' ? 'text-gray-400' : 'text-black'"
           >
@@ -88,31 +105,55 @@
         </ul>
       </div>
     </div>
-    <div class="flex-1 min-w-[220px]">
-      <label class="block text-sm font-medium text-gray-700 mb-1">
-        Initial Status
-      </label>
-      <div class="h-2"></div>
-      <div class="relative">
-        <button type="button"
-          class="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white"
-          (click)="toggleStatusDropdown()"
-        >
-          <span class="flex items-center gap-2" [ngClass]="selectedStatus.value === '' ? 'text-gray-400' : 'text-black'">
-            <span *ngIf="selectedStatus.value" class="inline-block w-2 h-2 rounded-full" [ngStyle]="{background: selectedStatus.color}"></span>
-            {{ selectedStatus.label }}
-          </span>
-          <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-        </button>
-        <ul *ngIf="statusDropdownOpen" class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded shadow-lg">
-          <li *ngFor="let opt of statusOptions" (click)="selectStatus(opt.value)"
-            class="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-gray-100 text-sm"
-            [ngClass]="opt.value === '' ? 'text-gray-400' : 'text-black'"
-          >
-            <span *ngIf="opt.value" class="inline-block w-2 h-2 rounded-full" [ngStyle]="{background: opt.color}"></span>
-            {{ opt.label }}
-          </li>
-        </ul>
+  </div>
+
+  <!-- Customer Information -->
+  <div class="mt-3 pt-4">
+    <div class="flex items-center gap-2 mb-1">
+      <span class="text-blue-600 text-sm">●</span>
+      <h3 class="text-lg font-semibold text-gray-900">Customer Information</h3>
+    </div>
+    <p class="text-gray-500 text-sm mb-6">Information about the client or organization</p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Organisation Name <span class="text-red-500">*</span></label>
+        <input required name="organisationName" type="text" placeholder="Enter customer organisation name" [(ngModel)]="organisationName" #orgRef="ngModel" (ngModelChange)="onOrganisationNameChange()"
+          class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 placeholder:text-gray-400">
+        <div *ngIf="orgRef.invalid && orgRef.touched" class="text-red-600 text-xs mt-1">Organisation Name is required.</div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Link to Domain</label>
+        <input type="url" placeholder="https://example.com" [(ngModel)]="domainLink" (ngModelChange)="onDomainLinkChange()"
+          class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 placeholder:text-gray-400">
+      </div>
+
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+        <textarea placeholder="Brief description about the customer..." [(ngModel)]="customerDescription" (ngModelChange)="onCustomerDescriptionChange()"
+          class="w-full px-3 py-2 border border-gray-300 rounded text-sm min-h-[80px] resize-y focus:outline-none focus:ring-2 focus:ring-blue-200 placeholder:text-gray-400"></textarea>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">POC Email <span class="text-red-500">*</span></label>
+        <input required name="pocEmail" type="email" placeholder="poc@example.com" [(ngModel)]="pocEmail" #emailRef="ngModel" (ngModelChange)="onPocEmailChange()"
+          class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 placeholder:text-gray-400">
+        <div *ngIf="emailRef.invalid && emailRef.touched" class="text-red-600 text-xs mt-1">
+          <div *ngIf="emailRef.errors?.['required']">POC Email is required.</div>
+          <div *ngIf="emailRef.errors?.['email']">Enter a valid email address.</div>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number <span class="text-red-500">*</span></label>
+        <input required name="phoneNumber" type="tel" placeholder="+1 (555) 123-4567" [(ngModel)]="phoneNumber" #phoneRef="ngModel" (ngModelChange)="onPhoneNumberChange()"
+          pattern="[0-9\-+() ]{7,20}"
+          class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 placeholder:text-gray-400">
+        <div *ngIf="phoneRef.invalid && phoneRef.touched" class="text-red-600 text-xs mt-1">
+          <div *ngIf="phoneRef.errors?.['required']">Phone Number is required.</div>
+          <div *ngIf="phoneRef.errors?.['pattern']">Enter a valid phone number.</div>
+        </div>
       </div>
     </div>
   </div>
