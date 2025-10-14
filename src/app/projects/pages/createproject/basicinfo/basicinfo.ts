@@ -13,22 +13,29 @@ export class BasicInformationComponent {
   @Input() projectName: string = '';
   @Input() projectKey: string = '';
   @Input() description: string = '';
-  @Input() priority: string = '';
-
-  @Input() status: string = '';
+  // Customer information inputs
+  @Input() organisationName: string = '';
+  @Input() customerDescription: string = '';
+  @Input() domainLink: string = '';
+  @Input() pocEmail: string = '';
+  @Input() phoneNumber: string = '';
+  @Input() status: string = 'active'; // default to 'active'
   @Output() statusChange = new EventEmitter<string>();
 
   @Output() projectNameChange = new EventEmitter<string>();
   @Output() projectKeyChange = new EventEmitter<string>();
   @Output() descriptionChange = new EventEmitter<string>();
-  @Output() priorityChange = new EventEmitter<string>();
+  // Customer information outputs
+  @Output() organisationNameChange = new EventEmitter<string>();
+  @Output() customerDescriptionChange = new EventEmitter<string>();
+  @Output() domainLinkChange = new EventEmitter<string>();
+  @Output() pocEmailChange = new EventEmitter<string>();
+  @Output() phoneNumberChange = new EventEmitter<string>();
 
   statusOptions = [
-    { value: '', label: 'Select status', color: '' },
-    { value: 'inprogress', label: 'In Progress', color: '#2196F3' },
-    { value: 'completed', label: 'Completed', color: '#4CAF50' },
-    { value: 'pending', label: 'Pending', color: '#FF9800' },
-    { value: 'archived', label: 'Archived', color: '#9E9E9E' }
+    { value: 'active', label: 'Active', color: '#2196F3' },
+    { value: 'inactive', label: 'Inactive', color: '#9E9E9E' },
+    { value: 'completed', label: 'Completed', color: '#4CAF50' }
   ];
 
   statusDropdownOpen = false;
@@ -47,47 +54,67 @@ export class BasicInformationComponent {
     this.statusDropdownOpen = false;
   }
 
-  priorityOptions = [
-    { value: '', label: 'Select priority', color: '' },
-    { value: 'high', label: 'High', color: '#F44336' },
-    { value: 'medium', label: 'Medium', color: '#FFC107' },
-    { value: 'low', label: 'Low', color: '#4CAF50' }
-  ];
-
-  priorityDropdownOpen = false;
-
-  get selectedPriority() {
-    return this.priorityOptions.find(opt => opt.value === this.priority) || this.priorityOptions[0];
-  }
-
-  togglePriorityDropdown() {
-    this.priorityDropdownOpen = !this.priorityDropdownOpen;
-  }
-
-  selectPriority(value: string) {
-    this.priority = value;
-    this.priorityChange.emit(this.priority);
-    this.priorityDropdownOpen = false;
-  }
-
   onProjectNameChange() {
     this.projectNameChange.emit(this.projectName);
     this.generateProjectKey();
   }
 
+  onOrganisationNameChange() {
+    this.organisationNameChange.emit(this.organisationName);
+  }
+
+  onCustomerDescriptionChange() {
+    this.customerDescriptionChange.emit(this.customerDescription);
+  }
+
+  onDomainLinkChange() {
+    this.domainLinkChange.emit(this.domainLink);
+  }
+
+  onPocEmailChange() {
+    this.pocEmailChange.emit(this.pocEmail);
+  }
+
+  onPhoneNumberChange() {
+    this.phoneNumberChange.emit(this.phoneNumber);
+  }
+
   generateProjectKey() {
+    // User-specified rules:
+    // - If project name has 2 or more words: key = first letter of word1 + first letter of word2 + last letter of word2
+    // - If project name has 1 word: key = first letter + middle letter + last letter of that word
+    // - If empty or unable to form letters, fallback to 'PRJ'
+    const fallback = 'PRJ';
     if (this.projectName && this.projectName.trim()) {
-      const cleanName = this.projectName.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-      // Handle case where cleanName might be empty after removing all special chars
-      if (cleanName.length === 0) {
-        this.projectKey = 'PRJ-001';
+      const words = this.projectName.trim().split(/\s+/).filter(w => w.length > 0);
+      if (words.length >= 3) {
+        // Use first letters of the first three words
+        const chs = [words[0][0], words[1][0], words[2][0]].map(c => (c ? c.toUpperCase() : ''));
+        const candidate = chs.join('').replace(/[^A-Z0-9]/g, '');
+        this.projectKey = candidate.length === 3 ? candidate : (candidate + 'X'.repeat(Math.max(0, 3 - candidate.length))).slice(0, 3);
+      } else if (words.length === 2) {
+        // Two-word rule: first letter of word1, first letter of word2, last letter of word2
+        const w1 = words[0];
+        const w2 = words[1];
+        const ch1 = w1[0] ? w1[0].toUpperCase() : '';
+        const ch2 = w2[0] ? w2[0].toUpperCase() : '';
+        const ch3 = w2[w2.length - 1] ? w2[w2.length - 1].toUpperCase() : '';
+        const candidate = (ch1 + ch2 + ch3).replace(/[^A-Z0-9]/g, '');
+        this.projectKey = candidate.length === 3 ? candidate : (candidate + 'X'.repeat(Math.max(0, 3 - candidate.length))).slice(0, 3);
+      } else if (words.length === 1) {
+        const w = words[0];
+        const first = w[0] ? w[0].toUpperCase() : '';
+        // middle char: for even length choose left-middle (Math.floor((len-1)/2))
+        const midIndex = Math.floor((w.length - 1) / 2);
+        const middle = w[midIndex] ? w[midIndex].toUpperCase() : '';
+        const last = w[w.length - 1] ? w[w.length - 1].toUpperCase() : '';
+        const candidate = (first + middle + last).replace(/[^A-Z0-9]/g, '');
+        this.projectKey = candidate.length === 3 ? candidate : (candidate + 'X'.repeat(Math.max(0, 3 - candidate.length))).slice(0, 3);
       } else {
-        // Ensure we always have at least 3 characters for the key
-        const keyPrefix = cleanName.length >= 3 ? cleanName.substring(0, 3) : cleanName.padEnd(3, 'X');
-        this.projectKey = `${keyPrefix}-001`;
+        this.projectKey = fallback;
       }
     } else {
-      this.projectKey = 'PRJ-001';
+      this.projectKey = fallback;
     }
     this.projectKeyChange.emit(this.projectKey);
   }

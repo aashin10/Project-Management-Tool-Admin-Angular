@@ -24,7 +24,10 @@ export class Createproject {
   projectName: string = '';
   projectKey: string = '';
   description: string = '';
-  priority: string = '';
+  // Customer info
+  organisationName: string = '';
+  pocEmail: string = '';
+  phoneNumber: string = '';
   manager: string = '';
   deliveryUnit: string = '';
   additionalFields: Array<{name: string, value: string}> = [];
@@ -41,9 +44,19 @@ export class Createproject {
     this.description = description;
   }
 
-  onPriorityChange(priority: string) {
-    this.priority = priority;
+  onOrganisationNameChange(name: string) {
+    this.organisationName = name;
   }
+
+  onPocEmailChange(email: string) {
+    this.pocEmail = email;
+  }
+
+  onPhoneNumberChange(phone: string) {
+    this.phoneNumber = phone;
+  }
+
+  
 
   onManagerChange(manager: string) {
     this.manager = manager;
@@ -59,7 +72,6 @@ export class Createproject {
       name: this.projectName,
       key: this.projectKey,
       description: this.description,
-      priority: this.priority,
       manager: this.manager,
       deliveryUnit: this.deliveryUnit
       , additionalFields: this.additionalFields
