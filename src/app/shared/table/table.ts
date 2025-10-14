@@ -298,12 +298,12 @@ export class Table implements OnChanges, AfterViewChecked {
 
   getActionButtonClass(action: string): string {
     if (action === 'delete') {
-      return 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200';
+      return 'text-red-600 hover:bg-red-50';
     }
     if (action === 'edit') {
-      return 'bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200';
+      return 'text-blue-600 hover:bg-blue-50';
     }
-    return 'bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200';
+    return 'text-gray-600 hover:bg-gray-50';
   }
 
   toggleActionsMenu(index: number): void {

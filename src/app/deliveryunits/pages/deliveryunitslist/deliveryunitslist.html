@@ -47,7 +47,7 @@
   >
   </app-table>
 
-  <!-- Add Delivery Unit Modal -->
+  <!-- Add/Edit Delivery Unit Modal -->
   <app-modal [isOpen]="isModalOpen" (close)="onCloseModal()">
     <div class="p-6">
       <!-- Modal Header -->
@@ -65,9 +65,15 @@
           </svg>
         </div>
         <div>
-          <h2 class="text-xl font-semibold text-gray-900">Add New Delivery Unit</h2>
+          <h2 class="text-xl font-semibold text-gray-900">
+            {{ isEditMode ? 'Edit Delivery Unit' : 'Add New Delivery Unit' }}
+          </h2>
           <p class="text-sm text-gray-500 mt-1">
-            Create a new delivery unit to organize your teams and projects
+            {{
+              isEditMode
+                ? 'Update delivery unit information'
+                : 'Create a new delivery unit to organize your teams and projects'
+            }}
           </p>
         </div>
       </div>
@@ -100,10 +106,17 @@
               name="code"
               placeholder="e.g., ENG-001, PM-002"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none uppercase placeholder:text-gray-400"
+              [readonly]="isEditMode"
+              [class.bg-gray-100]="isEditMode"
+              [class.cursor-not-allowed]="isEditMode"
               required
             />
             <p class="text-xs text-gray-500 mt-1">
-              Format: 2-4 letters, dash, 3 digits (e.g., ENG-001)
+              {{
+                isEditMode
+                  ? 'DU Code cannot be changed'
+                  : 'Format: 2-4 letters, dash, 3 digits (e.g., ENG-001)'
+              }}
             </p>
           </div>
         </div>
@@ -118,7 +131,7 @@
             [(ngModel)]="newDU.description"
             name="description"
             placeholder="Describe the delivery unit's purpose and responsibilities..."
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize- placeholder:text-gray-400"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none placeholder:text-gray-400"
             required
           ></textarea>
         </div>
@@ -185,7 +198,7 @@
             type="submit"
             class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Create Delivery Unit
+            {{ isEditMode ? 'Update Delivery Unit' : 'Create Delivery Unit' }}
           </button>
         </div>
       </form>
