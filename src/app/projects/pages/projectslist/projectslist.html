@@ -62,12 +62,15 @@
 
     </div>
 
-    <!-- Advanced Filters Panel -->
+    <!-- Advanced Filters Panel - UPDATED with initial filter inputs -->
     <app-advanced-filters
       [showFilters]="showFilters"
       [projects]="projects"
       [statusOptions]="statusOptions"
       [deliveryUnitOptions]="deliveryUnitOptions"
+      [initialSelectedStatuses]="selectedStatuses"
+      [initialSelectedDeliveryUnits]="selectedDeliveryUnits"
+      [initialSelectedManagers]="selectedManagers"
       (filtersChanged)="onFiltersChanged($event)">
     </app-advanced-filters>
 
@@ -159,5 +162,20 @@
       </div>
     </div>
   </app-modal>
+
+  <app-project-template-modal
+    *ngIf="showTemplateModal"
+    (templateSelected)="onTemplateSelected($event)"
+    (closeModal)="closeTemplateModal()">
+  </app-project-template-modal>
+
+  <app-create-project-modal
+    *ngIf="showCreateProjectModal"
+    [selectedTemplate]="selectedTemplate"
+    [projects]="projects"
+    (createProject)="onCreateProject($event)"
+    (cancel)="closeCreateProjectModal()"
+    (back)="onBackToTemplateSelection()">
+  </app-create-project-modal>
 
 </div>

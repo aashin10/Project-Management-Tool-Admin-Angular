@@ -1,12 +1,12 @@
 <div class="create-project-container">
-  <div class="header">
-  <div class="back-link flex items-center gap-2 text-gray-500 text-sm cursor-pointer transition-colors duration-200 hover:text-gray-700 mb-4">
+  <!-- <div class="header"> -->
+  <!-- <div class="back-link flex items-center gap-2 text-gray-500 text-sm cursor-pointer transition-colors duration-200 hover:text-gray-700 mb-4">
       <i class="back-icon">←</i>
       <span>Back to Projects</span>
-    </div>
+    </div> -->
     <div class="header-content">
       <app-sectiontitle title="Create New Project" description="Set up your project with team members and define objectives"></app-sectiontitle>
-    </div>
+    <!-- </div> -->
   </div>
 
   <div class="content-wrapper">
@@ -17,11 +17,16 @@
         [(projectName)]="projectName"
         [(projectKey)]="projectKey"
         [(description)]="description"
-        [(priority)]="priority"
+        [(organisationName)]="organisationName"
+        [(pocEmail)]="pocEmail"
+        [(phoneNumber)]="phoneNumber"
         (projectNameChange)="onProjectNameChange($event)"
         (projectKeyChange)="onProjectKeyChange($event)"
         (descriptionChange)="onDescriptionChange($event)"
-        (priorityChange)="onPriorityChange($event)"
+        (organisationNameChange)="onOrganisationNameChange($event)"
+        (pocEmailChange)="onPocEmailChange($event)"
+        (phoneNumberChange)="onPhoneNumberChange($event)"
+        
       ></app-basic-information>
 
       <!-- Team & Organization Component -->
@@ -39,6 +44,11 @@
     <app-project-preview
       [projectName]="projectName"
       [projectKey]="projectKey"
+      [organisationName]="organisationName"
+      [pocEmail]="pocEmail"
+      [phoneNumber]="phoneNumber"
+      [manager]="manager"
+      [deliveryUnit]="deliveryUnit"
       (createProject)="onCreateProject()"
       (cancel)="onCancel()"
     ></app-project-preview>

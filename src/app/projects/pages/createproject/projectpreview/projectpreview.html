@@ -13,15 +13,15 @@
     </div>
     <div>
       <h3 class="text-base font-semibold text-gray-900">{{ projectName || 'Project Name' }}</h3>
-      <p class="text-sm text-gray-500">{{ projectKey || 'PRJ-001' }}</p>
+      <p class="text-sm text-gray-500">{{ projectKey || 'PRJ' }}</p>
     </div>
   </div>
 
   <!-- Action Buttons -->
   <div class="flex flex-col gap-2 mt-auto">
     <app-custom-button
-      icon="/images/plus.svg"
-      [label]="'Create Project'"
+      [icon]="buttonIcon"
+      [label]="buttonLabel"
       [bgClass]="'bg-blue-600'"
       [textColor]="'text-white'"
       [fontWeight]="'font-semibold'"
@@ -29,6 +29,7 @@
       [extraClasses]="'w-full shadow'"
       [hoverClass]="'hover:bg-blue-700'"
       [padding]="'py-2 px-4'"
+      [disabled]="!canCreate"
       (action)="createProject.emit()"
     ></app-custom-button>
     <app-custom-button
@@ -42,5 +43,6 @@
       [padding]="'py-2 px-4'"
       (action)="cancel.emit()"
     ></app-custom-button>
+    
   </div>
 </div>

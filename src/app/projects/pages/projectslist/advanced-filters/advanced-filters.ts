@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -20,11 +20,16 @@ interface Project {
   templateUrl: './advanced-filters.html',
   styleUrl: './advanced-filters.css'
 })
-export class AdvancedFilters {
+export class AdvancedFilters implements OnChanges {
   @Input() showFilters = false;
   @Input() projects: Project[] = [];
   @Input() statusOptions: string[] = [];
   @Input() deliveryUnitOptions: string[] = [];
+  
+  // NEW: Accept initial filter values from parent
+  @Input() initialSelectedStatuses: string[] = [];
+  @Input() initialSelectedDeliveryUnits: string[] = [];
+  @Input() initialSelectedManagers: string[] = [];
 
   @Output() filtersChanged = new EventEmitter<{
     selectedStatuses: string[];
@@ -40,6 +45,19 @@ export class AdvancedFilters {
   // Manager search
   managerSearchQuery = '';
   showAllManagers = false;
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // Initialize filters from parent component if provided
+    if (changes['initialSelectedStatuses'] && this.initialSelectedStatuses.length > 0) {
+      this.selectedStatuses = [...this.initialSelectedStatuses];
+    }
+    if (changes['initialSelectedDeliveryUnits'] && this.initialSelectedDeliveryUnits.length > 0) {
+      this.selectedDeliveryUnits = [...this.initialSelectedDeliveryUnits];
+    }
+    if (changes['initialSelectedManagers'] && this.initialSelectedManagers.length > 0) {
+      this.selectedManagers = [...this.initialSelectedManagers];
+    }
+  }
 
   // Getters
   get hasActiveFilters(): boolean {
