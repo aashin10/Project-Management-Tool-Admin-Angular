@@ -163,4 +163,19 @@
     </div>
   </app-modal>
 
+  <app-project-template-modal
+    *ngIf="showTemplateModal"
+    (templateSelected)="onTemplateSelected($event)"
+    (closeModal)="closeTemplateModal()">
+  </app-project-template-modal>
+
+  <app-create-project-modal
+    *ngIf="showCreateProjectModal"
+    [selectedTemplate]="selectedTemplate"
+    [projects]="projects"
+    (createProject)="onCreateProject($event)"
+    (cancel)="closeCreateProjectModal()"
+    (back)="onBackToTemplateSelection()">
+  </app-create-project-modal>
+
 </div>
