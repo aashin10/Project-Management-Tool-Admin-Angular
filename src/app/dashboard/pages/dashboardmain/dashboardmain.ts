@@ -1,16 +1,14 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DashboardMetricCards } from './dashboard-metric-cards/dashboard-metric-cards';
-import { ChartData, ProjectActivityTimelineComponent } from './project-activity-timeline/project-activity-timeline';
+import { ProjectActivityTimelineComponent, ChartData } from './project-activity-timeline/project-activity-timeline';
 import { ProjectStatusComponent, ProjectStatusData } from './project-status-pie/project-status-pie';
-
-
-
+import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
 
 export interface MetricCard {
   title: string;
   value: number;
-  icon: string;
+  icon: string; // path to svg file
   iconBgColor: string;
   iconColor: string;
   trend?: string;
@@ -21,43 +19,35 @@ export interface MetricCard {
 @Component({
   selector: 'app-dashboard-main',
   standalone: true,
-  imports: [CommonModule, DashboardMetricCards, ProjectActivityTimelineComponent, ProjectStatusComponent],
+  imports: [CommonModule, DashboardMetricCards, ProjectActivityTimelineComponent, ProjectStatusComponent, Sectiontitle],
   templateUrl: './dashboardmain.html',
   styleUrls: ['./dashboardmain.css']
 })
 export class DashboardMainComponent {
-  
+
   metricCards: MetricCard[] = [
     {
       title: 'Total Projects',
       value: 37,
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-      </svg>`,
+      icon: "/images/dashboard-card1.svg",
       iconBgColor: 'bg-blue-50',
       iconColor: 'text-blue-600',
-      trend: '12%',
       trendColor: 'text-emerald-600',
       borderColor: 'border-blue-100'
     },
     {
       title: 'In Progress',
       value: 18,
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>`,
+      icon: '/images/dashboard-card2.svg',
       iconBgColor: 'bg-emerald-50',
       iconColor: 'text-emerald-600',
-      trend: '8%',
       trendColor: 'text-emerald-600',
       borderColor: 'border-emerald-100'
     },
     {
       title: 'On Hold Projects',
       value: 5,
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>`,
+      icon: '/images/dashboard-card3.svg',
       iconBgColor: 'bg-amber-50',
       iconColor: 'text-amber-600',
       borderColor: 'border-amber-100'
@@ -65,18 +55,14 @@ export class DashboardMainComponent {
     {
       title: 'Delivery Units',
       value: 5,
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-      </svg>`,
+      icon: '/images/dashboard-card4.svg',
       iconBgColor: 'bg-purple-50',
       iconColor: 'text-purple-600',
-      trend: '2%',
       trendColor: 'text-emerald-600',
       borderColor: 'border-purple-100'
     }
   ];
 
-  // Project status data for different delivery units
   projectStatusData: ProjectStatusData[] = [
     {
       deliveryUnit: 'Engineering',
