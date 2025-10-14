@@ -319,7 +319,10 @@ export class Userslist implements OnInit {
     { header: 'Status', field: 'status', type: 'badge' as const },
     { header: 'Created', field: 'created', type: 'text' as const },
     { header: 'Last Activity', field: 'lastActivity', type: 'text' as const },
-    { header: 'Actions', field: 'actions', type: 'actions' as const }
+    { header: 'Actions', field: 'actions', type: 'actions' as const, actions: [
+      { label: 'Edit', action: 'edit', icon: 'images/edit.svg' },
+      { label: 'Delete', action: 'delete', icon: 'images/delete.svg', class: 'danger' }
+    ] }
   ];
 
   ngOnInit() {
