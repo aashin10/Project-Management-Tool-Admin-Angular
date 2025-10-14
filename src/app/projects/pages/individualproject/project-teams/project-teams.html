@@ -1,0 +1,58 @@
+<!-- Project Teams Section -->
+<div class="bg-white border border-gray-200 rounded-lg shadow-sm">
+  <div class="px-6 py-5 border-b border-gray-200">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+          stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+        <h2 class="text-lg font-semibold text-gray-900">Project Team</h2>
+      </div>
+      <div class="text-sm text-gray-500">
+        {{ getActiveMembersCount() }} of {{ getTotalMembersCount() }} active
+      </div>
+    </div>
+  </div>
+
+  <div class="px-6 py-5">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div *ngFor="let member of teamMembers" class="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
+        <div class="flex items-start gap-3">
+          <!-- Avatar -->
+          <div
+            [style.background-color]="member.avatarColor"
+            class="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+            {{ member.avatar }}
+          </div>
+
+          <!-- Member Details -->
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between mb-1">
+              <h3 class="text-sm font-semibold text-gray-900 truncate">{{ member.name }}</h3>
+              <span
+                [class]="member.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'"
+                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium">
+                {{ member.status }}
+              </span>
+            </div>
+
+            <p class="text-xs text-gray-600 mb-2">{{ member.role }}</p>
+
+            <div class="flex items-center gap-1 text-xs text-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+              </svg>
+              <span class="truncate">{{ member.email }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
