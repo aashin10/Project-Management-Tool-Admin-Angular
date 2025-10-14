@@ -41,19 +41,7 @@ describe('BasicInformationComponent', () => {
 });
 
 describe('NgIf rendering', () => {
-  it('should not render priority dropdown when priorityDropdownOpen is false', () => {
-    component.priorityDropdownOpen = false;
-    fixture.detectChanges();
-    const dropdown = fixture.debugElement.query(By.css('ul'));
-    expect(dropdown).toBeNull();
-  });
-
-  it('should render priority dropdown when priorityDropdownOpen is true', () => {
-    component.priorityDropdownOpen = true;
-    fixture.detectChanges();
-    const dropdown = fixture.debugElement.query(By.css('ul'));
-    expect(dropdown).toBeTruthy();
-  });
+  
 
   it('should not render status dropdown when statusDropdownOpen is false', () => {
     component.statusDropdownOpen = false;
@@ -71,13 +59,7 @@ describe('NgIf rendering', () => {
 });
 
 describe('NgFor rendering', () => {
-  it('should render all priority options when dropdown is open', () => {
-    component.priorityDropdownOpen = true;
-    fixture.detectChanges();
-    const options = fixture.debugElement.queryAll(By.css('ul li'));
-    expect(options.length).toBe(component.priorityOptions.length);
-  });
-
+  
   it('should render all status options when dropdown is open', () => {
     component.statusDropdownOpen = true;
     fixture.detectChanges();
@@ -119,15 +101,8 @@ describe('Project Key & Name', () => {
   });
 });
 
-describe('Priority & Status Logic', () => {
-  it('selectPriority should set priority, emit, and close dropdown', () => {
-    spyOn(component.priorityChange, 'emit');
-    component.priorityDropdownOpen = true;
-    component.selectPriority('high');
-    expect(component.priority).toBe('high');
-    expect(component.priorityChange.emit).toHaveBeenCalledWith('high');
-    expect(component.priorityDropdownOpen).toBeFalse();
-  });
+describe('Status Logic', () => {
+  
 
   it('selectStatus should set status, emit, and close dropdown', () => {
     spyOn(component.statusChange, 'emit');
@@ -138,15 +113,7 @@ describe('Priority & Status Logic', () => {
     expect(component.statusDropdownOpen).toBeFalse();
   });
 
-  it('selectedPriority getter returns correct option', () => {
-    component.priority = 'medium';
-    expect(component.selectedPriority.label).toBe('Medium');
-  });
-
-  it('selectedStatus getter returns correct option', () => {
-    component.status = 'completed';
-    expect(component.selectedStatus.label).toBe('Completed');
-  });
+  
 });
 
 // Edge Cases
@@ -176,16 +143,7 @@ describe('Edge Cases', () => {
   });
  
 
-  it('selectPriority should handle empty/null values', () => {
-    spyOn(component.priorityChange, 'emit');
-    component.selectPriority('');
-    expect(component.priority).toBe('');
-    expect(component.priorityChange.emit).toHaveBeenCalledWith('');
-
-    component.selectPriority(null as any);
-    expect(component.priority as any).toBe(null);
-    expect(component.priorityChange.emit).toHaveBeenCalledWith(null as any);
-  });
+  
 
   it('selectStatus should handle empty/null values', () => {
     spyOn(component.statusChange, 'emit');

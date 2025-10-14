@@ -1,0 +1,139 @@
+<div class="create-project-container">
+  <div class="header-content">
+    <app-sectiontitle title="Edit Project" description="Update your project details, team members and objectives"></app-sectiontitle>
+  </div>
+
+  <div class="content-wrapper">
+    <!-- Left Section - Form -->
+    <div class="form-section">
+      <!-- Basic Information Component -->
+      <app-basic-information
+        [(projectName)]="projectName"
+        [(projectKey)]="projectKey"
+        [(description)]="description"
+        [(organisationName)]="organisationName"
+        [(pocEmail)]="pocEmail"
+        [(phoneNumber)]="phoneNumber"
+        (projectNameChange)="onProjectNameChange($event)"
+        (projectKeyChange)="onProjectKeyChange($event)"
+        (descriptionChange)="onDescriptionChange($event)"
+        (organisationNameChange)="onOrganisationNameChange($event)"
+        (pocEmailChange)="onPocEmailChange($event)"
+        (phoneNumberChange)="onPhoneNumberChange($event)"
+      ></app-basic-information>
+
+      <!-- Team & Organization Component -->
+      <app-team-organization
+        [(manager)]="manager"
+        [(deliveryUnit)]="deliveryUnit"
+        (managerChange)="onManagerChange($event)"
+        (deliveryUnitChange)="onDeliveryUnitChange($event)"
+      ></app-team-organization>
+
+      <app-additionalinfo 
+        [addedFields]="additionalFields"
+        (addedFieldsChange)="onAdditionalFieldsChange($event)">
+      </app-additionalinfo>
+    </div>
+
+    <!-- Right Section - Enhanced Project Preview Component -->
+    <div class="preview-section">
+      <div class="sticky top-20 max-h-[calc(100vh-5rem)] overflow-auto p-6 bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col items-stretch h-fit">
+        <!-- Header -->
+        <div class="flex items-center gap-2 mb-4">
+          <span class="text-blue-600 text-sm">●</span>
+          <h2 class="text-lg font-semibold text-gray-900">Project Preview</h2>
+        </div>
+
+        <!-- Project Info -->
+        <div class="flex items-center gap-4 mb-6">
+          <div class="flex items-center justify-center w-14 h-14 rounded-full bg-gray-100 border border-gray-300">
+            <span class="text-xl font-bold text-gray-700">{{ getInitials() }}</span>
+          </div>
+          <div>
+            <h3 class="text-base font-semibold text-gray-900">{{ projectName || 'Project Name' }}</h3>
+            <p class="text-sm text-gray-500">{{ projectKey || 'PRJ' }}</p>
+          </div>
+        </div>
+
+        <!-- Project Details -->
+        <div class="space-y-3 mb-4">
+          <!-- <div *ngIf="description" class="text-sm">
+            <span class="font-medium text-gray-700">Description:</span>
+            <p class="text-gray-600 mt-1">{{ description || 'No description provided' }}</p>
+          </div> -->
+          
+            <hr class="my-2 border-gray-200">
+          <div *ngIf="manager" class="text-sm">
+            <span class="font-semibold text-gray-700 text-sm">PROJECT MANAGER</span>
+            <div class="flex items-center gap-3 mt-2">
+              <div class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-semibold text-base">
+                {{ managerInitials }}
+              </div>
+              <div class="flex flex-col">
+                <span class="font-medium text-gray-900">{{ manager }}</span>
+                <!-- <span class="text-xs text-gray-500">Project Manager</span> -->
+              </div>
+            </div>
+          </div>
+
+          <!-- <div *ngIf="organisationName" class="text-sm">
+            <span class="font-medium text-gray-700">Organization:</span>
+            <p class="text-gray-600 mt-1">{{ organisationName || 'Not specified' }}</p>
+          </div> -->
+
+          <!-- <div *ngIf="deliveryUnit" class="text-sm">
+            <span class="font-medium text-gray-700">Delivery Unit:</span>
+            <p class="text-gray-600 mt-1">{{ deliveryUnit || 'Not assigned' }}</p>
+          </div> -->
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col gap-2 mt-auto">
+          <app-custom-button
+            [label]="'Edit Team Members'"
+           
+            [bgClass]="'bg-white'"
+            [textColor]="'text-gray-500'"
+            [fontWeight]="'font-semibold'"
+            [rounded]="'rounded'"
+            [extraClasses]="'w-full shadow'"
+            [hoverClass]="'hover:text-gray-700 hover:bg-gray-50'"
+            [padding]="'py-2 px-4'"
+            (action)="onEditTeamMembers()"
+          ></app-custom-button>
+
+          <app-custom-button
+            [label]="'Update Project'"
+           
+            [bgClass]="'bg-blue-600'"
+            [textColor]="'text-white'"
+            [fontWeight]="'font-semibold'"
+            [rounded]="'rounded'"
+            [extraClasses]="'w-full shadow'"
+            [hoverClass]="'hover:bg-blue-700'"
+            [padding]="'py-2 px-4'"
+            [disabled]="!canCreate"
+            (action)="onUpdateProject()"
+          ></app-custom-button>
+
+          <app-custom-button
+            [label]="'Cancel'"
+            [bgClass]="'bg-transparent'"
+            [textColor]="'text-gray-500'"
+            [fontWeight]="'font-semibold'"
+            [rounded]="'rounded'"
+            [extraClasses]="'w-full border border-gray-300'"
+            [hoverClass]="'hover:text-gray-700 hover:bg-gray-50'"
+            [padding]="'py-2 px-4'"
+            (action)="onCancel()"
+          ></app-custom-button>
+          <!-- Missing Fields Warning -->
+          <div *ngIf="!canCreate && missingFields.length > 0" class="text-xs text-red-500 mt-2">
+            Missing: {{ missingFields.join(', ') }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
