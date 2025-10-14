@@ -173,58 +173,77 @@ export class ProjectActivityTimelineComponent implements OnInit {
   }
 
   private getDataForPeriod(period: string): ActivityData[] {
-    switch (period) {
-      case 'Monthly':
-        return [
-          { period: 'Week 1', projects: 15 },
-          { period: 'Week 2', projects: 22 },
-          { period: 'Week 3', projects: 18 },
-          { period: 'Week 4', projects: 25 }
-        ];
-      case 'Quarterly':
-        return [
-          { period: 'Q1 2024', projects: 45 },
-          { period: 'Q2 2024', projects: 65 },
-          { period: 'Q3 2024', projects: 52 },
-          { period: 'Q4 2024', projects: 78 }
-        ];
-      case 'Yearly':
-        return [
-          { period: 'Jan', projects: 12 },
-          { period: 'Feb', projects: 15 },
-          { period: 'Mar', projects: 18 },
-          { period: 'Apr', projects: 22 },
-          { period: 'May', projects: 20 },
-          { period: 'Jun', projects: 25 },
-          { period: 'Jul', projects: 28 },
-          { period: 'Aug', projects: 30 },
-          { period: 'Sep', projects: 27 },
-          { period: 'Oct', projects: 32 },
-          { period: 'Nov', projects: 35 },
-          { period: 'Dec', projects: 37 }
-        ];
-      case 'Last 5 Years':
-        return [
-          { period: '2020', projects: 120 },
-          { period: '2021', projects: 185 },
-          { period: '2022', projects: 220 },
-          { period: '2023', projects: 280 },
-          { period: '2024', projects: 320 }
-        ];
-      case 'All Time':
-        return [
-          { period: '2018', projects: 80 },
-          { period: '2019', projects: 95 },
-          { period: '2020', projects: 120 },
-          { period: '2021', projects: 185 },
-          { period: '2022', projects: 220 },
-          { period: '2023', projects: 280 },
-          { period: '2024', projects: 320 }
-        ];
-      default:
-        return this.generateYearlyData();
-    }
+  if (!this.chartData) return [];
+
+  switch (period) {
+    case 'Monthly':
+      return this.chartData.monthly || [];
+    case 'Quarterly':
+      return this.chartData.quarterly || [];
+    case 'Yearly':
+      return this.chartData.yearly || [];
+    case 'Last 5 Years':
+      return this.chartData.last5Years || [];
+    case 'All Time':
+      return this.chartData.allTime || [];
+    default:
+      return this.chartData.yearly || [];
   }
+}
+
+  // private getDataForPeriod(period: string): ActivityData[] {
+  //   switch (period) {
+  //     case 'Monthly':
+  //       return [
+  //         { period: 'Week 1', projects: 15 },
+  //         { period: 'Week 2', projects: 22 },
+  //         { period: 'Week 3', projects: 18 },
+  //         { period: 'Week 4', projects: 25 }
+  //       ];
+  //     case 'Quarterly':
+  //       return [
+  //         { period: 'Q1 2024', projects: 45 },
+  //         { period: 'Q2 2024', projects: 65 },
+  //         { period: 'Q3 2024', projects: 52 },
+  //         { period: 'Q4 2024', projects: 78 }
+  //       ];
+  //     case 'Yearly':
+  //       return [
+  //         { period: 'Jan', projects: 12 },
+  //         { period: 'Feb', projects: 15 },
+  //         { period: 'Mar', projects: 18 },
+  //         { period: 'Apr', projects: 22 },
+  //         { period: 'May', projects: 20 },
+  //         { period: 'Jun', projects: 25 },
+  //         { period: 'Jul', projects: 28 },
+  //         { period: 'Aug', projects: 30 },
+  //         { period: 'Sep', projects: 27 },
+  //         { period: 'Oct', projects: 32 },
+  //         { period: 'Nov', projects: 35 },
+  //         { period: 'Dec', projects: 37 }
+  //       ];
+  //     case 'Last 5 Years':
+  //       return [
+  //         { period: '2020', projects: 120 },
+  //         { period: '2021', projects: 185 },
+  //         { period: '2022', projects: 220 },
+  //         { period: '2023', projects: 280 },
+  //         { period: '2024', projects: 320 }
+  //       ];
+  //     case 'All Time':
+  //       return [
+  //         { period: '2018', projects: 80 },
+  //         { period: '2019', projects: 95 },
+  //         { period: '2020', projects: 120 },
+  //         { period: '2021', projects: 185 },
+  //         { period: '2022', projects: 220 },
+  //         { period: '2023', projects: 280 },
+  //         { period: '2024', projects: 320 }
+  //       ];
+  //     default:
+  //       return this.generateYearlyData();
+  //   }
+  // }
 
   private generateYearlyData(): ActivityData[] {
     return [
