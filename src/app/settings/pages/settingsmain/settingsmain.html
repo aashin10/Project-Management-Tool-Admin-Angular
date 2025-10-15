@@ -1,1 +1,181 @@
-<p>settingsmain works!</p>
+<app-sectiontitle
+  title="Settings" 
+  description="Manage system settings and super administrators">
+</app-sectiontitle>
+
+<!-- Super Admin Management Section -->
+<div class="bg-white border border-gray-200 rounded-lg p-6 mt-6">
+  <!-- Section Header -->
+  <div class="flex items-start justify-between mb-6">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"></path>
+        </svg>
+        <h2 class="text-base font-semibold text-gray-900">Super Admin Management</h2>
+      </div>
+      <p class="text-sm text-gray-500">Add or remove super administrators who have full system access</p>
+    </div>
+    
+
+
+              <app-custom-button
+            [label]="'Add Super Admin'"
+            [icon]="'/images/plus.svg'"
+            [bgClass]="'bg-blue-600'"
+            [textColor]="'text-white'"
+            [borderClass]="'border-0'"
+            [hoverClass]="'hover:bg-blue-700'"
+            [extraClasses]="'transition-colors'"
+            (action)="openAddModal()">
+          </app-custom-button>
+  </div>
+
+  <!-- Current Super Admins -->
+  <div>
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-sm font-semibold text-gray-900">Current Super Admins</h3>
+      <span class="text-xs text-gray-500">{{ superAdmins.length }} admins</span>
+    </div>
+
+    <!-- Admin List -->
+    <div class="space-y-3">
+      <div 
+        *ngFor="let admin of superAdmins"
+        class="group flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-blue-500 transition-colors cursor-pointer"
+      >
+        <div class="flex items-center gap-3">
+          <!-- Avatar with Initials -->
+          <div [class]="'w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold ' + admin.initialsColor">
+            {{ admin.initials }}
+          </div>
+
+          <!-- Admin Info -->
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-medium text-gray-900">{{ admin.name }}</span>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-full border border-blue-200">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"></path>
+                </svg>
+                Super Admin
+              </span>
+            </div>
+            <div class="flex items-center gap-2 mt-1 text-xs text-gray-500">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+              </svg>
+              <span>{{ admin.email }}</span>
+              <span class="mx-1">•</span>
+              <span>Added {{ admin.addedDate }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Delete Button -->
+        <button
+          (click)="openDeleteModal(admin)"
+          class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+          type="button"
+          aria-label="Remove admin"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<app-modal [isOpen]="isDeleteModalOpen" (close)="closeDeleteModal()">
+  <div class="p-6">
+    <h3 class="text-lg font-semibold text-gray-900 mb-2">Remove Super Admin</h3>
+    <p class="text-sm text-gray-600 mb-1">
+      Are you sure you want to remove this super admin? This action cannot be undone.
+    </p>
+    <p class="text-sm font-medium text-gray-900 mt-4 mb-6">{{ selectedAdmin?.name }}</p>
+    
+    <div class="flex justify-end gap-3">
+      <button
+        (click)="closeDeleteModal()"
+        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+        type="button"
+      >
+        Cancel
+      </button>
+      <button
+        (click)="confirmDelete()"
+        class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 transition-colors"
+        type="button"
+      >
+        Remove
+      </button>
+    </div>
+  </div>
+</app-modal>
+
+<!-- Add Admin Modal -->
+<app-modal [isOpen]="isAddModalOpen" (close)="closeAddModal()">
+  <div class="p-6">
+    <h3 class="text-lg font-semibold text-gray-900 mb-2">Add Super Admin</h3>
+    <p class="text-sm text-gray-600 mb-6">
+      Add a new super administrator with full system access.
+    </p>
+    
+    <form (ngSubmit)="addSuperAdmin()">
+      <!-- Name Field -->
+      <div class="mb-4">
+        <label for="adminName" class="block text-sm font-medium text-gray-700 mb-1">
+          Name
+        </label>
+        <input
+          id="adminName"
+          type="text"
+          [(ngModel)]="newAdminName"
+          name="name"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Enter admin name"
+          required
+        />
+      </div>
+
+      <!-- Email Field -->
+      <div class="mb-6">
+        <label for="adminEmail" class="block text-sm font-medium text-gray-700 mb-1">
+          Email Address
+        </label>
+        <input
+          id="adminEmail"
+          type="email"
+          [(ngModel)]="newAdminEmail"
+          name="email"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Enter email address"
+          required
+        />
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex justify-end gap-3">
+        <button
+          (click)="closeAddModal()"
+          type="button"
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          [disabled]="!isAddFormValid"
+          [class.opacity-50]="!isAddFormValid"
+          [class.cursor-not-allowed]="!isAddFormValid"
+          class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors disabled:hover:bg-blue-600"
+        >
+          Add Admin
+        </button>
+      </div>
+    </form>
+  </div>
+</app-modal>

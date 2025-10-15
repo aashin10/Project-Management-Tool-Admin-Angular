@@ -1,10 +1,17 @@
 <div class="flex items-center space-x-2 sm:space-x-4">
   <button
     *ngFor="let btn of buttons"
-    class="rounded-full hover:bg-gray-100 transition-colors hover:cursor-pointer"
+    class="rounded-full hover:bg-gray-100 transition-colors hover:cursor-pointer relative"
     [attr.aria-label]="btn.label"
     (click)="onAction(btn.type)"
   >
     <img [src]="btn.icon" class="h-10 w-10 sm:h-12 sm:w-12 text-gray-500" />
+    <!-- Unread notification badge -->
+    <span
+      *ngIf="btn.type === 'notification' && unreadNotificationCount > 0"
+      class="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full min-w-[18px] h-[18px]"
+    >
+      {{ unreadNotificationCount > 99 ? '99+' : unreadNotificationCount }}
+    </span>
   </button>
 </div>

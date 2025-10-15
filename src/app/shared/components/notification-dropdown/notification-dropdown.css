@@ -1,0 +1,67 @@
+/* Notification dropdown styles */
+.notification-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 50;
+  margin-top: 0.5rem;
+}
+
+/* Custom scrollbar for notifications list */
+.max-h-80::-webkit-scrollbar {
+  width: 6px;
+}
+
+.max-h-80::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.max-h-80::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.max-h-80::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Notification item hover effects */
+.notification-item {
+  transition: all 0.2s ease-in-out;
+}
+
+.notification-item:hover {
+  background-color: #f8fafc;
+}
+
+/* Unread notification indicator */
+.unread-indicator {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Notification type specific styles */
+.notification-success {
+  border-left: 3px solid #10b981;
+}
+
+.notification-error {
+  border-left: 3px solid #ef4444;
+}
+
+.notification-warning {
+  border-left: 3px solid #f59e0b;
+}
+
+.notification-info {
+  border-left: 3px solid #3b82f6;
+}
