@@ -7,7 +7,7 @@ import { CustomButton } from '../../../../shared/custom-button/custom-button';
 @Component({
   selector: 'app-project-template-modal',
   standalone: true,
-  imports: [CommonModule, Modal, CustomButton],
+  imports: [CommonModule, Modal],
   templateUrl: './project-template-modal.html',
   styleUrl: './project-template-modal.css'
 })
