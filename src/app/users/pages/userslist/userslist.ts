@@ -72,6 +72,10 @@ export class Userslist implements OnInit {
   private _resetPagination: boolean = false;
   validationErrors: string[] = [];
 
+  // Custom dropdown states for Add User modal
+  showAddUserTypeDropdown = false;
+  showAddUserStatusDropdown = false;
+
   get resetPagination(): boolean {
     return this._resetPagination;
   }
@@ -121,6 +125,9 @@ export class Userslist implements OnInit {
       type: '',
       status: ''
     };
+    // Close dropdowns
+    this.showAddUserTypeDropdown = false;
+    this.showAddUserStatusDropdown = false;
   }
   
   submitNewUser() {
@@ -307,6 +314,29 @@ export class Userslist implements OnInit {
     if (!this.filterStatus) return 'All Status';
     const found = this.statusOptions.find(opt => opt.value === this.filterStatus);
     return found ? found.label : 'All Status';
+  }
+
+  // Custom dropdown methods for Add User modal
+  selectAddUserType(value: string) {
+    this.newUser.type = value;
+    this.showAddUserTypeDropdown = false;
+  }
+
+  selectAddUserStatus(value: string) {
+    this.newUser.status = value;
+    this.showAddUserStatusDropdown = false;
+  }
+
+  getAddUserTypeLabel(): string {
+    if (!this.newUser.type) return 'Select Type';
+    const found = this.typeOptions.find(opt => opt.value === this.newUser.type);
+    return found ? found.label : 'Select Type';
+  }
+
+  getAddUserStatusLabel(): string {
+    if (!this.newUser.status) return 'Select Status';
+    const found = this.statusOptions.find(opt => opt.value === this.newUser.status);
+    return found ? found.label : 'Select Status';
   }
   
   // Sample user data
@@ -534,10 +564,17 @@ projects: Project[] = [
     // Close dropdowns when clicking outside
     const target = event.target as HTMLElement;
     const typeDropdown = target.closest('.relative.w-48');
+    const addUserTypeDropdown = target.closest('.relative');
     
     if (!typeDropdown) {
       this.showTypeDropdown = false;
       this.showStatusDropdown = false;
+    }
+    
+    // Close Add User modal dropdowns if clicking outside
+    if (this.showAddUserModal && !addUserTypeDropdown) {
+      this.showAddUserTypeDropdown = false;
+      this.showAddUserStatusDropdown = false;
     }
   }
 

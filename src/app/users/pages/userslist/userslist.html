@@ -253,7 +253,7 @@
 
 <!-- Add User Modal -->
 <app-modal *ngIf="showAddUserModal" [isOpen]="showAddUserModal" (close)="closeAddUserModal()">
-  <div class="p-6">
+  <div class="p-6 add-user-modal">
     <h2 class="text-xl font-semibold mb-2">Create New User</h2>
     <p class="text-sm text-gray-600 mb-6">
       Add a new user to the system. Required fields are marked with an asterisk (*).
@@ -325,17 +325,41 @@
         <label class="block text-sm font-medium text-gray-700 mb-1">
           Type <span class="text-red-500">*</span>
         </label>
-        <select
-          [(ngModel)]="newUser.type"
-          name="type"
-          required
-          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0052CC] focus:border-[#0052CC]"
-        >
-          <option value="" disabled selected>Select Type</option>
-          <option value="internal">Internal</option>
-          <option value="external">External</option>
-          <option value="customer">Customer</option>
-        </select>
+        <div class="relative">
+          <button
+            type="button"
+            (click)="showAddUserTypeDropdown = !showAddUserTypeDropdown"
+            class="custom-dropdown-button"
+          >
+            <span [ngClass]="{'text-gray-400': !newUser.type, 'text-gray-900': newUser.type}">
+              {{ getAddUserTypeLabel() }}
+            </span>
+            <svg
+              class="w-4 h-4 text-gray-400 transition-transform"
+              [ngClass]="{'rotate-180': showAddUserTypeDropdown}"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              viewBox="0 0 24 24"
+            >
+              <path d="m6 9 6 6 6-6"></path>
+            </svg>
+          </button>
+          <div
+            *ngIf="showAddUserTypeDropdown"
+            class="custom-dropdown-menu"
+          >
+            <div
+              *ngFor="let opt of typeOptions"
+              (click)="selectAddUserType(opt.value)"
+              [ngClass]="{'custom-dropdown-item selected': newUser.type === opt.value, 'custom-dropdown-item': newUser.type !== opt.value}"
+            >
+              {{ opt.label }}
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Status Dropdown -->
@@ -343,16 +367,41 @@
         <label class="block text-sm font-medium text-gray-700 mb-1">
           Status <span class="text-red-500">*</span>
         </label>
-        <select
-          [(ngModel)]="newUser.status"
-          name="status"
-          required
-          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0052CC] focus:border-[#0052CC]"
-        >
-          <option value="" disabled selected>Select Status</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
+        <div class="relative">
+          <button
+            type="button"
+            (click)="showAddUserStatusDropdown = !showAddUserStatusDropdown"
+            class="custom-dropdown-button"
+          >
+            <span [ngClass]="{'text-gray-400': !newUser.status, 'text-gray-900': newUser.status}">
+              {{ getAddUserStatusLabel() }}
+            </span>
+            <svg
+              class="w-4 h-4 text-gray-400 transition-transform"
+              [ngClass]="{'rotate-180': showAddUserStatusDropdown}"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              viewBox="0 0 24 24"
+            >
+              <path d="m6 9 6 6 6-6"></path>
+            </svg>
+          </button>
+          <div
+            *ngIf="showAddUserStatusDropdown"
+            class="custom-dropdown-menu"
+          >
+            <div
+              *ngFor="let opt of statusOptions"
+              (click)="selectAddUserStatus(opt.value)"
+              [ngClass]="{'custom-dropdown-item selected': newUser.status === opt.value, 'custom-dropdown-item': newUser.status !== opt.value}"
+            >
+              {{ opt.label }}
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Action Buttons -->
