@@ -1,4 +1,4 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
@@ -6,6 +6,7 @@ import { CustomButton } from '../../../shared/custom-button/custom-button';
 import { SearchBar } from '../../../shared/components/search-bar/search-bar';
 import { Table } from '../../../shared/table/table';
 import { Modal } from '../../../shared/modal/modal';
+import { UsersApi, User } from '../../services/users-api';
 
 
 interface Project {
@@ -26,7 +27,12 @@ interface Project {
   templateUrl: './userslist.html',
   styleUrl: './userslist.css'
 })
-export class Userslist {
+export class Userslist implements OnInit {
+  private usersApi = inject(UsersApi);
+  private cdr = inject(ChangeDetectorRef);
+  
+  isLoading = false;
+  loadingError: string | null = null;
   onActionClick(event: { action: string; row: any }) {
     console.log('Action clicked:', event.action, 'Row:', event.row);
     
@@ -65,6 +71,10 @@ export class Userslist {
   selectedUsers: any[] = [];
   private _resetPagination: boolean = false;
   validationErrors: string[] = [];
+
+  // Custom dropdown states for Add User modal
+  showAddUserTypeDropdown = false;
+  showAddUserStatusDropdown = false;
 
   get resetPagination(): boolean {
     return this._resetPagination;
@@ -115,6 +125,9 @@ export class Userslist {
       type: '',
       status: ''
     };
+    // Close dropdowns
+    this.showAddUserTypeDropdown = false;
+    this.showAddUserStatusDropdown = false;
   }
   
   submitNewUser() {
@@ -302,64 +315,131 @@ export class Userslist {
     const found = this.statusOptions.find(opt => opt.value === this.filterStatus);
     return found ? found.label : 'All Status';
   }
-  // Sample user data
-  users = [
-  { user: 'Alice Johnson', email: 'alice.johnson@company.com', created:'23-09-2025' , type: 'Internal', status: 'Active', lastActivity: '25-09-2025'},
-  { user: 'Bob Smith', email: 'bob.smith@external.com', created: '27-09-2025', type: 'External', status: 'Inactive', lastActivity: '30-09-2025' },
-  { user: 'Charlie Brown', email: 'charlie.brown@customer.com', created: '30-09-2025', type: 'Customer', status: 'Suspended', lastActivity: '01-10-2025' },
 
-  { user: 'David Miller', email: 'david.miller@company.com', created: '01-09-2025', type: 'Internal', status: 'Active', lastActivity: '03-09-2025' },
-  { user: 'Eva Williams', email: 'eva.williams@external.com', created: '02-09-2025', type: 'External', status: 'Inactive', lastActivity: '05-09-2025' },
-  { user: 'Frank Harris', email: 'frank.harris@customer.com', created: '05-09-2025', type: 'Customer', status: 'Active', lastActivity: '10-09-2025' },
-  { user: 'Grace Taylor', email: 'grace.taylor@company.com', created: '07-09-2025', type: 'Internal', status: 'Active', lastActivity: '09-09-2025' },
-  { user: 'Henry White', email: 'henry.white@external.com', created: '08-09-2025', type: 'External', status: 'Inactive', lastActivity: '12-09-2025' },
-  { user: 'Ivy Martin', email: 'ivy.martin@customer.com', created: '10-09-2025', type: 'Customer', status: 'Suspended', lastActivity: '11-09-2025' },
-  { user: 'Jack Thompson', email: 'jack.thompson@company.com', created: '12-09-2025', type: 'Internal', status: 'Active', lastActivity: '15-09-2025' },
+  // Custom dropdown methods for Add User modal
+  selectAddUserType(value: string) {
+    this.newUser.type = value;
+    this.showAddUserTypeDropdown = false;
+  }
+
+  selectAddUserStatus(value: string) {
+    this.newUser.status = value;
+    this.showAddUserStatusDropdown = false;
+  }
+
+  getAddUserTypeLabel(): string {
+    if (!this.newUser.type) return 'Select Type';
+    const found = this.typeOptions.find(opt => opt.value === this.newUser.type);
+    return found ? found.label : 'Select Type';
+  }
+
+  getAddUserStatusLabel(): string {
+    if (!this.newUser.status) return 'Select Status';
+    const found = this.statusOptions.find(opt => opt.value === this.newUser.status);
+    return found ? found.label : 'Select Status';
+  }
   
-  { user: 'Karen Anderson', email: 'karen.anderson@external.com', created: '13-09-2025', type: 'External', status: 'Active', lastActivity: '14-09-2025' },
-  { user: 'Leo Martinez', email: 'leo.martinez@customer.com', created: '14-09-2025', type: 'Customer', status: 'Inactive', lastActivity: '18-09-2025' },
-  { user: 'Mia Robinson', email: 'mia.robinson@company.com', created: '15-09-2025', type: 'Internal', status: 'Active', lastActivity: '20-09-2025' },
-  { user: 'Nathan Clark', email: 'nathan.clark@external.com', created: '16-09-2025', type: 'External', status: 'Active', lastActivity: '19-09-2025' },
-  { user: 'Olivia Lewis', email: 'olivia.lewis@customer.com', created: '17-09-2025', type: 'Customer', status: 'Inactive', lastActivity: '21-09-2025' },
-  { user: 'Paul Walker', email: 'paul.walker@company.com', created: '18-09-2025', type: 'Internal', status: 'Suspended', lastActivity: '19-09-2025' },
-  { user: 'Quinn Hall', email: 'quinn.hall@external.com', created: '19-09-2025', type: 'External', status: 'Active', lastActivity: '23-09-2025' },
-  { user: 'Rachel Allen', email: 'rachel.allen@customer.com', created: '20-09-2025', type: 'Customer', status: 'Active', lastActivity: '22-09-2025' },
-  { user: 'Samuel Young', email: 'samuel.young@company.com', created: '21-09-2025', type: 'Internal', status: 'Inactive', lastActivity: '24-09-2025' },
-  { user: 'Tina King', email: 'tina.king@external.com', created: '22-09-2025', type: 'External', status: 'Active', lastActivity: '26-09-2025' },
+  // Sample user data
+  users: User[] = [];
 
-  { user: 'Uma Scott', email: 'uma.scott@customer.com', created: '23-09-2025', type: 'Customer', status: 'Active', lastActivity: '27-09-2025' },
-  { user: 'Victor Green', email: 'victor.green@company.com', created: '24-09-2025', type: 'Internal', status: 'Inactive', lastActivity: '28-09-2025' },
-  { user: 'Wendy Baker', email: 'wendy.baker@external.com', created: '25-09-2025', type: 'External', status: 'Suspended', lastActivity: '29-09-2025' },
-  { user: 'Xavier Adams', email: 'xavier.adams@customer.com', created: '26-09-2025', type: 'Customer', status: 'Active', lastActivity: '30-09-2025' },
-  { user: 'Yara Nelson', email: 'yara.nelson@company.com', created: '27-09-2025', type: 'Internal', status: 'Active', lastActivity: '01-10-2025' },
-  { user: 'Zane Carter', email: 'zane.carter@external.com', created: '28-09-2025', type: 'External', status: 'Inactive', lastActivity: '02-10-2025' },
-  { user: 'Aaron Torres', email: 'aaron.torres@customer.com', created: '29-09-2025', type: 'Customer', status: 'Active', lastActivity: '03-10-2025' },
-  { user: 'Bella Perez', email: 'bella.perez@company.com', created: '30-09-2025', type: 'Internal', status: 'Suspended', lastActivity: '04-10-2025' },
-  { user: 'Cody Ramirez', email: 'cody.ramirez@external.com', created: '01-10-2025', type: 'External', status: 'Active', lastActivity: '05-10-2025' },
-  { user: 'Diana Flores', email: 'diana.flores@customer.com', created: '02-10-2025', type: 'Customer', status: 'Inactive', lastActivity: '06-10-2025' },
+  // Table columns configuration
+  tableColumns = [
+    { header: 'User', field: 'user', type: 'user' as const },
+    { header: 'Type', field: 'type', type: 'badge' as const },
+    { header: 'Status', field: 'status', type: 'badge' as const },
+    { header: 'Created', field: 'created', type: 'text' as const },
+    { header: 'Last Activity', field: 'lastActivity', type: 'text' as const },
+    { header: 'Actions', field: 'actions', type: 'actions' as const, actions: [
+      { label: 'Edit', action: 'edit', icon: 'images/edit.svg' },
+      { label: 'Delete', action: 'delete', icon: 'images/delete.svg', class: 'danger' }
+    ] }
+  ];
 
-  { user: 'Ethan Rivera', email: 'ethan.rivera@company.com', created: '03-10-2025', type: 'Internal', status: 'Active', lastActivity: '07-10-2025' },
-  { user: 'Fiona Cooper', email: 'fiona.cooper@external.com', created: '04-10-2025', type: 'External', status: 'Active', lastActivity: '08-10-2025' },
-  { user: 'George Morgan', email: 'george.morgan@customer.com', created: '05-10-2025', type: 'Customer', status: 'Inactive', lastActivity: '09-10-2025' },
-  { user: 'Hannah Reed', email: 'hannah.reed@company.com', created: '06-10-2025', type: 'Internal', status: 'Suspended', lastActivity: '10-10-2025' },
-  { user: 'Ian Bailey', email: 'ian.bailey@external.com', created: '07-10-2025', type: 'External', status: 'Active', lastActivity: '11-10-2025' },
-  { user: 'Julia Murphy', email: 'julia.murphy@customer.com', created: '08-10-2025', type: 'Customer', status: 'Active', lastActivity: '12-10-2025' },
-  { user: 'Kevin Bell', email: 'kevin.bell@company.com', created: '09-10-2025', type: 'Internal', status: 'Inactive', lastActivity: '13-10-2025' },
-  { user: 'Laura Rivera', email: 'laura.rivera@external.com', created: '10-10-2025', type: 'External', status: 'Active', lastActivity: '14-10-2025' },
-  { user: 'Mike Foster', email: 'mike.foster@customer.com', created: '11-10-2025', type: 'Customer', status: 'Suspended', lastActivity: '15-10-2025' },
-  { user: 'Nora Gray', email: 'nora.gray@company.com', created: '12-10-2025', type: 'Internal', status: 'Active', lastActivity: '16-10-2025' },
+  ngOnInit() {
+    console.log('Userslist component initialized');
+    this.fetchUsers();
+  }
 
-  { user: 'Oscar Price', email: 'oscar.price@external.com', created: '13-10-2025', type: 'External', status: 'Inactive', lastActivity: '17-10-2025' },
-  { user: 'Pamela Hughes', email: 'pamela.hughes@customer.com', created: '14-10-2025', type: 'Customer', status: 'Active', lastActivity: '18-10-2025' },
-  { user: 'Quincy Bryant', email: 'quincy.bryant@company.com', created: '15-10-2025', type: 'Internal', status: 'Active', lastActivity: '19-10-2025' },
-  { user: 'Rita Diaz', email: 'rita.diaz@external.com', created: '16-10-2025', type: 'External', status: 'Inactive', lastActivity: '20-10-2025' },
-  { user: 'Steven Myers', email: 'steven.myers@customer.com', created: '17-10-2025', type: 'Customer', status: 'Active', lastActivity: '21-10-2025' },
-  { user: 'Teresa Howard', email: 'teresa.howard@company.com', created: '18-10-2025', type: 'Internal', status: 'Suspended', lastActivity: '22-10-2025' },
-  { user: 'Umar Chavez', email: 'umar.chavez@external.com', created: '19-10-2025', type: 'External', status: 'Active', lastActivity: '23-10-2025' },
-  { user: 'Vanessa Brooks', email: 'vanessa.brooks@customer.com', created: '20-10-2025', type: 'Customer', status: 'Inactive', lastActivity: '24-10-2025' },
-  { user: 'William Sanders', email: 'william.sanders@company.com', created: '21-10-2025', type: 'Internal', status: 'Active', lastActivity: '25-10-2025' },
-  { user: 'Ximena Ward', email: 'ximena.ward@external.com', created: '22-10-2025', type: 'External', status: 'Active', lastActivity: '26-10-2025' }
-];
+  // Method to manually refresh data (can be called from UI)
+  refreshData() {
+    console.log('Component: Manual refresh requested');
+    this.isLoading = true;
+    this.loadingError = null;
+    
+    this.usersApi.refreshUsers().subscribe({
+      next: (users) => {
+        this.users = users;
+        this.isLoading = false;
+        console.log('Component: Data refreshed successfully');
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        // This shouldn't happen since refreshUsers handles fallbacks
+        console.error('Component: Unexpected error during refresh:', error);
+        this.loadingError = 'Failed to refresh data';
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // Method to force load sample data (for development)
+  loadSampleDataManually() {
+    console.log('Manually loading sample data');
+    this.isLoading = true;
+    this.loadingError = null;
+    
+    this.usersApi.getUsers().subscribe({
+      next: (users) => {
+        // Since the service returns sample data when API fails, we can just call it
+        // The service will automatically return sample data
+        this.users = users;
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        // This shouldn't happen since we're forcing sample data, but handle it anyway
+        this.loadingError = 'Failed to load sample data';
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  fetchUsers() {
+    this.isLoading = true;
+    this.loadingError = null;
+    console.log('Component: Starting to fetch users...');
+
+    this.usersApi.getUsers().subscribe({
+      next: (users) => {
+        this.users = users;
+        this.isLoading = false;
+        console.log('Component: Users loaded successfully, setting isLoading to false');
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Component: Error fetching users:', error);
+
+        // Provide more specific error messages
+        if (error.status === 0) {
+          this.loadingError = 'Unable to connect to the server. Please check if the API is running and CORS is configured.';
+        } else if (error.status === 404) {
+          this.loadingError = 'API endpoint not found. Please verify the API URL.';
+        } else if (error.status >= 500) {
+          this.loadingError = 'Server error occurred. Please try again later.';
+        } else {
+          this.loadingError = `Failed to load users: ${error.message || 'Unknown error'}`;
+        }
+
+        this.isLoading = false;
+        console.log('Component: Error occurred, setting isLoading to false');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+
 
 
 projects: Project[] = [
@@ -415,46 +495,6 @@ projects: Project[] = [
     { id: '50', name: 'Notification Service', projectCode: 'PROJ-050', status: 'Completed', priority: 'Low', projectManager: 'Jacob Clark', managerInitials: 'JC', teamSize: 6, selected: false }
   ];
 
-
-  // Table columns configuration
-  tableColumns = [
-    { 
-      header: 'User', 
-      field: 'user', 
-      type: 'user' as const
-    },
-    { 
-      header: 'Type', 
-      field: 'type', 
-      type: 'badge' as const,
-      badgeColors: {
-        'Internal': 'bg-blue-200 text-blue-900',
-        'External': 'bg-orange-200 text-orange-900',
-        'Customer': 'bg-purple-200 text-purple-900'
-      } as { [key: string]: string }
-    },
-    { 
-      header: 'Status', 
-      field: 'status', 
-      type: 'badge' as const,
-      badgeColors: {
-        'Active': 'bg-green-200 text-green-900',
-        'Inactive': 'bg-gray-300 text-gray-900',
-        'Suspended': 'bg-red-200 text-red-900'
-      } as { [key: string]: string }
-    },
-    { header: 'Created On', field: 'created', type: 'text' as const },
-    { header: 'Last Activity', field: 'lastActivity', type: 'text' as const },
-    { 
-      header: 'Actions', 
-      field: 'actions',
-      type: 'actions' as const,
-      actions: [
-        { label: 'Edit', icon: 'images/edit.svg', action: 'edit' },
-        { label: 'Delete', icon: 'images/deleteUser.svg', action: 'delete', class: 'danger' },
-      ]
-    }
-  ];
   // Filtered users based on selected filters
   get filteredUsers() {
     return this.users.filter(user => {
@@ -524,10 +564,17 @@ projects: Project[] = [
     // Close dropdowns when clicking outside
     const target = event.target as HTMLElement;
     const typeDropdown = target.closest('.relative.w-48');
+    const addUserTypeDropdown = target.closest('.relative');
     
     if (!typeDropdown) {
       this.showTypeDropdown = false;
       this.showStatusDropdown = false;
+    }
+    
+    // Close Add User modal dropdowns if clicking outside
+    if (this.showAddUserModal && !addUserTypeDropdown) {
+      this.showAddUserTypeDropdown = false;
+      this.showAddUserStatusDropdown = false;
     }
   }
 
