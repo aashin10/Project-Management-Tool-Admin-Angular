@@ -653,4 +653,37 @@ projects: Project[] = [
     this.showDeleteConfirmModal = false;
     this.userToDelete = null;
   }
+
+  submitImport() {
+    // Show info notification that import is in progress
+    this.toastr.info(`File "${this.selectedFileName}" is currently being imported.`, '', {
+      timeOut: 5000,
+      progressBar: true,
+      closeButton: true,
+    });
+
+    // Add notification to notification service (stored in localStorage)
+    this.notificationService.addNotification(
+      'info',
+      `File "${this.selectedFileName}" is currently being imported.`,
+      'File Import Started'
+    );
+
+    // Simulate import process with a delay, then show success
+    setTimeout(() => {
+      // Show success toaster notification
+      this.toastr.success(`File "${this.selectedFileName}" imported successfully.`, '', {
+        timeOut: 3000,
+        progressBar: true,
+        closeButton: true,
+      });
+
+      // Add success notification to notification service
+      this.notificationService.addNotification(
+        'success',
+        `File "${this.selectedFileName}" imported successfully.`,
+        'File Imported'
+      );
+    }, 3000); // 3 second delay to simulate import
+  }
 }
