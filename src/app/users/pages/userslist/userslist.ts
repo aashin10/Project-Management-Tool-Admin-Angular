@@ -7,6 +7,8 @@ import { SearchBar } from '../../../shared/components/search-bar/search-bar';
 import { Table } from '../../../shared/table/table';
 import { Modal } from '../../../shared/modal/modal';
 import { UsersApi, User } from '../../services/users-api';
+import { ToastrService } from 'ngx-toastr';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 
 interface Project {
@@ -30,6 +32,8 @@ interface Project {
 export class Userslist implements OnInit {
   private usersApi = inject(UsersApi);
   private cdr = inject(ChangeDetectorRef);
+  private toastr = inject(ToastrService);
+  private notificationService = inject(NotificationService);
   
   isLoading = false;
   loadingError: string | null = null;
@@ -155,6 +159,20 @@ export class Userslist implements OnInit {
     
     // Add user logic here
     console.log('New user:', this.newUser);
+    
+    // Show success toaster notification
+    this.toastr.success('User Added Successfully', '', {
+      timeOut: 3000,
+      progressBar: true,
+      closeButton: true,
+    });
+    
+    // Add notification to notification service (stored in localStorage)
+    this.notificationService.addNotification(
+      'success',
+      `User "${this.newUser.fullName}" has been added successfully.`,
+      'User Added'
+    );
     
     // Close modal and reset form
     this.closeAddUserModal();
