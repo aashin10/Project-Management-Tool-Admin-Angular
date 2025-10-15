@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
 import { CustomButton } from '../../../shared/custom-button/custom-button';
 import { Modal } from '../../../shared/modal/modal';
+import { SearchBar } from '../../../shared/components/search-bar/search-bar';
+
 
 interface SuperAdmin {
   id: string;
@@ -12,12 +14,13 @@ interface SuperAdmin {
   addedDate: string;
   initials: string;
   initialsColor: string;
+  isActive: boolean;
 }
 
 @Component({
   selector: 'app-settingsmain',
   standalone: true,
-  imports: [CommonModule, FormsModule, Sectiontitle, CustomButton, Modal],
+  imports: [CommonModule, FormsModule, Sectiontitle, CustomButton, Modal, SearchBar],
   templateUrl: './settingsmain.html',
   styleUrl: './settingsmain.css'
 })
@@ -29,7 +32,8 @@ export class Settingsmain {
       email: 'john.doe@company.com',
       addedDate: 'Jan 15, 2024',
       initials: 'JD',
-      initialsColor: 'bg-blue-100 text-blue-700'
+      initialsColor: 'bg-blue-100 text-blue-700',
+      isActive: true
     },
     {
       id: '2',
@@ -37,17 +41,33 @@ export class Settingsmain {
       email: 'jane.smith@company.com',
       addedDate: 'Feb 20, 2024',
       initials: 'JS',
-      initialsColor: 'bg-blue-100 text-blue-700'
+      initialsColor: 'bg-blue-100 text-blue-700',
+      isActive: false
     }
   ];
 
   isDeleteModalOpen = false;
   isAddModalOpen = false;
+  isEditModalOpen = false;
   selectedAdmin: SuperAdmin | null = null;
 
   // Add admin form fields
   newAdminName = '';
   newAdminEmail = '';
+  newAdminStatus = true;
+
+  // Edit admin form fields
+  editAdminName = '';
+  editAdminEmail = '';
+  editAdminStatus = true;
+
+  // Pagination
+  currentPage = 1;
+  itemsPerPage = 10;
+  pageSizeOptions = [5, 10, 20, 50];
+
+  // Search
+  searchQuery = '';
 
   openDeleteModal(admin: SuperAdmin) {
     this.selectedAdmin = admin;
@@ -70,12 +90,46 @@ export class Settingsmain {
     this.isAddModalOpen = true;
     this.newAdminName = '';
     this.newAdminEmail = '';
+    this.newAdminStatus = true;
   }
 
   closeAddModal() {
     this.isAddModalOpen = false;
     this.newAdminName = '';
     this.newAdminEmail = '';
+    this.newAdminStatus = true;
+  }
+
+  openEditModal(admin: SuperAdmin) {
+    this.selectedAdmin = admin;
+    this.editAdminName = admin.name;
+    this.editAdminEmail = admin.email;
+    this.editAdminStatus = admin.isActive;
+    this.isEditModalOpen = true;
+  }
+
+  closeEditModal() {
+    this.isEditModalOpen = false;
+    this.selectedAdmin = null;
+    this.editAdminName = '';
+    this.editAdminEmail = '';
+    this.editAdminStatus = true;
+  }
+
+  confirmEdit() {
+    if (this.selectedAdmin && this.editAdminName.trim() && this.editAdminEmail.trim()) {
+      const index = this.superAdmins.findIndex(admin => admin.id === this.selectedAdmin!.id);
+      if (index !== -1) {
+        this.superAdmins[index] = {
+          ...this.superAdmins[index],
+          name: this.editAdminName.trim(),
+          email: this.editAdminEmail.trim(),
+          isActive: this.editAdminStatus,
+          initials: this.getInitials(this.editAdminName)
+        };
+      }
+      this.closeEditModal();
+    }
   }
 
   addSuperAdmin() {
@@ -87,7 +141,8 @@ export class Settingsmain {
         email: this.newAdminEmail.trim(),
         addedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
         initials: initials,
-        initialsColor: 'bg-blue-100 text-blue-700'
+        initialsColor: 'bg-blue-100 text-blue-700',
+        isActive: this.newAdminStatus
       };
       this.superAdmins.push(newAdmin);
       this.closeAddModal();
@@ -104,5 +159,113 @@ export class Settingsmain {
 
   get isAddFormValid(): boolean {
     return this.newAdminName.trim().length > 0 && this.newAdminEmail.trim().length > 0;
+  }
+
+  get isEditFormValid(): boolean {
+    return this.editAdminName.trim().length > 0 && this.editAdminEmail.trim().length > 0;
+  }
+
+  // Pagination computed properties
+  get filteredAdmins(): SuperAdmin[] {
+    if (!this.searchQuery.trim()) {
+      return this.superAdmins;
+    }
+    
+    const query = this.searchQuery.toLowerCase().trim();
+    return this.superAdmins.filter(admin => 
+      admin.name.toLowerCase().includes(query) ||
+      admin.email.toLowerCase().includes(query)
+    );
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.filteredAdmins.length / this.itemsPerPage);
+  }
+
+  get paginatedAdmins(): SuperAdmin[] {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    return this.filteredAdmins.slice(startIndex, endIndex);
+  }
+
+  get startIndex(): number {
+    if (this.filteredAdmins.length === 0) return 0;
+    return (this.currentPage - 1) * this.itemsPerPage + 1;
+  }
+
+  get endIndex(): number {
+    return Math.min(this.currentPage * this.itemsPerPage, this.filteredAdmins.length);
+  }
+
+  get pageNumbers(): number[] {
+    const pages: number[] = [];
+    const maxVisible = 5;
+    
+    if (this.totalPages <= maxVisible) {
+      for (let i = 1; i <= this.totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (this.currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) {
+          pages.push(i);
+        }
+        pages.push(-1); // ellipsis
+        pages.push(this.totalPages);
+      } else if (this.currentPage >= this.totalPages - 2) {
+        pages.push(1);
+        pages.push(-1); // ellipsis
+        for (let i = this.totalPages - 3; i <= this.totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        pages.push(1);
+        pages.push(-1); // ellipsis
+        for (let i = this.currentPage - 1; i <= this.currentPage + 1; i++) {
+          pages.push(i);
+        }
+        pages.push(-1); // ellipsis
+        pages.push(this.totalPages);
+      }
+    }
+    
+    return pages;
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+    }
+  }
+
+  goToFirstPage(): void {
+    this.currentPage = 1;
+  }
+
+  goToLastPage(): void {
+    this.currentPage = this.totalPages;
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+    }
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+    }
+  }
+
+  changePageSize(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.itemsPerPage = parseInt(select.value, 10);
+    this.currentPage = 1;
+  }
+
+  onSearch(query: string): void {
+    this.searchQuery = query;
+    this.currentPage = 1; // Reset to first page when searching
   }
 }
