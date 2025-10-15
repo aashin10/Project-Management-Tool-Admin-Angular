@@ -5,6 +5,8 @@ import { SearchBar } from '../../../../shared/components/search-bar/search-bar';
 import { LoadingIndicator } from '../../../../shared/loading-indicator/loading-indicator';
 import { ImportProjectCardList } from '../import-projects-list/import-project-card-list';
 import { JiraService } from '../services/jira-service';
+import { NotificationService } from '../../../../shared/services/notification.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-select-projects-section',
@@ -13,7 +15,12 @@ import { JiraService } from '../services/jira-service';
   styleUrl: './select-projects-section.css',
 })
 export class SelectProjectsSection implements OnInit {
-  constructor(private jiraService: JiraService, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private jiraService: JiraService,
+    private cdr: ChangeDetectorRef,
+    private toastr: ToastrService,
+    private notificationService: NotificationService
+  ) {}
 
   projects: any[] = [];
   allProjects: any[] = [];
@@ -96,4 +103,7 @@ export class SelectProjectsSection implements OnInit {
     this.allProjects.forEach((project) => (project.selected = true));
     this.cdr.detectChanges();
   }
-}
+
+  
+ 
+  }

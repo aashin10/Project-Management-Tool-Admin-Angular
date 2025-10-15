@@ -1,27 +1,66 @@
-<!-- Project Teams Section -->
-<div class="bg-white border border-gray-200 rounded-lg shadow-sm">
-  <div class="px-6 py-5 border-b border-gray-200">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-          stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-          <circle cx="9" cy="7" r="4"></circle>
-          <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-        </svg>
-        <h2 class="text-lg font-semibold text-gray-900">Project Team</h2>
+<div class="bg-white rounded-lg shadow-sm border border-gray-200">
+  <!-- Header -->
+  <div class="px-6 py-5 border-b border-gray-100">
+    <div class="flex items-start justify-between">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          <h2 class="text-lg font-semibold text-gray-900">Team Members</h2>
+        </div>
+        <p class="text-sm text-gray-500">View all team members by team</p>
       </div>
-      <div class="text-sm text-gray-500">
-        {{ getActiveMembersCount() }} of {{ getTotalMembersCount() }} active
+
+      <div class="flex items-center gap-4">
+        <!-- Team Dropdown -->
+        <div class="relative">
+          <button 
+            (click)="toggleDropdown()"
+            class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-sm text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <span>{{ selectedTeamName }}</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              [class.rotate-180]="showDropdown" class="transition-transform">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+
+          <!-- Dropdown Menu -->
+          <div *ngIf="showDropdown" 
+            class="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+            <div class="py-1">
+              <button
+                *ngFor="let team of teams"
+                (click)="selectTeam(team.id)"
+                [class.bg-blue-50]="team.id === selectedTeam"
+                [class.text-blue-600]="team.id === selectedTeam"
+                class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 focus:outline-none">
+                {{ team.name }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Member Count Badge -->
+        <div class="text-sm font-medium text-gray-900">
+          {{ membersCount }} Members
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="px-6 py-5">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div *ngFor="let member of teamMembers" class="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
-        <div class="flex items-start gap-3">
+  <!-- Members List -->
+  <div class="divide-y divide-gray-100">
+    <div *ngFor="let member of filteredMembers" 
+      class="px-6 py-4 hover:bg-gray-50 transition-colors">
+      <div class="flex items-center justify-between">
+        <!-- Member Info -->
+        <div class="flex items-center gap-3 flex-1 min-w-0">
           <!-- Avatar -->
           <div
             [style.background-color]="member.avatarColor"
@@ -29,28 +68,25 @@
             {{ member.avatar }}
           </div>
 
-          <!-- Member Details -->
+          <!-- Name and Email -->
           <div class="flex-1 min-w-0">
-            <div class="flex items-center justify-between mb-1">
-              <h3 class="text-sm font-semibold text-gray-900 truncate">{{ member.name }}</h3>
-              <span
-                [class]="member.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'"
-                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium">
-                {{ member.status }}
-              </span>
-            </div>
-
-            <p class="text-xs text-gray-600 mb-2">{{ member.role }}</p>
-
-            <div class="flex items-center gap-1 text-xs text-gray-500">
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
-                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
-              </svg>
-              <span class="truncate">{{ member.email }}</span>
-            </div>
+            <h3 class="text-sm font-medium text-gray-900">{{ member.name }}</h3>
+            <p class="text-sm text-gray-500 truncate">{{ member.email }}</p>
           </div>
+        </div>
+
+        <!-- Role Badge -->
+        <div class="ml-4">
+          <span
+            [ngClass]="{
+              'bg-purple-50 text-purple-700 border-purple-200': member.role.includes('Lead'),
+              'bg-blue-50 text-blue-700 border-blue-200': member.role.includes('Developer'),
+              'bg-pink-50 text-pink-700 border-pink-200': member.role.includes('UX'),
+              'bg-orange-50 text-orange-700 border-orange-200': member.role === 'UI Designer'
+            }"
+            class="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium border">
+            {{ member.role }}
+          </span>
         </div>
       </div>
     </div>

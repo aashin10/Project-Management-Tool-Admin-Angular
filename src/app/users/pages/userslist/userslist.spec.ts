@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { of, throwError } from 'rxjs';
 
 import { Userslist } from './userslist';
 import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
@@ -8,12 +9,44 @@ import { CustomButton } from '../../../shared/custom-button/custom-button';
 import { SearchBar } from '../../../shared/components/search-bar/search-bar';
 import { Table } from '../../../shared/table/table';
 import { Modal } from '../../../shared/modal/modal';
+import { UsersApi, User } from '../../services/users-api';
+
+// Mock UsersApi service
+class MockUsersApi {
+  getUsers() {
+    return of([
+      {
+        user: 'Alice Johnson',
+        email: 'alice.johnson@company.com',
+        type: 'Internal',
+        status: 'Active',
+        created: '23-09-2025',
+        lastActivity: '25-09-2025'
+      },
+      {
+        user: 'Bob Smith',
+        email: 'bob.smith@external.com',
+        type: 'External',
+        status: 'Active',
+        created: '27-09-2025',
+        lastActivity: '30-09-2025'
+      }
+    ]);
+  }
+
+  refreshUsers() {
+    return this.getUsers();
+  }
+}
 
 describe('Userslist', () => {
   let component: Userslist;
   let fixture: ComponentFixture<Userslist>;
+  let mockUsersApi: MockUsersApi;
 
   beforeEach(async () => {
+    mockUsersApi = new MockUsersApi();
+
     await TestBed.configureTestingModule({
       imports: [
         CommonModule,
@@ -24,13 +57,36 @@ describe('Userslist', () => {
         SearchBar,
         Table,
         Modal
+      ],
+      providers: [
+        { provide: UsersApi, useValue: mockUsersApi }
       ]
     })
     .compileComponents();
 
     fixture = TestBed.createComponent(Userslist);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    // Initialize component with sample data for testing
+    component.users = [
+      {
+        user: 'Alice Johnson',
+        email: 'alice.johnson@company.com',
+        type: 'Internal',
+        status: 'Active',
+        created: '23-09-2025',
+        lastActivity: '25-09-2025'
+      },
+      {
+        user: 'Bob Smith',
+        email: 'bob.smith@external.com',
+        type: 'External',
+        status: 'Active',
+        created: '27-09-2025',
+        lastActivity: '30-09-2025'
+      }
+    ];
+    // Don't call fixture.detectChanges() here to prevent ngOnInit from being called
+    // fixture.detectChanges();
   });
 
   it('should create', () => {
@@ -519,6 +575,20 @@ describe('Userslist', () => {
   });
 
   describe('Data Transformation', () => {
+    beforeEach(() => {
+      // Ensure component has users data
+      component.users = [
+        {
+          user: 'Alice Johnson',
+          email: 'alice.johnson@company.com',
+          type: 'Internal',
+          status: 'Active',
+          created: '23-09-2025',
+          lastActivity: '25-09-2025'
+        }
+      ];
+    });
+
     it('should transform user data correctly in getTableData', () => {
       const tableData = component.getTableData();
       const firstUser = tableData[0];
@@ -570,6 +640,25 @@ describe('Userslist', () => {
 
   describe('Bulk Actions', () => {
     beforeEach(() => {
+      // Ensure component has users data
+      component.users = [
+        {
+          user: 'Alice Johnson',
+          email: 'alice.johnson@company.com',
+          type: 'Internal',
+          status: 'Active',
+          created: '23-09-2025',
+          lastActivity: '25-09-2025'
+        },
+        {
+          user: 'Bob Smith',
+          email: 'bob.smith@external.com',
+          type: 'External',
+          status: 'Active',
+          created: '27-09-2025',
+          lastActivity: '30-09-2025'
+        }
+      ];
       component.selectedUsers = [
         { 
           user: { name: 'Alice Johnson', email: 'alice.johnson@company.com', avatar: 'AJ' },
@@ -669,6 +758,28 @@ describe('Userslist', () => {
   });
 
   describe('Single User Delete', () => {
+    beforeEach(() => {
+      // Ensure component has users data
+      component.users = [
+        {
+          user: 'Alice Johnson',
+          email: 'alice.johnson@company.com',
+          type: 'Internal',
+          status: 'Active',
+          created: '23-09-2025',
+          lastActivity: '25-09-2025'
+        },
+        {
+          user: 'Bob Smith',
+          email: 'bob.smith@external.com',
+          type: 'External',
+          status: 'Active',
+          created: '27-09-2025',
+          lastActivity: '30-09-2025'
+        }
+      ];
+    });
+
     it('should open delete confirmation modal when delete action is clicked', () => {
       const mockUser = {
         user: { name: 'Alice Johnson', email: 'alice.johnson@company.com', avatar: 'AJ' },
@@ -789,10 +900,20 @@ describe('Userslist', () => {
     let tableFixture: ComponentFixture<Table>;
 
     beforeEach(() => {
+      // Ensure component has users data for table testing
+      component.users = Array.from({ length: 50 }, (_, i) => ({
+        user: `User ${i + 1}`,
+        email: `user${i + 1}@example.com`,
+        type: i % 2 === 0 ? 'Internal' : 'External',
+        status: i % 3 === 0 ? 'Active' : 'Inactive',
+        created: `01-01-202${i % 5 + 1}`,
+        lastActivity: `02-01-202${i % 5 + 1}`
+      }));
+
       tableFixture = TestBed.createComponent(Table);
       tableComponent = tableFixture.componentInstance;
       
-      // Set up table with 50 users (5 pages of 10 each)
+      // Set up table with users data
       tableComponent.data = component.getTableData();
       tableComponent.columns = component.tableColumns;
       tableComponent.showCheckbox = true;
