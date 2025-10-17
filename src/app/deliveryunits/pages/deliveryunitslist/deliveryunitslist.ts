@@ -53,7 +53,7 @@ export class Deliveryunitslist {
       header: 'Delivery Unit Info', 
       field: 'duInfo', 
       type: 'avatar' as const,
-      width: '25%'
+      width: '30%'
     },
     { 
       header: 'DU Code', 
@@ -65,14 +65,6 @@ export class Deliveryunitslist {
       header: 'DU Head', 
       field: 'duHead', 
       type: 'user' as const
-    },
-    { 
-      header: 'Active Members', 
-      field: 'activeMembers',
-      type: 'text' as const,
-      align: 'left' as const,
-      icon: 'images/team-size.svg',
-      iconPosition: 'left' as const
     },
     { 
       header: 'Active Projects', 
