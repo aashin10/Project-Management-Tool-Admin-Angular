@@ -115,6 +115,36 @@ describe('Additionalinfo', () => {
       fixture.detectChanges();
       expect(addCustom.querySelector('button').disabled).toBeFalse();
     });
+
+    it('should bind ngModel for newFieldName and newFieldValue in modal', async () => {
+  component.modalOpen = true;
+  component.newFieldName = '';
+  component.newFieldValue = '';
+  fixture.detectChanges();
+
+  const el: HTMLElement = fixture.nativeElement;
+  const nameInput = el.querySelector('input#fieldName') as HTMLInputElement;
+  const valueInput = el.querySelector('input#fieldValue') as HTMLInputElement;
+
+  // Set component property, check DOM updates
+  component.newFieldName = 'TestName';
+  component.newFieldValue = 'TestValue';
+  fixture.detectChanges();
+  await fixture.whenStable();
+  expect(nameInput.value).toBe('TestName');
+  expect(valueInput.value).toBe('TestValue');
+
+  // Simulate user typing in DOM, check component updates
+  nameInput.value = 'UserName';
+  nameInput.dispatchEvent(new Event('input', { bubbles: true }));
+  valueInput.value = 'UserValue';
+  valueInput.dispatchEvent(new Event('input', { bubbles: true }));
+  fixture.detectChanges();
+  await fixture.whenStable();
+
+  expect(component.newFieldName).toBe('UserName');
+  expect(component.newFieldValue).toBe('UserValue');
+});
   });
 
   

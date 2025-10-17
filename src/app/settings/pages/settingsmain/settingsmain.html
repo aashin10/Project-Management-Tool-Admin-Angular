@@ -1,1 +1,438 @@
-<p>settingsmain works!</p>
+<app-sectiontitle
+  title="Settings" 
+  description="Manage system settings and super administrators">
+</app-sectiontitle>
+
+<!-- Super Admin Management Section -->
+<div class="bg-white border border-gray-200 rounded-lg p-6 mt-6">
+  <!-- Section Header -->
+  <div class="flex items-start justify-between mb-6">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"></path>
+        </svg>
+        <h2 class="text-base font-semibold text-gray-900">Super Admin Management</h2>
+      </div>
+      <p class="text-sm text-gray-500">Add or remove super administrators who have full system access</p>
+    </div>
+    
+    <app-custom-button
+      [label]="'Add Super Admin'"
+      [icon]="'/images/plus.svg'"
+      [bgClass]="'bg-blue-600'"
+      [textColor]="'text-white'"
+      [borderClass]="'border-0'"
+      [hoverClass]="'hover:bg-blue-700'"
+      [extraClasses]="'transition-colors'"
+      (action)="openAddModal()">
+    </app-custom-button>
+  </div>
+
+  <!-- Current Super Admins -->
+  <div>
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-sm font-semibold text-gray-900">Current Super Admins</h3>
+      <span class="text-xs text-gray-500">{{ filteredAdmins.length }} admin{{ filteredAdmins.length !== 1 ? 's' : '' }}</span>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="mb-4">
+      <app-search-bar
+        [placeholder]="'Search by name or email...'"
+        [width]="'w-full'"
+        [height]="'py-2.5'"
+        (search)="onSearch($event)"
+      ></app-search-bar>
+    </div>
+
+    <!-- Admin List -->
+    <div class="space-y-3" *ngIf="paginatedAdmins.length > 0">
+      <div 
+        *ngFor="let admin of paginatedAdmins"
+        class="group flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-blue-500 transition-colors"
+      >
+        <div class="flex items-center gap-3 flex-1">
+          <!-- Avatar with Initials -->
+          <div [class]="'w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold ' + admin.initialsColor">
+            {{ admin.initials }}
+          </div>
+
+          <!-- Admin Info -->
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-medium text-gray-900">{{ admin.name }}</span>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-full border border-blue-200">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"></path>
+                </svg>
+                Super Admin
+              </span>
+              <!-- Status Badge -->
+              <span [class]="admin.isActive ? 'inline-flex items-center px-2 py-0.5 text-xs font-medium text-green-700 bg-green-50 rounded-full border border-green-200' : 'inline-flex items-center px-2 py-0.5 text-xs font-medium text-gray-700 bg-gray-50 rounded-full border border-gray-200'">
+                {{ admin.isActive ? 'Active' : 'Inactive' }}
+              </span>
+            </div>
+            <div class="flex items-center gap-2 mt-1 text-xs text-gray-500">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+              </svg>
+              <span>{{ admin.email }}</span>
+              <span class="mx-1">•</span>
+              <span>Added {{ admin.addedDate }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-2">
+          <!-- Edit Button -->
+          <button
+            (click)="openEditModal(admin)"
+            class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+            type="button"
+            aria-label="Edit admin"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+          </button>
+          
+          <!-- Delete Button -->
+          <button
+            (click)="openDeleteModal(admin)"
+            class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+            type="button"
+            aria-label="Remove admin"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- No Results Message -->
+    <div *ngIf="paginatedAdmins.length === 0" class="text-center py-12">
+      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+      </svg>
+      <h3 class="mt-2 text-sm font-medium text-gray-900">No admins found</h3>
+      <p class="mt-1 text-sm text-gray-500">
+        {{ searchQuery ? 'Try adjusting your search criteria' : 'No super admins have been added yet' }}
+      </p>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div *ngIf="filteredAdmins.length > 0" class="mt-6 flex items-center justify-between border-t border-gray-200 pt-4">
+      <!-- Left side: Items info -->
+      <div class="flex items-center gap-4">
+        <div class="text-sm text-gray-700">
+          Showing <span class="font-medium">{{ startIndex }}</span> to 
+          <span class="font-medium">{{ endIndex }}</span> of 
+          <span class="font-medium">{{ filteredAdmins.length }}</span> result{{ filteredAdmins.length !== 1 ? 's' : '' }}
+        </div>
+        
+        <!-- Items per page selector -->
+        <div class="flex items-center gap-2">
+          <label for="pageSize" class="text-sm text-gray-700">Rows per page:</label>
+          <select 
+            id="pageSize"
+            (change)="changePageSize($event)"
+            [value]="itemsPerPage"
+            class="px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Right side: Page navigation -->
+      <div class="flex items-center gap-2">
+        <!-- First page button -->
+        <button
+          (click)="goToFirstPage()"
+          [disabled]="currentPage === 1"
+          class="p-2 text-gray-700 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors"
+          type="button"
+          aria-label="First page"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+          </svg>
+        </button>
+
+        <!-- Previous page button -->
+        <button
+          (click)="previousPage()"
+          [disabled]="currentPage === 1"
+          class="p-2 text-gray-700 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors"
+          type="button"
+          aria-label="Previous page"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+        </button>
+
+        <!-- Page numbers -->
+        <div class="flex items-center gap-1">
+          <button
+            *ngFor="let page of pageNumbers"
+            (click)="page !== -1 && goToPage(page)"
+            [disabled]="page === -1"
+            [class.bg-blue-600]="page === currentPage"
+            [class.text-white]="page === currentPage"
+            [class.hover:bg-gray-100]="page !== currentPage && page !== -1"
+            class="min-w-[2.5rem] px-3 py-2 text-sm font-medium rounded transition-colors disabled:cursor-default disabled:hover:bg-transparent"
+            [class.text-gray-700]="page !== currentPage"
+            type="button"
+          >
+            {{ page === -1 ? '...' : page }}
+          </button>
+        </div>
+
+        <!-- Next page button -->
+        <button
+          (click)="nextPage()"
+          [disabled]="currentPage === totalPages"
+          class="p-2 text-gray-700 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors"
+          type="button"
+          aria-label="Next page"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </button>
+
+        <!-- Last page button -->
+        <button
+          (click)="goToLastPage()"
+          [disabled]="currentPage === totalPages"
+          class="p-2 text-gray-700 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors"
+          type="button"
+          aria-label="Last page"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<app-modal [isOpen]="isDeleteModalOpen" (close)="closeDeleteModal()">
+  <div class="p-6">
+    <h3 class="text-lg font-semibold text-gray-900 mb-2">Remove Super Admin</h3>
+    <p class="text-sm text-gray-600 mb-1">
+      Are you sure you want to remove this super admin? This action cannot be undone.
+    </p>
+    <p class="text-sm font-medium text-gray-900 mt-4 mb-6">{{ selectedAdmin?.name }}</p>
+    
+    <div class="flex justify-end gap-3">
+      <button
+        (click)="closeDeleteModal()"
+        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+        type="button"
+      >
+        Cancel
+      </button>
+      <button
+        (click)="confirmDelete()"
+        class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 transition-colors"
+        type="button"
+      >
+        Remove
+      </button>
+    </div>
+  </div>
+</app-modal>
+
+<!-- Add Admin Modal -->
+<app-modal [isOpen]="isAddModalOpen" (close)="closeAddModal()">
+  <div class="p-6">
+    <h3 class="text-lg font-semibold text-gray-900 mb-2">Add Super Admin</h3>
+    <p class="text-sm text-gray-600 mb-6">
+      Add a new super administrator with full system access.
+    </p>
+    
+    <form (ngSubmit)="addSuperAdmin()">
+      <!-- Name Field -->
+      <div class="mb-4">
+        <label for="adminName" class="block text-sm font-medium text-gray-700 mb-1">
+          Name
+        </label>
+        <input
+          id="adminName"
+          type="text"
+          [(ngModel)]="newAdminName"
+          name="name"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
+          placeholder="Enter admin name"
+          required
+        />
+      </div>
+
+      <!-- Email Field -->
+      <div class="mb-4">
+        <label for="adminEmail" class="block text-sm font-medium text-gray-700 mb-1">
+          Email Address
+        </label>
+        <input
+          id="adminEmail"
+          type="email"
+          [(ngModel)]="newAdminEmail"
+          name="email"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
+          placeholder="Enter email address"
+          required
+        />
+      </div>
+
+      <!-- Status Field -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Status
+        </label>
+        <div class="flex items-center gap-4">
+          <label class="flex items-center cursor-pointer">
+            <input
+              type="radio"
+              [(ngModel)]="newAdminStatus"
+              [value]="true"
+              name="status"
+              class="w-4 h-4 text-blue-600 focus:ring-blue-500 focus:ring-2"
+            />
+            <span class="ml-2 text-sm text-gray-700">Active</span>
+          </label>
+          <label class="flex items-center cursor-pointer">
+            <input
+              type="radio"
+              [(ngModel)]="newAdminStatus"
+              [value]="false"
+              name="status"
+              class="w-4 h-4 text-blue-600 focus:ring-blue-500 focus:ring-2"
+            />
+            <span class="ml-2 text-sm text-gray-700">Inactive</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex justify-end gap-3">
+        <button
+          (click)="closeAddModal()"
+          type="button"
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          [disabled]="!isAddFormValid"
+          [class.opacity-50]="!isAddFormValid"
+          [class.cursor-not-allowed]="!isAddFormValid"
+          class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors disabled:hover:bg-blue-600"
+        >
+          Add Admin
+        </button>
+      </div>
+    </form>
+  </div>
+</app-modal>
+
+<!-- Edit Admin Modal -->
+<app-modal [isOpen]="isEditModalOpen" (close)="closeEditModal()">
+  <div class="p-6">
+    <h3 class="text-lg font-semibold text-gray-900 mb-2">Edit Super Admin</h3>
+    <p class="text-sm text-gray-600 mb-6">
+      Update super administrator details and status.
+    </p>
+    
+    <form (ngSubmit)="confirmEdit()">
+      <!-- Name Field -->
+      <div class="mb-4">
+        <label for="editAdminName" class="block text-sm font-medium text-gray-700 mb-1">
+          Name
+        </label>
+        <input
+          id="editAdminName"
+          type="text"
+          [(ngModel)]="editAdminName"
+          name="editName"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
+          placeholder="Enter admin name"
+          required
+        />
+      </div>
+
+      <!-- Email Field -->
+      <div class="mb-4">
+        <label for="editAdminEmail" class="block text-sm font-medium text-gray-700 mb-1">
+          Email Address
+        </label>
+        <input
+          id="editAdminEmail"
+          type="email"
+          [(ngModel)]="editAdminEmail"
+          name="editEmail"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
+          placeholder="Enter email address"
+          required
+        />
+      </div>
+
+      <!-- Status Field -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Status
+        </label>
+        <div class="flex items-center gap-4">
+          <label class="flex items-center cursor-pointer">
+            <input
+              type="radio"
+              [(ngModel)]="editAdminStatus"
+              [value]="true"
+              name="editStatus"
+              class="w-4 h-4 text-blue-600 focus:ring-blue-500 focus:ring-2"
+            />
+            <span class="ml-2 text-sm text-gray-700">Active</span>
+          </label>
+          <label class="flex items-center cursor-pointer">
+            <input
+              type="radio"
+              [(ngModel)]="editAdminStatus"
+              [value]="false"
+              name="editStatus"
+              class="w-4 h-4 text-blue-600 focus:ring-blue-500 focus:ring-2"
+            />
+            <span class="ml-2 text-sm text-gray-700">Inactive</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex justify-end gap-3">
+        <button
+          (click)="closeEditModal()"
+          type="button"
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          [disabled]="!isEditFormValid"
+          [class.opacity-50]="!isEditFormValid"
+          [class.cursor-not-allowed]="!isEditFormValid"
+          class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors disabled:hover:bg-blue-600"
+        >
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
+</app-modal>

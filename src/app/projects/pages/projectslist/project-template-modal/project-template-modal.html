@@ -1,0 +1,58 @@
+<!-- project-template-modal.html -->
+<app-modal [isOpen]="true" (close)="onClose()">
+  <div class="max-w-4xl mx-auto p-6 h-[600px] flex flex-col">
+    <div class="flex justify-between items-start mb-6 flex-shrink-0">
+      <div>
+        <h1 class="text-2xl font-semibold mb-1 text-gray-900">Choose a Template</h1>
+        <p class="text-gray-500 text-sm">Select a project template to get started with best practices and workflows</p>
+      </div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto">
+      <div class="grid grid-cols-1 gap-10">
+        <!-- Scrum Template -->
+        <div (click)="selectTemplate('scrum')" class="border mt-6 border-gray-200 rounded-sm p-10 bg-white cursor-pointer hover:border-blue-500 hover:shadow-sm transition-all">
+          <div class="flex items-center gap-4 mb-4">
+            <div class="bg-blue-50 rounded-lg p-3 flex-shrink-0">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <rect x="4" y="5" width="16" height="3" rx="1" fill="#2563EB"/>
+                <rect x="4" y="11" width="16" height="3" rx="1" fill="#2563EB"/>
+                <rect x="4" y="17" width="16" height="3" rx="1" fill="#2563EB"/>
+              </svg>
+            </div>
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-1">
+                <h3 class="text-lg font-semibold text-gray-900">Scrum</h3>
+                <span class="inline-block px-2 py-0.5 border border-blue-500 text-blue-600 text-xs rounded">Recommended</span>
+              </div>
+              <p class="text-sm text-gray-600 leading-relaxed">
+                Plan and track work in sprints with backlogs, sprint planning, and retrospectives.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kanban Template -->
+        <div (click)="selectTemplate('kanban')" class="border mt-6 border-gray-200 rounded-sm p-10 bg-white cursor-pointer hover:border-blue-500 hover:shadow-sm transition-all">
+          <div class="flex items-center gap-4 mb-4">
+            <div class="bg-blue-50 rounded-lg p-3 flex-shrink-0">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <rect x="4" y="4" width="6" height="16" rx="1" fill="#2563EB"/>
+              <rect x="12" y="4" width="8" height="16" rx="1" fill="#2563EB"/>
+            </svg>
+          </div>
+          <div class="flex-1" (action)="selectTemplate('kanban')">
+            <div class="flex items-center gap-3 mb-1">
+              <h3 class="text-lg font-semibold text-gray-900">Kanban</h3>
+              <span class="inline-block px-2 py-0.5 border border-blue-500 text-blue-600 text-xs rounded">Continuous Flow</span>
+            </div>
+            <p class="text-sm text-gray-600 leading-relaxed">
+              Visualize work, limit work-in-progress, and maximize efficiency with continuous delivery.
+            </p>
+          </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</app-modal>

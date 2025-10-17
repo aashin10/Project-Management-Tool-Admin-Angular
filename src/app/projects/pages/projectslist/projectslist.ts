@@ -8,6 +8,8 @@ import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
 import { Modal } from '../../../shared/modal/modal';
 import { Table, TableColumn } from '../../../shared/table/table';
 import { AdvancedFilters } from './advanced-filters/advanced-filters';
+import { ProjectTemplateModal } from './project-template-modal/project-template-modal';
+import { CreateProjectModal } from './create-project-modal/create-project-modal';
  
 interface Project {
   id: string;
@@ -30,7 +32,7 @@ interface TableHeader {
 @Component({
   selector: 'app-projectslist',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomButton, Sectiontitle, Modal, Table, AdvancedFilters],
+  imports: [CommonModule, FormsModule, CustomButton, Sectiontitle, Modal, Table, AdvancedFilters, ProjectTemplateModal, CreateProjectModal],
   templateUrl: './projectslist.html',
   styleUrl: './projectslist.css'
 })
@@ -40,6 +42,9 @@ export class Projectslist implements AfterViewChecked, OnInit {
   showFilters = false;
   private _searchQuery = '';
   sidebarCollapsed = false;
+  showTemplateModal = false;
+  showCreateProjectModal = false;
+  selectedTemplate: string = '';
 
   get searchQuery(): string {
     return this._searchQuery;
@@ -148,7 +153,6 @@ export class Projectslist implements AfterViewChecked, OnInit {
       actions: [
         { label: 'View Details', icon: 'images/eye.svg', action: 'view' },
         { label: 'Edit', icon: 'images/edit.svg', action: 'edit' },
-        { label: 'Archive', icon: 'images/archive.svg', action: 'archive' },
         { label: 'Delete', icon: 'images/trash-white.svg', action: 'delete', class: 'danger' }
       ]
     }
@@ -379,9 +383,6 @@ export class Projectslist implements AfterViewChecked, OnInit {
       case 'edit':
         this.editProject(projectId);
         break;
-      case 'archive':
-        this.archiveProject(projectId);
-        break;
       case 'delete':
         this.projectToDelete = project || null;
         this.showDeleteModal = true;
@@ -416,14 +417,6 @@ export class Projectslist implements AfterViewChecked, OnInit {
   editProject(projectId: string): void {
     console.log('Edit project:', projectId);
     this.router.navigate(['/projects', projectId, 'edit']);
-  }
-
-  archiveProject(projectId: string): void {
-    const project = this.projects.find(p => p.id === projectId);
-    if (project) {
-      project.status = 'Inactive';
-      console.log('Project archived:', projectId);
-    }
   }
 
   deleteProject(projectId: string): void {
@@ -478,7 +471,42 @@ export class Projectslist implements AfterViewChecked, OnInit {
   }
 
   createProject(): void {
-    this.router.navigate(['/projects/create']);
+    this.showTemplateModal = true;
+  }
+
+
+  // Template modal handlers
+  onTemplateSelected(template: string): void {
+    this.selectedTemplate = template;
+    this.showTemplateModal = false;
+    this.showCreateProjectModal = true;
+  }
+
+  closeTemplateModal(): void {
+    this.showTemplateModal = false;
+  }
+
+  // Create project modal handlers
+  onCreateProject(projectData: { name: string; projectKey: string; shareWithExisting: boolean; selectedProject?: string }): void {
+    this.router.navigate(['/projects/create'], {
+      queryParams: {
+        template: this.selectedTemplate,
+        name: projectData.name,
+        projectKey: projectData.projectKey,
+        shareWithExisting: projectData.shareWithExisting,
+        selectedProject: projectData.selectedProject
+      }
+    });
+  }
+
+  closeCreateProjectModal(): void {
+    this.showCreateProjectModal = false;
+    this.selectedTemplate = '';
+  }
+
+  onBackToTemplateSelection(): void {
+    this.showCreateProjectModal = false;
+    this.showTemplateModal = true;
   }
 
   cancelDelete(): void {
