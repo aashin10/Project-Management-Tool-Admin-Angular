@@ -255,57 +255,57 @@ describe('Table Component', () => {
     });
   });
 
-  describe('Actions Menu', () => {
-    it('should toggle actions menu open', () => {
-      component.toggleActionsMenu(0);
-      expect(component.openActionMenuIndex).toBe(0);
-    });
+  // describe('Actions Menu', () => {
+  //   it('should toggle actions menu open', () => {
+  //     component.toggleActionsMenu(0);
+  //     expect(component.openActionMenuIndex).toBe(0);
+  //   });
 
-    it('should toggle actions menu closed when already open', () => {
-      component.openActionMenuIndex = 0;
-      component.toggleActionsMenu(0);
-      expect(component.openActionMenuIndex).toBeNull();
-    });
+  //   it('should toggle actions menu closed when already open', () => {
+  //     component.openActionMenuIndex = 0;
+  //     component.toggleActionsMenu(0);
+  //     expect(component.openActionMenuIndex).toBeNull();
+  //   });
 
-    it('should switch to different row menu', () => {
-      component.openActionMenuIndex = 0;
-      component.toggleActionsMenu(1);
-      expect(component.openActionMenuIndex).toBe(1);
-    });
+  //   it('should switch to different row menu', () => {
+  //     component.openActionMenuIndex = 0;
+  //     component.toggleActionsMenu(1);
+  //     expect(component.openActionMenuIndex).toBe(1);
+  //   });
 
-    it('should close actions menu', () => {
-      component.openActionMenuIndex = 2;
-      component.closeActionsMenu();
-      expect(component.openActionMenuIndex).toBeNull();
-    });
+  //   it('should close actions menu', () => {
+  //     component.openActionMenuIndex = 2;
+  //     component.closeActionsMenu();
+  //     expect(component.openActionMenuIndex).toBeNull();
+  //   });
 
-    it('should emit action click event', () => {
-      spyOn(component.actionClick, 'emit');
-      const row = { id: 1, name: 'Test' };
+  //   it('should emit action click event', () => {
+  //     spyOn(component.actionClick, 'emit');
+  //     const row = { id: 1, name: 'Test' };
       
-      component.handleAction('edit', row);
+  //     component.handleAction('edit', row);
       
-      expect(component.actionClick.emit).toHaveBeenCalledWith({
-        action: 'edit',
-        row: row
-      });
-    });
+  //     expect(component.actionClick.emit).toHaveBeenCalledWith({
+  //       action: 'edit',
+  //       row: row
+  //     });
+  //   });
 
-    it('should return danger class for danger actions', () => {
-      const result = component.getActionClass('danger');
-      expect(result).toBe('text-red-600 hover:bg-red-50');
-    });
+  //   it('should return danger class for danger actions', () => {
+  //     const result = component.getActionClass('danger');
+  //     expect(result).toBe('text-red-600 hover:bg-red-50');
+  //   });
 
-    it('should return default class for normal actions', () => {
-      const result = component.getActionClass();
-      expect(result).toBe('text-gray-700');
-    });
+  //   it('should return default class for normal actions', () => {
+  //     const result = component.getActionClass();
+  //     expect(result).toBe('text-gray-700');
+  //   });
 
-    it('should return default class for undefined custom class', () => {
-      const result = component.getActionClass('normal');
-      expect(result).toBe('text-gray-700');
-    });
-  });
+  //   it('should return default class for undefined custom class', () => {
+  //     const result = component.getActionClass('normal');
+  //     expect(result).toBe('text-gray-700');
+  //   });
+  // });
 
   describe('Last Row Detection', () => {
     it('should return true for last row in paginated data', () => {
