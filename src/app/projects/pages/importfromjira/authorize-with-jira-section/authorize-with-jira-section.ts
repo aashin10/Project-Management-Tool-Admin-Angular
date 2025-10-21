@@ -60,6 +60,7 @@ export class AuthorizeWithJiraSection implements OnInit {
     'read:me ' +
     'read:board-scope:jira-software ' +
     'read:project:jira ' +
+    'read:epic:jira-software ' +
     'read:project-role:jira ' +
     'read:sprint:jira-software ' +
     'read:issue:jira ' +
