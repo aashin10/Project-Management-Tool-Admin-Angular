@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, of, throwError } from 'rxjs';
+import { map, catchError, timeout, retry } from 'rxjs/operators';
 
 export interface User {
   user: string;
@@ -9,22 +9,23 @@ export interface User {
   type: string;
   status: string;
   created: string;
-  lastActivity: string;
+  last_Login: string;
 }
 
 export interface ApiResponse {
   status: number;
   data: ApiUser[];
+  message: string;
 }
 
 export interface ApiUser {
   id: number;
-  userName: string;
+  name: string;
   email: string;
-  createdAt: string;
   type: string;
   status: string;
-  lastActivity: string;
+  created_At: string;
+  last_Login: string | null;
 }
 
 @Injectable({
@@ -32,7 +33,7 @@ export interface ApiUser {
 })
 export class UsersApi {
   private http = inject(HttpClient);
-  private apiUrl = 'https://localhost:7048/api/User';
+  private apiUrl = 'https://localhost:7178/api/User';
   private isLoading = false;
   private cachedUsers: User[] | null = null;
 
@@ -60,16 +61,18 @@ export class UsersApi {
     console.log('UsersApi: Starting to fetch users from API...');
 
     return this.http.get<ApiResponse>(this.apiUrl).pipe(
+      timeout(10000), // 10 second timeout
+      retry(1), // Retry once on failure
       map(response => {
         console.log('UsersApi: API Response received:', response);
         if (response.status === 200 && response.data) {
           const users = response.data.map(apiUser => ({
-            user: apiUser.userName,
+            user: apiUser.name,
             email: apiUser.email,
             type: apiUser.type,
             status: apiUser.status,
-            created: this.formatDate(apiUser.createdAt),
-            lastActivity: this.formatDate(apiUser.lastActivity)
+            created: this.formatDate(apiUser.created_At),
+            last_Login: this.formatDate(apiUser.last_Login || '')
           }));
           this.cachedUsers = users; // Cache the data
           console.log('UsersApi: Users loaded successfully:', users.length);
@@ -82,12 +85,23 @@ export class UsersApi {
         return this.cachedUsers!;
       }),
       catchError(error => {
-        console.log('UsersApi: API call failed, falling back to sample data');
-        // Don't log the full error repeatedly - just note the fallback
-        const sampleData = this.getSampleUsers();
-        this.cachedUsers = sampleData; // Cache sample data too
+        console.log('UsersApi: API call failed');
         this.isLoading = false;
-        return of(sampleData);
+        
+        // Check if it's a network error vs HTTP error response
+        if (error instanceof HttpErrorResponse) {
+          // HTTP error response (server returned error status)
+          if (error.status === 0) {
+            // Status 0 usually means network error
+            return throwError(() => new Error('Network issue. Check your internet connection'));
+          } else {
+            // Server returned error status (404, 500, etc.)
+            return throwError(() => new Error(`Server error: ${error.status} ${error.statusText}`));
+          }
+        } else {
+          // Other errors (timeout, etc.)
+          return throwError(() => new Error('Network issue. Check your internet connection'));
+        }
       })
     );
   }
@@ -114,7 +128,7 @@ export class UsersApi {
         type: 'Internal',
         status: 'Active',
         created: '09/23/2025',
-        lastActivity: '09/25/2025'
+        last_Login: '09/25/2025'
       },
       {
         user: 'Bob Smith',
@@ -122,7 +136,7 @@ export class UsersApi {
         type: 'External',
         status: 'Active',
         created: '09/20/2025',
-        lastActivity: '09/24/2025'
+        last_Login: '09/24/2025'
       },
       {
         user: 'Carol Williams',
@@ -130,7 +144,7 @@ export class UsersApi {
         type: 'Internal',
         status: 'Inactive',
         created: '09/15/2025',
-        lastActivity: '09/20/2025'
+        last_Login: '09/20/2025'
       },
       {
         user: 'David Brown',
@@ -138,7 +152,7 @@ export class UsersApi {
         type: 'Customer',
         status: 'Active',
         created: '09/10/2025',
-        lastActivity: '09/23/2025'
+        last_Login: '09/23/2025'
       },
       {
         user: 'Emma Davis',
@@ -146,7 +160,7 @@ export class UsersApi {
         type: 'Internal',
         status: 'Active',
         created: '09/05/2025',
-        lastActivity: '09/22/2025'
+        last_Login: '09/22/2025'
       }
     ];
     console.log('UsersApi: Sample data loaded, users count:', sampleUsers.length);
