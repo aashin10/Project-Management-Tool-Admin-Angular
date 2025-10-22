@@ -111,14 +111,22 @@
 
             <!-- Avatar type -->
             <div *ngIf="column.type === 'avatar'" class="flex items-center gap-3">
-              <div
-                [class]="
-                  row[column.field].bgColor +
-                  ' w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm'
-                "
-              >
-                {{ row[column.field].initials }}
+              <div class="relative">
+                <div
+                  [class]="
+                    row[column.field].bgColor +
+                    ' w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm'
+                  "
+                    >
+                      {{ row[column.field].initials }}
+                    </div>
+
+                <!-- Overlay badge on the avatar so layout doesn't shift -->
+                    <span *ngIf="row[column.field].isImportedFromJira" class="absolute -top-2 -right-2 w-5 h-5 bg-white border border-blue-100 rounded-full flex items-center justify-center shadow-sm" title="Imported from Jira">
+                      <img src="/images/import.svg" alt="Imported" class="w-3 h-3 object-contain" />
+                    </span>
               </div>
+
               <div>
                 <div class="text-sm font-medium text-gray-900">{{ row[column.field].name }}</div>
                 <div class="text-sm text-gray-500">{{ row[column.field].subtitle }}</div>
@@ -148,13 +156,13 @@
                 *ngFor="let actionItem of column.actions"
                 (click)="handleAction(actionItem.action, row); $event.stopPropagation()"
                 [class]="getActionButtonClass(actionItem.action)"
-                class="p-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center min-w-[40px] min-h-[40px]"
+                class="p-1 rounded-md text-sm font-medium transition-colors flex items-center justify-center min-w-[32px] min-h-[32px]"
                 [title]="actionItem.label"
               >
                 <img
                   *ngIf="actionItem.icon"
                   [src]="actionItem.icon"
-                  class="w-6 h-6 object-contain"
+                  class="w-4 h-4 object-contain"
                   alt=""
                 />
               </button>

@@ -1,56 +1,58 @@
 <!-- Advanced Filters Panel -->
 <div
   *ngIf="showFilters"
-  class="bg-white text-sm border border-gray-300 rounded-[2px] p-5 mb-6 mt-6"
+  class="bg-white text-sm border border-gray-300 rounded-[2px] p-3 mb-4 mt-4"
 >
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
     <!-- Status Filter -->
     <div>
-      <label class="block font-semibold text-gray-900 mb-3">Status</label>
-      <div class="space-y-2.5">
+      <label class="block font-semibold text-gray-900 mb-2">Status</label>
+      <div class="space-y-1.5">
         <label
           *ngFor="let status of statusOptions"
-          class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1.5 rounded transition-colors"
+          class="flex items-center gap-1 cursor-pointer hover:bg-gray-100 p-1 rounded transition-colors"
         >
           <input
             type="checkbox"
             [checked]="isStatusSelected(status)"
             (change)="toggleStatusFilter(status)"
-            class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+            class="w-3 h-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
           />
-          <span class="text-sm text-gray-700">{{ status }}</span>
+          <span class="text-xs text-gray-700">{{ status }}</span>
         </label>
       </div>
     </div>
 
     <!-- Delivery Unit Filter -->
     <div>
-      <label class="block font-semibold text-gray-900 mb-3">Delivery Unit</label>
-      <div class="space-y-2.5">
+      <label class="block font-semibold text-gray-900 mb-2">Delivery Unit</label>
+      <!-- Use a two-column grid for DU options and slightly smaller text -->
+      <div class="grid grid-cols-2 gap-1">
         <label
           *ngFor="let deliveryUnit of deliveryUnitOptions"
-          class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1.5 rounded transition-colors"
+          class="flex items-center gap-1 cursor-pointer hover:bg-gray-100 p-0.5 rounded transition-colors text-xs"
+          style="font-size: 12px;"
         >
           <input
             type="checkbox"
             [checked]="isDeliveryUnitSelected(deliveryUnit)"
             (change)="toggleDeliveryUnitFilter(deliveryUnit)"
-            class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+            class="w-3 h-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
           />
-          <span class="text-sm text-gray-700">{{ deliveryUnit }}</span>
+          <span class="text-xs text-gray-700" style="font-size: 12px;">{{ deliveryUnit }}</span>
         </label>
       </div>
     </div>
 
     <!-- Project Manager Filter -->
     <div>
-      <label class="block font-semibold text-gray-900 mb-3">Project Manager</label>
+      <label class="block font-semibold text-gray-900 mb-2">Project Manager</label>
 
       <!-- Manager Search -->
-      <div class="mb-3">
-        <div class="flex items-center bg-gray-50 border border-gray-300 rounded px-2 py-1.5">
+      <div class="mb-2">
+        <div class="flex items-center bg-gray-50 border border-gray-300 rounded px-2 py-1">
           <svg
-            class="w-4 h-4 text-gray-400 mr-2"
+            class="w-3 h-3 text-gray-400 mr-2"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -66,29 +68,29 @@
             type="text"
             [(ngModel)]="managerSearchQuery"
             placeholder="Search managers..."
-            class="flex-1 text-sm outline-none bg-transparent text-gray-700"
+            class="flex-1 text-xs outline-none bg-transparent text-gray-700"
           />
         </div>
       </div>
 
-      <div class="space-y-2.5 max-h-48 overflow-y-auto">
+      <div class="space-y-1.5 max-h-36 overflow-y-auto">
         <label
           *ngFor="let manager of filteredManagers"
-          class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1.5 rounded transition-colors"
+          class="flex items-center gap-1 cursor-pointer hover:bg-gray-100 p-1 rounded transition-colors"
         >
           <input
             type="checkbox"
             [checked]="isManagerSelected(manager)"
             (change)="toggleManagerFilter(manager)"
-            class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+            class="w-3 h-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
           />
-          <span class="text-sm text-gray-700">{{ manager }}</span>
+          <span class="text-xs text-gray-700">{{ manager }}</span>
         </label>
 
         <button
           *ngIf="displayedManagerCount < totalManagerCount && !showAllManagers"
           (click)="toggleShowAllManagers()"
-          class="w-full text-left text-sm text-blue-600 hover:text-blue-700 font-medium p-1.5 cursor-pointer"
+          class="w-full text-left text-xs text-blue-600 hover:text-blue-700 font-medium p-1 cursor-pointer"
         >
           + Show {{ totalManagerCount - displayedManagerCount }} more
         </button>
@@ -96,7 +98,7 @@
         <button
           *ngIf="showAllManagers && totalManagerCount > 4"
           (click)="toggleShowAllManagers()"
-          class="w-full text-left text-sm text-blue-600 hover:text-blue-700 font-medium p-1.5 cursor-pointer"
+          class="w-full text-left text-xs text-blue-600 hover:text-blue-700 font-medium p-1 cursor-pointer"
         >
           - Show less
         </button>
