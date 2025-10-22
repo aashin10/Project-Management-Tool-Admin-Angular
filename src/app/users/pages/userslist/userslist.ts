@@ -366,7 +366,7 @@ export class Userslist implements OnInit {
     { header: 'Type', field: 'type', type: 'badge' as const },
     { header: 'Status', field: 'status', type: 'badge' as const },
     { header: 'Created', field: 'created', type: 'text' as const },
-    { header: 'Last Activity', field: 'lastActivity', type: 'text' as const },
+    { header: 'Last Login', field: 'lastLogin', type: 'text' as const },
     { header: 'Actions', field: 'actions', type: 'actions' as const, actions: [
       { label: 'Edit', action: 'edit', icon: 'images/edit.svg' },
       { label: 'Delete', action: 'delete', icon: 'images/delete.svg', class: 'danger' }
@@ -383,45 +383,47 @@ export class Userslist implements OnInit {
     console.log('Component: Manual refresh requested');
     this.isLoading = true;
     this.loadingError = null;
+
+    const minLoadingTime = 3000; // 3 seconds minimum loading time
+    const startTime = Date.now();
     
     this.usersApi.refreshUsers().subscribe({
       next: (users) => {
-        this.users = users;
-        this.isLoading = false;
-        console.log('Component: Data refreshed successfully');
-        this.cdr.detectChanges();
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, minLoadingTime - elapsed);
+        setTimeout(() => {
+          this.users = users;
+          this.isLoading = false;
+          this.loadingError = null; // Clear any previous error
+          console.log('Component: Data refreshed successfully');
+          this.cdr.detectChanges();
+        }, remaining);
       },
       error: (error) => {
-        // This shouldn't happen since refreshUsers handles fallbacks
-        console.error('Component: Unexpected error during refresh:', error);
-        this.loadingError = 'Failed to refresh data';
-        this.isLoading = false;
-        this.cdr.detectChanges();
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, minLoadingTime - elapsed);
+        setTimeout(() => {
+          // This shouldn't happen since refreshUsers handles fallbacks
+          console.error('Component: Unexpected error during refresh:', error);
+          // Only show error for network issues
+          if (error.message && error.message.includes('Network issue')) {
+            this.loadingError = 'Failed to refresh data: ' + error.message;
+          } else {
+            this.loadingError = null;
+          }
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        }, remaining);
       }
     });
   }
 
-  // Method to force load sample data (for development)
+  // Method to manually show error message (for development)
   loadSampleDataManually() {
-    console.log('Manually loading sample data');
-    this.isLoading = true;
-    this.loadingError = null;
-    
-    this.usersApi.getUsers().subscribe({
-      next: (users) => {
-        // Since the service returns sample data when API fails, we can just call it
-        // The service will automatically return sample data
-        this.users = users;
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      },
-      error: (error) => {
-        // This shouldn't happen since we're forcing sample data, but handle it anyway
-        this.loadingError = 'Failed to load sample data';
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      }
-    });
+    console.log('Showing error message instead of loading sample data');
+    this.loadingError = 'Network issue. Check your internet connection';
+    this.isLoading = false;
+    this.cdr.detectChanges();
   }
 
   fetchUsers() {
@@ -429,30 +431,38 @@ export class Userslist implements OnInit {
     this.loadingError = null;
     console.log('Component: Starting to fetch users...');
 
+    const minLoadingTime = 3000; // 3 seconds minimum loading time
+    const startTime = Date.now();
+
     this.usersApi.getUsers().subscribe({
       next: (users) => {
-        this.users = users;
-        this.isLoading = false;
-        console.log('Component: Users loaded successfully, setting isLoading to false');
-        this.cdr.detectChanges();
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, minLoadingTime - elapsed);
+        setTimeout(() => {
+          this.users = users;
+          this.isLoading = false;
+          this.loadingError = null; // Clear any previous error
+          console.log('Component: Users loaded successfully, setting isLoading to false');
+          this.cdr.detectChanges();
+        }, remaining);
       },
       error: (error) => {
-        console.error('Component: Error fetching users:', error);
-
-        // Provide more specific error messages
-        if (error.status === 0) {
-          this.loadingError = 'Unable to connect to the server. Please check if the API is running and CORS is configured.';
-        } else if (error.status === 404) {
-          this.loadingError = 'API endpoint not found. Please verify the API URL.';
-        } else if (error.status >= 500) {
-          this.loadingError = 'Server error occurred. Please try again later.';
-        } else {
-          this.loadingError = `Failed to load users: ${error.message || 'Unknown error'}`;
-        }
-
-        this.isLoading = false;
-        console.log('Component: Error occurred, setting isLoading to false');
-        this.cdr.detectChanges();
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, minLoadingTime - elapsed);
+        setTimeout(() => {
+          console.error('Component: Error fetching users:', error);
+          // Only show error state for network issues, not server errors
+          if (error.message && error.message.includes('Network issue')) {
+            this.loadingError = error.message;
+          } else {
+            // For server errors, you might want to show a different message or handle differently
+            console.warn('Server error:', error.message);
+            // For now, don't show error state for server errors
+            this.loadingError = null;
+          }
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        }, remaining);
       }
     });
   }
@@ -529,7 +539,7 @@ projects: Project[] = [
         user.type.toLowerCase().includes(searchLower) ||
         user.status.toLowerCase().includes(searchLower) ||
         user.created.toLowerCase().includes(searchLower) ||
-        user.lastActivity.toLowerCase().includes(searchLower);
+        user.last_Login.toLowerCase().includes(searchLower);
       
       // If filter is empty string, it means "All" is selected, so match all
       const matchesType = !selectedType || userType === selectedType;
@@ -555,7 +565,7 @@ projects: Project[] = [
       type: user.type,
       status: user.status,
       created: user.created,
-      lastActivity: user.lastActivity,
+      lastLogin: user.last_Login || '-',
       actions: user, // Pass the full user object for actions
       selected: this.selectedUsers.some(selectedUser => selectedUser.actions === user) // Check if user is selected
     }));
@@ -652,5 +662,38 @@ projects: Project[] = [
   closeDeleteConfirmModal() {
     this.showDeleteConfirmModal = false;
     this.userToDelete = null;
+  }
+
+  submitImport() {
+    // Show info notification that import is in progress
+    this.toastr.info(`File "${this.selectedFileName}" is currently being imported.`, '', {
+      timeOut: 5000,
+      progressBar: true,
+      closeButton: true,
+    });
+
+    // Add notification to notification service (stored in localStorage)
+    this.notificationService.addNotification(
+      'info',
+      `File "${this.selectedFileName}" is currently being imported.`,
+      'File Import Started'
+    );
+
+    // Simulate import process with a delay, then show success
+    setTimeout(() => {
+      // Show success toaster notification
+      this.toastr.success(`File "${this.selectedFileName}" imported successfully.`, '', {
+        timeOut: 3000,
+        progressBar: true,
+        closeButton: true,
+      });
+
+      // Add success notification to notification service
+      this.notificationService.addNotification(
+        'success',
+        `File "${this.selectedFileName}" imported successfully.`,
+        'File Imported'
+      );
+    }, 3000); // 3 second delay to simulate import
   }
 }
