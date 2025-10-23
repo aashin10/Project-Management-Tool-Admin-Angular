@@ -20,6 +20,7 @@ interface Project {
   projectManager: string;
   teamSize: number;
   selected?: boolean;
+  isImportedFromJira?: boolean;
 }
 
 interface TableHeader {
@@ -101,7 +102,8 @@ export class Projectslist implements AfterViewChecked, OnInit {
 
   // Available filter options
   statusOptions = ['Active', 'Inactive', 'Completed'];
-  deliveryUnitOptions = ['Engineering', 'Product Management', 'Design'];
+  // Updated Delivery Unit options as requested
+  deliveryUnitOptions = ['DU1', 'DU2', 'DU3', 'DU4', 'DU5', 'DU6', 'DU7', 'DU8'];
 
   // Table columns configuration
   tableColumns: TableColumn[] = [
@@ -126,10 +128,17 @@ export class Projectslist implements AfterViewChecked, OnInit {
       header: 'Delivery Unit',
       field: 'deliveryUnit',
       type: 'badge',
+      // Map DU1..DU8 to distinct badge color classes
       badgeColors: {
-        'Engineering': 'bg-blue-100 text-blue-800',
-        'Product Management': 'bg-purple-100 text-purple-800',
-        'Design': 'bg-pink-100 text-pink-800'
+        'DU1': 'bg-blue-100 text-blue-800',
+        'DU2': 'bg-green-100 text-green-800',
+        'DU3': 'bg-purple-100 text-purple-800',
+        'DU4': 'bg-pink-100 text-pink-800',
+        'DU5': 'bg-yellow-100 text-yellow-800',
+        'DU6': 'bg-indigo-100 text-indigo-800',
+        'DU7': 'bg-red-100 text-red-800',
+        'DU8': 'bg-teal-100 text-teal-800',
+        '--': 'bg-gray-100 text-gray-800'
       },
       width: '20%'
     },
@@ -151,64 +160,64 @@ export class Projectslist implements AfterViewChecked, OnInit {
       field: 'actions',
       type: 'actions',
       actions: [
-        { label: 'View Details', icon: 'images/eye.svg', action: 'view' },
-        { label: 'Edit', icon: 'images/edit.svg', action: 'edit' },
-        { label: 'Delete', icon: 'images/trash-white.svg', action: 'delete', class: 'danger' }
+        { label: 'Edit', icon: '/images/edit-black.svg', action: 'edit' },
+        { label: 'Delete', icon: '/images/delete-black.svg', action: 'delete', class: 'danger' }
       ]
     }
   ];
 
   projects: Project[] = [
-    { id: '1', name: 'Atlas App', projectCode: 'PROJ-001', status: 'Active', deliveryUnit: 'Engineering', projectManager: 'Asha Varma', teamSize: 12, selected: false },
-    { id: '2', name: 'RoadSim', projectCode: 'PROJ-002', status: 'Inactive', deliveryUnit: 'Engineering', projectManager: 'Pranav Iyer', teamSize: 8, selected: false },
-    { id: '3', name: 'CloudSync Pro', projectCode: 'PROJ-003', status: 'Completed', deliveryUnit: 'Engineering', projectManager: 'Sarah Chen', teamSize: 15, selected: false },
-    { id: '4', name: 'DataViz Dashboard', projectCode: 'PROJ-004', status: 'Active', deliveryUnit: 'Product Management', projectManager: 'Michael Rodriguez', teamSize: 6, selected: false },
-    { id: '5', name: 'SecureAuth API', projectCode: 'PROJ-005', status: 'Active', deliveryUnit: 'Engineering', projectManager: 'Emma Thompson', teamSize: 9, selected: false },
-    { id: '6', name: 'E-Learning Hub', projectCode: 'PROJ-006', status: 'Active', deliveryUnit: 'Design', projectManager: 'James Wilson', teamSize: 11, selected: false },
-    { id: '7', name: 'MarketPlace Connect', projectCode: 'PROJ-007', status: 'Completed', deliveryUnit: 'Product Management', projectManager: 'Lisa Anderson', teamSize: 18, selected: false },
-    { id: '8', name: 'Mobile Banking App', projectCode: 'PROJ-008', status: 'Active', deliveryUnit: 'Engineering', projectManager: 'David Kumar', teamSize: 20, selected: false },
-    { id: '9', name: 'Healthcare Portal', projectCode: 'PROJ-009', status: 'Active', deliveryUnit: 'Product Management', projectManager: 'Rachel Green', teamSize: 14, selected: false },
-    { id: '10', name: 'Inventory Management', projectCode: 'PROJ-010', status: 'Inactive', deliveryUnit: 'Engineering', projectManager: 'Tom Harris', teamSize: 7, selected: false },
-    { id: '11', name: 'Social Media Platform', projectCode: 'PROJ-011', status: 'Active', deliveryUnit: 'Design', projectManager: 'Nina Patel', teamSize: 25, selected: false },
-    { id: '12', name: 'CRM System', projectCode: 'PROJ-012', status: 'Completed', deliveryUnit: 'Product Management', projectManager: 'Alex Johnson', teamSize: 10, selected: false },
-    { id: '13', name: 'Analytics Dashboard', projectCode: 'PROJ-013', status: 'Active', deliveryUnit: 'Engineering', projectManager: 'Sophie Turner', teamSize: 8, selected: false },
-    { id: '14', name: 'Payment Gateway', projectCode: 'PROJ-014', status: 'Active', deliveryUnit: 'Engineering', projectManager: 'Robert Chen', teamSize: 12, selected: false },
-    { id: '15', name: 'Logistics Tracker', projectCode: 'PROJ-015', status: 'Active', deliveryUnit: 'Product Management', projectManager: 'Maria Garcia', teamSize: 9, selected: false },
-    { id: '16', name: 'Video Streaming Service', projectCode: 'PROJ-016', status: 'Inactive', deliveryUnit: 'Design', projectManager: 'Kevin Lee', teamSize: 16, selected: false },
-    { id: '17', name: 'Smart Home App', projectCode: 'PROJ-017', status: 'Active', deliveryUnit: 'Engineering', projectManager: 'Laura Martinez', teamSize: 11, selected: false },
-    { id: '18', name: 'Restaurant Management', projectCode: 'PROJ-018', status: 'Completed', deliveryUnit: 'Product Management', projectManager: 'Chris Brown', teamSize: 6, selected: false },
-    { id: '19', name: 'Fitness Tracking App', projectCode: 'PROJ-019', status: 'Active', deliveryUnit: 'Design', projectManager: 'Amanda White', teamSize: 8, selected: false },
-    { id: '20', name: 'Real Estate Platform', projectCode: 'PROJ-020', status: 'Active', deliveryUnit: 'Product Management', projectManager: 'Daniel Kim', teamSize: 13, selected: false },
-    { id: '21', name: 'Travel Booking System', projectCode: 'PROJ-021', status: 'Active', deliveryUnit: 'Engineering', projectManager: 'Jessica Wang', teamSize: 15, selected: false },
-    { id: '22', name: 'HR Management Portal', projectCode: 'PROJ-022', status: 'Inactive', deliveryUnit: 'Design', projectManager: 'Michael Smith', teamSize: 7, selected: false },
-    { id: '23', name: 'Customer Support Chat', projectCode: 'PROJ-023', status: 'Active', deliveryUnit: 'Engineering', projectManager: 'Olivia Davis', teamSize: 10, selected: false },
-    { id: '24', name: 'Weather Forecast App', projectCode: 'PROJ-024', status: 'Completed', deliveryUnit: 'Product Management', projectManager: 'Ryan Taylor', teamSize: 5, selected: false },
-    { id: '25', name: 'Task Management Tool', projectCode: 'PROJ-025', status: 'Active', deliveryUnit: 'Design', projectManager: 'Emily Wilson', teamSize: 12, selected: false },
-    { id: '26', name: 'AI Chatbot Platform', projectCode: 'PROJ-026', status: 'Active', deliveryUnit: 'Engineering', projectManager: 'Benjamin Clarke', teamSize: 18, selected: false },
-    { id: '27', name: 'Blockchain Wallet', projectCode: 'PROJ-027', status: 'Active', deliveryUnit: 'Product Management', projectManager: 'Sophia Williams', teamSize: 14, selected: false },
-    { id: '28', name: 'Supply Chain Management', projectCode: 'PROJ-028', status: 'Active', deliveryUnit: 'Engineering', projectManager: 'Lucas Brown', teamSize: 22, selected: false },
-    { id: '29', name: 'Virtual Event Platform', projectCode: 'PROJ-029', status: 'Completed', deliveryUnit: 'Design', projectManager: 'Isabella Martinez', teamSize: 9, selected: false },
-    { id: '30', name: 'Code Review Automation', projectCode: 'PROJ-030', status: 'Inactive', deliveryUnit: 'Engineering', projectManager: 'Ethan Anderson', teamSize: 7, selected: false },
-    { id: '31', name: 'Document Management System', projectCode: 'PROJ-031', status: 'Active', deliveryUnit: 'Product Management', projectManager: 'Mia Thompson', teamSize: 11, selected: false },
-    { id: '32', name: 'Fleet Management App', projectCode: 'PROJ-032', status: 'Active', deliveryUnit: 'Design', projectManager: 'Noah Garcia', teamSize: 13, selected: false },
-    { id: '33', name: 'Expense Tracking Tool', projectCode: 'PROJ-033', status: 'Active', deliveryUnit: 'Engineering', projectManager: 'Ava Rodriguez', teamSize: 6, selected: false },
-    { id: '34', name: 'Network Monitoring System', projectCode: 'PROJ-034', status: 'Active', deliveryUnit: 'Engineering', projectManager: 'William Lee', teamSize: 16, selected: false },
-    { id: '35', name: 'Content Management CMS', projectCode: 'PROJ-035', status: 'Completed', deliveryUnit: 'Product Management', projectManager: 'Charlotte Davis', teamSize: 10, selected: false },
-    { id: '36', name: 'Recruitment Portal', projectCode: 'PROJ-036', status: 'Active', deliveryUnit: 'Design', projectManager: 'James Miller', teamSize: 12, selected: false },
-    { id: '37', name: 'IoT Device Manager', projectCode: 'PROJ-037', status: 'Active', deliveryUnit: 'Engineering', projectManager: 'Amelia Wilson', teamSize: 19, selected: false },
-    { id: '38', name: 'Email Marketing Suite', projectCode: 'PROJ-038', status: 'Completed', deliveryUnit: 'Product Management', projectManager: 'Oliver Moore', teamSize: 8, selected: false },
-    { id: '39', name: 'Bug Tracking System', projectCode: 'PROJ-039', status: 'Active', deliveryUnit: 'Design', projectManager: 'Emma Taylor', teamSize: 14, selected: false },
-    { id: '40', name: 'Appointment Scheduler', projectCode: 'PROJ-040', status: 'Inactive', deliveryUnit: 'Engineering', projectManager: 'Liam Anderson', teamSize: 5, selected: false },
-    { id: '41', name: 'Digital Asset Management', projectCode: 'PROJ-041', status: 'Active', deliveryUnit: 'Product Management', projectManager: 'Harper Thomas', teamSize: 11, selected: false },
-    { id: '42', name: 'Knowledge Base System', projectCode: 'PROJ-042', status: 'Active', deliveryUnit: 'Design', projectManager: 'Elijah Jackson', teamSize: 9, selected: false },
-    { id: '43', name: 'Invoice Generator', projectCode: 'PROJ-043', status: 'Completed', deliveryUnit: 'Engineering', projectManager: 'Abigail White', teamSize: 4, selected: false },
-    { id: '44', name: 'Video Conference App', projectCode: 'PROJ-044', status: 'Active', deliveryUnit: 'Engineering', projectManager: 'Alexander Harris', teamSize: 21, selected: false },
-    { id: '45', name: 'Sales Forecasting Tool', projectCode: 'PROJ-045', status: 'Active', deliveryUnit: 'Product Management', projectManager: 'Emily Martin', teamSize: 15, selected: false },
-    { id: '46', name: 'Warehouse Management', projectCode: 'PROJ-046', status: 'Inactive', deliveryUnit: 'Design', projectManager: 'Daniel Thompson', teamSize: 17, selected: false },
-    { id: '47', name: 'Learning Management System', projectCode: 'PROJ-047', status: 'Active', deliveryUnit: 'Engineering', projectManager: 'Sofia Garcia', teamSize: 20, selected: false },
-    { id: '48', name: 'API Gateway Service', projectCode: 'PROJ-048', status: 'Active', deliveryUnit: 'Engineering', projectManager: 'Matthew Martinez', teamSize: 13, selected: false },
-    { id: '49', name: 'Performance Analytics', projectCode: 'PROJ-049', status: 'Active', deliveryUnit: 'Product Management', projectManager: 'Chloe Robinson', teamSize: 10, selected: false },
-    { id: '50', name: 'Notification Service', projectCode: 'PROJ-050', status: 'Completed', deliveryUnit: 'Design', projectManager: 'Jacob Clark', teamSize: 6, selected: false }
+  // Some projects updated to use the new DU values (randomized sample)
+  { id: '1', name: 'Atlas App', projectCode: 'PROJ-001', status: 'Active', deliveryUnit: 'DU1', projectManager: 'Asha Varma', teamSize: 12, selected: false, isImportedFromJira: false },
+  { id: '2', name: 'RoadSim', projectCode: 'PROJ-002', status: 'Inactive', deliveryUnit: 'DU3', projectManager: 'Pranav Iyer', teamSize: 8, selected: false, isImportedFromJira: true },
+  { id: '3', name: 'CloudSync Pro', projectCode: 'PROJ-003', status: 'Completed', deliveryUnit: 'DU2', projectManager: 'Sarah Chen', teamSize: 15, selected: false, isImportedFromJira: false },
+  { id: '4', name: 'DataViz Dashboard', projectCode: 'PROJ-004', status: 'Active', deliveryUnit: 'DU4', projectManager: 'Michael Rodriguez', teamSize: 6, selected: false, isImportedFromJira: false },
+  { id: '5', name: 'SecureAuth API', projectCode: 'PROJ-005', status: 'Active', deliveryUnit: 'DU8', projectManager: 'Emma Thompson', teamSize: 9, selected: false, isImportedFromJira: true },
+  { id: '6', name: 'E-Learning Hub', projectCode: 'PROJ-006', status: 'Active', deliveryUnit: 'DU1', projectManager: 'James Wilson', teamSize: 11, selected: false, isImportedFromJira: false },
+  { id: '7', name: 'MarketPlace Connect', projectCode: 'PROJ-007', status: 'Completed', deliveryUnit: 'DU3', projectManager: 'Lisa Anderson', teamSize: 18, selected: false, isImportedFromJira: true },
+  { id: '8', name: 'Mobile Banking App', projectCode: 'PROJ-008', status: 'Active', deliveryUnit: 'DU2', projectManager: 'David Kumar', teamSize: 20, selected: false, isImportedFromJira: false },
+  { id: '9', name: 'Healthcare Portal', projectCode: 'PROJ-009', status: 'Active', deliveryUnit: 'DU5', projectManager: 'Rachel Green', teamSize: 14, selected: false, isImportedFromJira: true },
+  { id: '10', name: 'Inventory Management', projectCode: 'PROJ-010', status: 'Inactive', deliveryUnit: 'DU8', projectManager: 'Tom Harris', teamSize: 7, selected: false, isImportedFromJira: false },
+    { id: '11', name: 'Social Media Platform', projectCode: 'PROJ-011', status: 'Active', deliveryUnit: 'DU1', projectManager: 'Nina Patel', teamSize: 25, selected: false, isImportedFromJira: true },
+    { id: '12', name: 'CRM System', projectCode: 'PROJ-012', status: 'Completed', deliveryUnit: 'DU3', projectManager: 'Alex Johnson', teamSize: 10, selected: false, isImportedFromJira: false },
+    { id: '13', name: 'Analytics Dashboard', projectCode: 'PROJ-013', status: 'Active', deliveryUnit: 'DU5', projectManager: 'Sophie Turner', teamSize: 8, selected: false, isImportedFromJira: false },
+    { id: '14', name: 'Payment Gateway', projectCode: 'PROJ-014', status: 'Active', deliveryUnit: 'DU6', projectManager: 'Robert Chen', teamSize: 12, selected: false, isImportedFromJira: true },
+    { id: '15', name: 'Logistics Tracker', projectCode: 'PROJ-015', status: 'Active', deliveryUnit: 'DU7', projectManager: 'Maria Garcia', teamSize: 9, selected: false, isImportedFromJira: false },
+    { id: '16', name: 'Video Streaming Service', projectCode: 'PROJ-016', status: 'Inactive', deliveryUnit: 'DU8', projectManager: 'Kevin Lee', teamSize: 16, selected: false, isImportedFromJira: true },
+    { id: '17', name: 'Smart Home App', projectCode: 'PROJ-017', status: 'Active', deliveryUnit: 'DU4', projectManager: 'Laura Martinez', teamSize: 11, selected: false, isImportedFromJira: false },
+    { id: '18', name: 'Restaurant Management', projectCode: 'PROJ-018', status: 'Completed', deliveryUnit: 'DU5', projectManager: 'Chris Brown', teamSize: 6, selected: false, isImportedFromJira: false },
+    { id: '19', name: 'Fitness Tracking App', projectCode: 'PROJ-019', status: 'Active', deliveryUnit: 'DU6', projectManager: 'Amanda White', teamSize: 8, selected: false, isImportedFromJira: true },
+    { id: '20', name: 'Real Estate Platform', projectCode: 'PROJ-020', status: 'Active', deliveryUnit: 'DU7', projectManager: 'Daniel Kim', teamSize: 13, selected: false, isImportedFromJira: false },
+    { id: '21', name: 'Travel Booking System', projectCode: 'PROJ-021', status: 'Active', deliveryUnit: 'DU8', projectManager: 'Jessica Wang', teamSize: 15, selected: false, isImportedFromJira: true },
+    { id: '22', name: 'HR Management Portal', projectCode: 'PROJ-022', status: 'Inactive', deliveryUnit: 'DU4', projectManager: 'Michael Smith', teamSize: 7, selected: false, isImportedFromJira: false },
+    { id: '23', name: 'Customer Support Chat', projectCode: 'PROJ-023', status: 'Active', deliveryUnit: 'DU1', projectManager: 'Olivia Davis', teamSize: 10, selected: false, isImportedFromJira: true },
+    { id: '24', name: 'Weather Forecast App', projectCode: 'PROJ-024', status: 'Completed', deliveryUnit: 'DU2', projectManager: 'Ryan Taylor', teamSize: 5, selected: false, isImportedFromJira: false },
+    { id: '25', name: 'Task Management Tool', projectCode: 'PROJ-025', status: 'Active', deliveryUnit: 'DU3', projectManager: 'Emily Wilson', teamSize: 12, selected: false, isImportedFromJira: false },
+    { id: '26', name: 'AI Chatbot Platform', projectCode: 'PROJ-026', status: 'Active', deliveryUnit: 'DU1', projectManager: 'Benjamin Clarke', teamSize: 18, selected: false, isImportedFromJira: true },
+    { id: '27', name: 'Blockchain Wallet', projectCode: 'PROJ-027', status: 'Active', deliveryUnit: 'DU2', projectManager: 'Sophia Williams', teamSize: 14, selected: false, isImportedFromJira: false },
+    { id: '28', name: 'Supply Chain Management', projectCode: 'PROJ-028', status: 'Active', deliveryUnit: 'DU1', projectManager: 'Lucas Brown', teamSize: 22, selected: false, isImportedFromJira: false },
+    { id: '29', name: 'Virtual Event Platform', projectCode: 'PROJ-029', status: 'Completed', deliveryUnit: 'DU3', projectManager: 'Isabella Martinez', teamSize: 9, selected: false, isImportedFromJira: true },
+    { id: '30', name: 'Code Review Automation', projectCode: 'PROJ-030', status: 'Inactive', deliveryUnit: 'DU1', projectManager: 'Ethan Anderson', teamSize: 7, selected: false, isImportedFromJira: false },
+    { id: '31', name: 'Document Management System', projectCode: 'PROJ-031', status: 'Active', deliveryUnit: 'DU2', projectManager: 'Mia Thompson', teamSize: 11, selected: false, isImportedFromJira: false },
+    { id: '32', name: 'Fleet Management App', projectCode: 'PROJ-032', status: 'Active', deliveryUnit: 'DU3', projectManager: 'Noah Garcia', teamSize: 13, selected: false, isImportedFromJira: false },
+    { id: '33', name: 'Expense Tracking Tool', projectCode: 'PROJ-033', status: 'Active', deliveryUnit: 'DU1', projectManager: 'Ava Rodriguez', teamSize: 6, selected: false, isImportedFromJira: false },
+    { id: '34', name: 'Network Monitoring System', projectCode: 'PROJ-034', status: 'Active', deliveryUnit: 'DU1', projectManager: 'William Lee', teamSize: 16, selected: false, isImportedFromJira: true },
+    { id: '35', name: 'Content Management CMS', projectCode: 'PROJ-035', status: 'Completed', deliveryUnit: 'DU2', projectManager: 'Charlotte Davis', teamSize: 10, selected: false, isImportedFromJira: false },
+    { id: '36', name: 'Recruitment Portal', projectCode: 'PROJ-036', status: 'Active', deliveryUnit: 'DU3', projectManager: 'James Miller', teamSize: 12, selected: false, isImportedFromJira: false },
+    { id: '37', name: 'IoT Device Manager', projectCode: 'PROJ-037', status: 'Active', deliveryUnit: 'DU1', projectManager: 'Amelia Wilson', teamSize: 19, selected: false, isImportedFromJira: true },
+    { id: '38', name: 'Email Marketing Suite', projectCode: 'PROJ-038', status: 'Completed', deliveryUnit: 'DU2', projectManager: 'Oliver Moore', teamSize: 8, selected: false, isImportedFromJira: false },
+    { id: '39', name: 'Bug Tracking System', projectCode: 'PROJ-039', status: 'Active', deliveryUnit: 'DU3', projectManager: 'Emma Taylor', teamSize: 14, selected: false, isImportedFromJira: false },
+    { id: '40', name: 'Appointment Scheduler', projectCode: 'PROJ-040', status: 'Inactive', deliveryUnit: 'DU1', projectManager: 'Liam Anderson', teamSize: 5, selected: false, isImportedFromJira: false },
+    { id: '41', name: 'Digital Asset Management', projectCode: 'PROJ-041', status: 'Active', deliveryUnit: 'DU2', projectManager: 'Harper Thomas', teamSize: 11, selected: false, isImportedFromJira: false },
+    { id: '42', name: 'Knowledge Base System', projectCode: 'PROJ-042', status: 'Active', deliveryUnit: 'DU3', projectManager: 'Elijah Jackson', teamSize: 9, selected: false, isImportedFromJira: false },
+    { id: '43', name: 'Invoice Generator', projectCode: 'PROJ-043', status: 'Completed', deliveryUnit: 'DU1', projectManager: 'Abigail White', teamSize: 4, selected: false, isImportedFromJira: false },
+    { id: '44', name: 'Video Conference App', projectCode: 'PROJ-044', status: 'Active', deliveryUnit: 'DU1', projectManager: 'Alexander Harris', teamSize: 21, selected: false, isImportedFromJira: true },
+    { id: '45', name: 'Sales Forecasting Tool', projectCode: 'PROJ-045', status: 'Active', deliveryUnit: 'DU2', projectManager: 'Emily Martin', teamSize: 15, selected: false, isImportedFromJira: false },
+    { id: '46', name: 'Warehouse Management', projectCode: 'PROJ-046', status: 'Inactive', deliveryUnit: 'DU3', projectManager: 'Daniel Thompson', teamSize: 17, selected: false, isImportedFromJira: true },
+    { id: '47', name: 'Learning Management System', projectCode: 'PROJ-047', status: 'Active', deliveryUnit: 'DU1', projectManager: 'Sofia Garcia', teamSize: 20, selected: false, isImportedFromJira: false },
+    { id: '48', name: 'API Gateway Service', projectCode: 'PROJ-048', status: 'Active', deliveryUnit: 'DU1', projectManager: 'Matthew Martinez', teamSize: 13, selected: false, isImportedFromJira: false },
+    { id: '49', name: 'Performance Analytics', projectCode: 'PROJ-049', status: 'Active', deliveryUnit: 'DU2', projectManager: 'Chloe Robinson', teamSize: 10, selected: false, isImportedFromJira: false },
+    { id: '50', name: 'Notification Service', projectCode: 'PROJ-050', status: 'Completed', deliveryUnit: 'DU3', projectManager: 'Jacob Clark', teamSize: 6, selected: false, isImportedFromJira: false }
   ];
 
   // Getters
@@ -256,7 +265,11 @@ export class Projectslist implements AfterViewChecked, OnInit {
       projectInfo: {
         name: project.name,
         subtitle: project.projectCode,
-        initials: project.name.substring(0, 2).toUpperCase()
+        initials: project.name.substring(0, 2).toUpperCase(),
+        // bgColor should match CSS utility classes used in table template
+        bgColor: this.getAvatarBgColor(project.id),
+        // expose whether this project was imported from Jira so the table can show a badge
+        isImportedFromJira: !!project.isImportedFromJira
       },
       status: project.status,
       deliveryUnit: project.deliveryUnit,
@@ -268,6 +281,22 @@ export class Projectslist implements AfterViewChecked, OnInit {
       actions: project.id,
       selected: project.selected
     }));
+  }
+
+  // Simple deterministic avatar background selector based on project id
+  getAvatarBgColor(projectId: string): string {
+    const classes = [
+      'bg-blue-600',
+      'bg-green-600',
+      'bg-purple-600',
+      'bg-pink-600',
+      'bg-yellow-600',
+      'bg-indigo-600',
+      'bg-red-600',
+      'bg-teal-600'
+    ];
+    const num = parseInt(projectId, 10) || 0;
+    return classes[num % classes.length];
   }
 
   get selectedProjects(): Project[] {
@@ -350,17 +379,13 @@ export class Projectslist implements AfterViewChecked, OnInit {
     this.cdr.detectChanges();
   }
 
-  viewDetails(projectId: string): void {
-    console.log('View details:', projectId);
-    this.router.navigate(['/projects', projectId]);
-  }
-
   onRowClick(project: Project): void {
     if (this.allSelectedProjects.length > 0) {
       project.selected = !project.selected;
       this.cdr.detectChanges();
     } else {
-      this.viewProjectDetails(project.id);
+      // Navigate directly to project details when row clicked
+      this.router.navigate(['/projects', project.id]);
     }
   }
 
@@ -368,18 +393,13 @@ export class Projectslist implements AfterViewChecked, OnInit {
     this.cdr.detectChanges();
   }
 
-  viewProjectDetails(projectId: string): void {
-    this.router.navigate(['/projects', projectId]);
-  }
+  // Note: preview/view logic removed. Navigation happens directly where needed.
 
   handleTableAction(event: { action: string; row: any }): void {
     const projectId = event.row.actions;
     const project = this.projects.find(p => p.id === projectId);
 
     switch (event.action) {
-      case 'view':
-        this.viewProjectDetails(projectId);
-        break;
       case 'edit':
         this.editProject(projectId);
         break;

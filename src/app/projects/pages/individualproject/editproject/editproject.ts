@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+// import { ProjectService } from 'src/app/shared/services/project.service'; // Uncomment and adjust path if you have a service
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Sectiontitle } from '../../../../shared/sectiontitle/sectiontitle';
 import { BasicInformationComponent } from '../../../pages/createproject/basicinfo/basicinfo';
 import { TeamOrganizationComponent } from '../../../pages/createproject/teaminfo/teaminfo';
 import { Additionalinfo } from '../../../pages/createproject/additionalinfo/additionalinfo';
-import { ProjectPreviewComponent } from '../../../pages/createproject/projectpreview/projectpreview';
 import { CustomButton } from '../../../../shared/custom-button/custom-button';
 
 @Component({
@@ -19,7 +19,6 @@ import { CustomButton } from '../../../../shared/custom-button/custom-button';
     BasicInformationComponent,
     TeamOrganizationComponent,
     Additionalinfo,
-    ProjectPreviewComponent,
     CustomButton
   ],
   templateUrl: './editproject.html',
@@ -51,9 +50,12 @@ export class Editproject implements OnInit {
   // Additional fields
   additionalFields: Array<{name: string, value: string}> = [];
 
+  showSuccess: boolean = false;
+
   constructor(
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    // private projectService: ProjectService // Uncomment if you have a service
   ) {}
 
   ngOnInit() {
@@ -63,8 +65,21 @@ export class Editproject implements OnInit {
   }
 
   loadProjectData() {
-    // Simulate loading project data - replace with actual API call
-    // For now, using mock data
+    // Replace with actual API/service call
+    // Example using a service:
+    // this.projectService.getProjectById(this.projectId).subscribe(project => {
+    //   this.projectName = project.name;
+    //   this.projectKey = project.key;
+    //   this.description = project.description;
+    //   this.organisationName = project.organisationName;
+    //   this.pocEmail = project.pocEmail;
+    //   this.phoneNumber = project.phoneNumber;
+    //   this.manager = project.manager;
+    //   this.deliveryUnit = project.deliveryUnit;
+    //   this.additionalFields = project.additionalFields;
+    // });
+
+    // For now, using mock data (remove this when you connect to backend)
     this.projectName = 'Atlasss App';
     this.projectKey = 'ATL';
     this.description = 'Mobile application for atlas navigation and mapping';
@@ -130,9 +145,12 @@ export class Editproject implements OnInit {
       deliveryUnit: this.deliveryUnit,
       additionalFields: this.additionalFields
     });
-    
-    // Navigate back to project details or show success message
-    this.router.navigate(['/projects', this.projectId]);
+    // Show success message
+    this.showSuccess = true;
+    setTimeout(() => {
+      this.showSuccess = false;
+      this.router.navigate(['/projects', this.projectId]);
+    }, 1800);
   }
 
   onEditTeamMembers() {

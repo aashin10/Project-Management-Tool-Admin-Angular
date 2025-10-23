@@ -1,5 +1,5 @@
 // navbar.component.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { SearchBar } from '../components/search-bar/search-bar';
@@ -26,7 +26,7 @@ export class Navbar implements OnInit, OnDestroy {
   unreadNotificationCount = 0;
   private subscription!: Subscription;
 
-  constructor(private notificationService: NotificationService) {}
+  constructor(private notificationService: NotificationService, private elementRef: ElementRef) {}
 
   ngOnInit(): void {
     this.subscription = this.notificationService.notifications$.subscribe(() => {
@@ -94,6 +94,24 @@ export class Navbar implements OnInit, OnDestroy {
       case 'profile':
         this.toggleUserMenu();
         break;
+    }
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event) {
+    const target = event.target as HTMLElement;
+    const notificationDropdown = target.closest('.notification-dropdown');
+    const userMenu = target.closest('.dropdown-menu');
+    const actionButtons = target.closest('app-action-buttons');
+
+    // Close notification dropdown if clicking outside
+    if (!notificationDropdown && !actionButtons && this.isNotificationDropdownVisible) {
+      this.isNotificationDropdownVisible = false;
+    }
+
+    // Close user menu if clicking outside
+    if (!userMenu && !actionButtons && this.isUserMenuVisible) {
+      this.isUserMenuVisible = false;
     }
   }
 }

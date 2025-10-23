@@ -168,7 +168,7 @@
   </div>
   
   <div class="flex items-center gap-3">
-    <app-custom-button
+    <!-- <app-custom-button
       label="Assign Projects"
       (click)="onAssignProjects()"
       [bgClass]="'bg-white'"
@@ -176,7 +176,7 @@
       [textColor]="'text-black'"
       [fontSize]="'text-[14px]'"
       [height]="'h-[36px]'"
-    ></app-custom-button>
+    ></app-custom-button> -->
     
     <app-custom-button
       label="Suspend"
@@ -225,7 +225,7 @@
         [fontSize]="'text-[14px]'"
       ></app-custom-button>
       <app-custom-button
-        label="Load Sample Data"
+        label="Show Error Message"
         (click)="loadSampleDataManually()"
         [bgClass]="'bg-gray-500'"
         [hoverClass]="'hover:bg-gray-600'"
@@ -487,6 +487,7 @@
         [disabled]="!selectedFileName"
         [ngClass]="{'opacity-50 cursor-not-allowed': !selectedFileName}"
         class="px-4 py-2 bg-[#0052CC] hover:bg-[#0052cce6] text-white rounded-md font-medium transition-colors"
+        (click)="submitImport()"
       >
         Import
       </button>
