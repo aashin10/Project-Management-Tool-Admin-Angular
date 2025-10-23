@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <div class="create-project-container">
   <!-- <div class="header"> -->
   <!-- <div class="back-link flex items-center gap-2 text-gray-500 text-sm cursor-pointer transition-colors duration-200 hover:text-gray-700 mb-4">
@@ -11,12 +12,27 @@
         <span *ngIf="shareWithExisting" class="ml-4">Sharing with: <strong>{{ selectedProjectToShare || 'Selected project' }}</strong></span>
       </div>
     <!-- </div> -->
+=======
+
+<div class="create-project-container w-full px-2 md:px-6 lg:px-12 xl:px-32 py-4">
+  <div *ngIf="showSuccess" class="fixed top-0 left-0 w-full z-50 flex justify-center mt-4">
+    <div style="background:rgba(34,197,94,0.15); color:#166534;" class="flex items-center gap-3 px-6 py-3 rounded font-semibold text-base shadow border border-green-200 animate-fade-in">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10" fill="#22c55e" opacity="0.2"/><path stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4"/></svg>
+      <div>
+        <span class="font-semibold">Project created successfully</span>
+        <br>
+        <!-- <span class="font-normal">Proceed with cloning issues into <span class="inline-flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#166534"><rect x="4" y="4" width="16" height="16" rx="3" fill="#e0fbe6" stroke="#22c55e" stroke-width="2"/><text x="12" y="16" text-anchor="middle" font-size="10" fill="#166534">T</text></svg><span class="underline font-semibold">TRYITFREE</span></span></span> -->
+      </div>
+    </div>
+  </div>
+  <div class="header-content mb-4">
+    <app-sectiontitle title="Create New Project" description="Set up your project with team members and define objectives"></app-sectiontitle>
+>>>>>>> 202566e3fabfb69912068b7f1c6adca0682fbf6e
   </div>
 
-  <div class="content-wrapper">
+  <div class="content-wrapper grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- Left Section - Form -->
-    <div class="form-section">
-      <!-- Basic Information Component -->
+    <div class="form-section w-full">
       <app-basic-information
         [(projectName)]="projectName"
         [(projectKey)]="projectKey"
@@ -30,10 +46,8 @@
         (organisationNameChange)="onOrganisationNameChange($event)"
         (pocEmailChange)="onPocEmailChange($event)"
         (phoneNumberChange)="onPhoneNumberChange($event)"
-        
       ></app-basic-information>
 
-      <!-- Team & Organization Component -->
       <app-team-organization
         [(manager)]="manager"
         [(deliveryUnit)]="deliveryUnit"
@@ -45,16 +59,19 @@
     </div>
 
     <!-- Right Section - Project Preview Component -->
-    <app-project-preview
-      [projectName]="projectName"
-      [projectKey]="projectKey"
-      [organisationName]="organisationName"
-      [pocEmail]="pocEmail"
-      [phoneNumber]="phoneNumber"
-      [manager]="manager"
-      [deliveryUnit]="deliveryUnit"
-      (createProject)="onCreateProject()"
-      (cancel)="onCancel()"
-    ></app-project-preview>
+    <div class="w-full">
+      <app-project-preview
+        [projectName]="projectName"
+        [projectKey]="projectKey"
+        [organisationName]="organisationName"
+        [pocEmail]="pocEmail"
+        [phoneNumber]="phoneNumber"
+        [manager]="manager"
+        [deliveryUnit]="deliveryUnit"
+        [template]="selectedTemplate"
+        (createProject)="onCreateProject()"
+        (cancel)="onCancel()"
+      ></app-project-preview>
+    </div>
   </div>
 </div>
