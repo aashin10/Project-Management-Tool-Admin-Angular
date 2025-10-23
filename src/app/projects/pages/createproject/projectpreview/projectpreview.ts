@@ -18,6 +18,7 @@ export class ProjectPreviewComponent {
   @Input() phoneNumber: string = '';
   @Input() manager: string = '';
   @Input() deliveryUnit: string = '';
+  @Input() template: string = '';
   @Input() mode: 'create' | 'edit' = 'create'; // New input for mode
 
   @Output() createProject = new EventEmitter<void>();
