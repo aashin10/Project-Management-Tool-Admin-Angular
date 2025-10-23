@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SharedModule } from '../../../shared/shared-module';
 import { ProjectTeams } from './project-teams/project-teams';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 @Component({
   selector: 'app-individualproject',
@@ -54,9 +55,16 @@ export class IndividualprojectComponent implements OnInit {
     teamSize: 23
   };
 
+  // Loading / error states
+  isLoading: boolean = false;
+  loadingError: string | null = null;
+  // Delete modal state
+  showDeleteModal: boolean = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router
+    , private notificationService: NotificationService
   ) {
     // Get project ID from route params
     const id = this.route.snapshot.paramMap.get('id');
@@ -65,7 +73,7 @@ export class IndividualprojectComponent implements OnInit {
 
   ngOnInit(): void {
     // Load project data when component initializes
-    this.loadProjectData();
+    this.fetchProject();
   }
 
   /**
@@ -85,6 +93,41 @@ export class IndividualprojectComponent implements OnInit {
   }
 
   /**
+   * Fetch the project detail. Replace with real service call.
+   */
+  fetchProject(): void {
+    // If project data is already present, skip showing spinner
+    if (this.project) {
+      this.isLoading = false;
+      this.loadingError = null;
+      return;
+    }
+
+    this.isLoading = true;
+    this.loadingError = null;
+
+    setTimeout(() => {
+      try {
+        // Simulate success; in a real app, load and assign the data.
+        // Keep spinner visible briefly so loading indicator is noticeable.
+        setTimeout(() => {
+          this.isLoading = false;
+        }, 1000);
+      } catch (err: any) {
+        // Hide spinner after a short delay and show error message
+        setTimeout(() => {
+          this.isLoading = false;
+          this.loadingError = err?.message || 'Failed to load project details.';
+        }, 1000);
+      }
+    }, 1000);
+  }
+
+  retryFetchProject(): void {
+    this.fetchProject();
+  }
+
+  /**
    * Navigate back to projects list
    */
   goBackToProjects(): void {
@@ -95,44 +138,35 @@ export class IndividualprojectComponent implements OnInit {
    * Open edit project dialog/page
    */
   editProject(): void {
+    // Navigate to the edit page for this project
     console.log('Edit project:', this.projectId);
-    // TODO: Implement edit functionality
-    // Option 1: Navigate to edit page
-    // this.router.navigate(['/projects', this.projectId, 'edit']);
-    
-    // Option 2: Open edit modal
-    // this.dialogService.open(EditProjectComponent, { data: this.project });
+    if (this.projectId) {
+      this.router.navigate(['/projects', this.projectId, 'edit']);
+    }
   }
 
-  /**
-   * Archive the current project
-   */
-  archiveProject(): void {
-    console.log('Archive project:', this.projectId);
-    // TODO: Implement archive functionality
-    // Show confirmation dialog
-    // if (confirm('Are you sure you want to archive this project?')) {
-    //   this.projectService.archiveProject(this.projectId).subscribe(() => {
-    //     this.router.navigate(['/projects']);
-    //   });
-    // }
-  }
 
   /**
    * Delete the current project
    */
+  // Open the delete confirmation modal
   deleteProject(): void {
-    console.log('Delete project:', this.projectId);
-    // TODO: Implement delete functionality
-    // Show confirmation dialog
-    // const confirmDelete = confirm(
-    //   'Are you sure you want to delete this project? This action cannot be undone.'
-    // );
-    // if (confirmDelete) {
-    //   this.projectService.deleteProject(this.projectId).subscribe(() => {
-    //     this.router.navigate(['/projects']);
-    //   });
-    // }
+    this.showDeleteModal = true;
+  }
+
+  // Cancel delete modal
+  cancelDelete(): void {
+    this.showDeleteModal = false;
+  }
+
+  // Confirm deletion from modal
+  confirmDelete(): void {
+    this.showDeleteModal = false;
+    if (!this.projectId) return;
+    // In a real app, call the service to delete, then navigate. Here we navigate and let the list remove it.
+    // Notify the app about deletion
+    this.notificationService.addNotification('success', `Project "${this.project?.name || this.projectId}" was deleted.`, 'Project Deleted');
+    this.router.navigate(['/projects'], { queryParams: { deleted: this.projectId } });
   }
 
   /**

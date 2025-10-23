@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
 import { BasicInformationComponent } from './basicinfo/basicinfo';
 import { TeamOrganizationComponent } from './teaminfo/teaminfo';
@@ -31,6 +32,22 @@ export class Createproject {
   manager: string = '';
   deliveryUnit: string = '';
   additionalFields: Array<{name: string, value: string}> = [];
+  // Keep template and sharing info if passed from list
+  selectedTemplate: string = '';
+  shareWithExisting: boolean = false;
+  selectedProjectToShare: string = '';
+
+  constructor(private route: ActivatedRoute) {}
+
+  ngOnInit(): void {
+    this.route.queryParams.subscribe((params: any) => {
+      if (params['name']) this.projectName = params['name'];
+      if (params['projectKey']) this.projectKey = params['projectKey'];
+      if (params['template']) this.selectedTemplate = params['template'];
+      if (params['shareWithExisting'] !== undefined) this.shareWithExisting = params['shareWithExisting'] === 'true' || params['shareWithExisting'] === true;
+      if (params['selectedProject']) this.selectedProjectToShare = params['selectedProject'];
+    });
+  }
 
   onProjectNameChange(name: string) {
     this.projectName = name;

@@ -6,6 +6,10 @@
     </div> -->
     <div class="header-content">
       <app-sectiontitle title="Create New Project" description="Set up your project with team members and define objectives"></app-sectiontitle>
+      <div class="mt-2 text-sm text-gray-600">
+        <span *ngIf="selectedTemplate">Template: <strong>{{ selectedTemplate }}</strong></span>
+        <span *ngIf="shareWithExisting" class="ml-4">Sharing with: <strong>{{ selectedProjectToShare || 'Selected project' }}</strong></span>
+      </div>
     <!-- </div> -->
   </div>
 

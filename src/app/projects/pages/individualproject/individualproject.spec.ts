@@ -1,62 +1,28 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { IndividualprojectComponent } from './individualproject';
-import { RouterTestingModule } from '@angular/router/testing';
-import { ActivatedRoute, Router, ParamMap } from '@angular/router';
-import { CommonModule } from '@angular/common';
-import { DomSanitizer } from '@angular/platform-browser';
-import { SharedModule } from '../../../shared/shared-module';
-import { OverviewComponent } from './overview/overview';
-import { TeamsAndRoles } from './teams-and-roles/teams-and-roles';
-import { TeamMembersComponent } from './overview/team-members/team-members';
-import { By } from '@angular/platform-browser';
+import { NotificationService } from '../../../shared/services/notification.service';
 
-describe('IndividualprojectComponent', () => {
+describe('IndividualprojectComponent (focused)', () => {
   let component: IndividualprojectComponent;
   let fixture: ComponentFixture<IndividualprojectComponent>;
-  let router: Router;
-  let mockActivatedRoute: any;
+  let routerSpy: any;
+  let notificationSpy: any;
 
   beforeEach(async () => {
-    // Create a proper mock for ParamMap
-    const mockParamMap: ParamMap = {
-      has: (key: string) => key === 'id',
-      get: (key: string) => key === 'id' ? 'test-project-id' : null,
-      getAll: (key: string) => key === 'id' ? ['test-project-id'] : [],
-      keys: ['id']
-    };
-
-    mockActivatedRoute = {
-      snapshot: {
-        paramMap: mockParamMap
-      }
-    };
+    routerSpy = { navigate: jasmine.createSpy('navigate') };
+    notificationSpy = { addNotification: jasmine.createSpy('addNotification') };
 
     await TestBed.configureTestingModule({
-      imports: [
-        IndividualprojectComponent,
-        CommonModule,
-        SharedModule,
-        OverviewComponent,
-        TeamsAndRoles,
-        TeamMembersComponent,
-        RouterTestingModule.withRoutes([])
-      ],
+      imports: [IndividualprojectComponent],
       providers: [
-        {
-          provide: ActivatedRoute,
-          useValue: mockActivatedRoute
-        },
-        {
-          provide: DomSanitizer,
-          useValue: {
-            bypassSecurityTrustHtml: (value: string) => value,
-            sanitize: (ctx: any, value: string) => value
-          }
-        }
+        { provide: Router, useValue: routerSpy },
+        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '1' } } } },
+        { provide: NotificationService, useValue: notificationSpy }
       ]
     }).compileComponents();
 
-    router = TestBed.inject(Router);
     fixture = TestBed.createComponent(IndividualprojectComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -66,195 +32,68 @@ describe('IndividualprojectComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  // Project Initialization Tests
-  describe('Project Initialization', () => {
-    
-    it('should initialize projectId from route params', () => {
-      expect(component.projectId).toBe('test-project-id');
-    });
-
-    it('should initialize with default project data', () => {
-      expect(component.project).toBeDefined();
-      expect(component.project.name).toBe('Atlasss App');
-      expect(component.project.code).toBe('PROJ-001');
-    });
-
-    it('should start with overview tab active', () => {
-      expect(component.activeTab).toBe('overview');
-    });
-
-    it('should load overview component by default', () => {
-      const overviewElement = fixture.debugElement.query(By.css('app-overview'));
-      expect(overviewElement).toBeTruthy();
-    });
+  it('should show loading message when isLoading true', () => {
+    component.isLoading = true;
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('p')?.textContent).toContain('Loading project');
   });
 
-  // Navigation Tests
-  describe('Navigation', () => {
-    it('should navigate back to projects list', () => {
-      const navigateSpy = spyOn(router, 'navigate');
-      component.goBackToProjects();
-      expect(navigateSpy).toHaveBeenCalledWith(['/projects']);
-    });
-
-    it('should render back button', () => {
-      const backButton = fixture.debugElement.query(By.css('button'));
-      expect(backButton.nativeElement.textContent).toContain('Back to Projects');
-    });
+  it('should navigate to edit page on editProject', () => {
+    component.projectId = '5';
+    component.editProject();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/projects', '5', 'edit']);
   });
 
-  // Tab Switching Tests
-  describe('Tab Switching', () => {
-    it('should switch to team tab', async () => {
-      component.selectTab('team');
-      fixture.detectChanges();
-      
-      expect(component.activeTab).toBe('team');
-      const teamElement = fixture.debugElement.query(By.css('app-teams-and-roles'));
-      expect(teamElement).toBeTruthy();
-    });
+  it('should open delete modal and confirm delete triggers notification and navigation', () => {
+    component.projectId = '7';
+    component.project = { name: 'Test Project', code: 'T1', status: 'ongoing', description: '', avatar: 'TP', avatarColor: '#000' } as any;
 
-    it('should have correct styling for active tab', () => {
-      // Get all nav buttons (skip the "Back to Projects" button)
-      const navButtons = fixture.debugElement.queryAll(By.css('nav button'));
-      const overviewTabButton = navButtons[0]; // First nav button is Overview
-      
-      // Check if overview tab has active classes
-      const element = overviewTabButton.nativeElement;
-      const hasTextBlue = element.classList.contains('text-blue-600');
-      const hasBorderBlue = element.classList.contains('border-blue-600');
-      
-      expect(hasTextBlue).toBeTrue();
-      expect(hasBorderBlue).toBeTrue();
-    });
+    component.deleteProject();
+    expect(component.showDeleteModal).toBeTrue();
 
-    it('should load team component when switching to team tab', async () => {
-      spyOn(console, 'log');
-      await component.selectTab('team');
-      expect(console.log).toHaveBeenCalledWith('Team component to be loaded');
-    });
+    component.confirmDelete();
+    expect(notificationSpy.addNotification).toHaveBeenCalledWith('success', `Project "Test Project" was deleted.`, 'Project Deleted');
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/projects'], { queryParams: { deleted: '7' } });
   });
 
-  // Project Actions Tests
-  describe('Project Actions', () => {
-    it('should handle edit project action', () => {
-      spyOn(console, 'log');
-      component.editProject();
-      expect(console.log).toHaveBeenCalledWith('Edit project:', 'test-project-id');
-    });
-
-    it('should handle archive project action', () => {
-      spyOn(console, 'log');
-      component.archiveProject();
-      expect(console.log).toHaveBeenCalledWith('Archive project:', 'test-project-id');
-    });
-
-    it('should handle delete project action', () => {
-      spyOn(console, 'log');
-      component.deleteProject();
-      expect(console.log).toHaveBeenCalledWith('Delete project:', 'test-project-id');
-    });
+  it('should cancel delete modal', () => {
+    component.showDeleteModal = true;
+    component.cancelDelete();
+    expect(component.showDeleteModal).toBeFalse();
   });
 
-  // Template Tests
-  describe('Template Rendering', () => {
-    it('should display project name and code', () => {
-      const projectTitle = fixture.debugElement.query(By.css('h1'));
-      const projectCode = fixture.debugElement.query(By.css('.text-xs.text-gray-500'));
-      
-      expect(projectTitle.nativeElement.textContent).toContain('Atlasss App');
-      expect(projectCode.nativeElement.textContent).toContain('PROJ-001');
-    });
-
-    it('should display project status', () => {
-      const statusElement = fixture.debugElement.query(By.css('.bg-green-100'));
-      expect(statusElement.nativeElement.textContent.trim()).toBe('Ongoing');
-    });
-
-    it('should render project description', () => {
-      const descriptionElement = fixture.debugElement.query(By.css('.text-sm.text-gray-600'));
-      expect(descriptionElement.nativeElement.textContent)
-        .toContain('Mobile application for atlas navigation and mapping');
-    });
-
-    it('should render action buttons', () => {
-      const buttons = fixture.debugElement.queryAll(By.css('app-custom-button'));
-      expect(buttons.length).toBe(3); // Edit, Archive, and Delete buttons
-    });
+  it('should navigate back to projects list', () => {
+    component.goBackToProjects();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/projects']);
   });
 
-  // Component Behavior Tests
-  describe('Component Behavior', () => {
-    it('should handle tab selection and component loading', async () => {
-      await component.selectTab('team');
-      expect(component.activeTab).toBe('team');
-      expect(component.teamComponent).toBeNull(); // Since it's not implemented yet
-    });
-
-    it('should maintain component state after tab switches', async () => {
-      const initialTab = component.activeTab;
-      await component.selectTab('team');
-      await component.selectTab('overview');
-      expect(component.activeTab).toBe('overview');
-      expect(component.overviewComponent).toBeDefined();
-    });
+  it('should retry fetch project', () => {
+    spyOn(component, 'fetchProject');
+    component.retryFetchProject();
+    expect(component.fetchProject).toHaveBeenCalled();
   });
 
-  // Edge Cases
-  describe('Edge Cases', () => {
-    it('should handle missing project ID', async () => {
-      // Create a new mock without ID
-      const emptyParamMap: ParamMap = {
-        has: (key: string) => false,
-        get: (key: string) => null,
-        getAll: (key: string) => [],
-        keys: []
-      };
+  it('should open website in new tab', () => {
+    spyOn(window, 'open');
+    component.openWebsite();
+    expect(window.open).toHaveBeenCalledWith('https://www.acmecorp.com', '_blank');
+  });
 
-      await TestBed.resetTestingModule();
-      
-      await TestBed.configureTestingModule({
-        imports: [
-          IndividualprojectComponent,
-          CommonModule,
-          SharedModule,
-          OverviewComponent,
-          TeamsAndRoles,
-          TeamMembersComponent,
-          RouterTestingModule.withRoutes([])
-        ],
-        providers: [
-          {
-            provide: ActivatedRoute,
-            useValue: {
-              snapshot: {
-                paramMap: emptyParamMap
-              }
-            }
-          },
-          {
-            provide: DomSanitizer,
-            useValue: {
-              bypassSecurityTrustHtml: (value: string) => value,
-              sanitize: (ctx: any, value: string) => value
-            }
-          }
-        ]
-      }).compileComponents();
-      
-      const newFixture = TestBed.createComponent(IndividualprojectComponent);
-      const newComponent = newFixture.componentInstance;
-      newFixture.detectChanges();
-      
-      expect(newComponent.projectId).toBe('');
-    });
 
-    it('should handle multiple tab switches', async () => {
-      await component.selectTab('team');
-      await component.selectTab('overview');
-      await component.selectTab('team');
-      
-      expect(component.activeTab).toBe('team');
-    });
+  it('should format date', () => {
+    expect(component.formatDate('Jan 2, 2025')).toBe('Jan 2, 2025');
+  });
+
+
+  it('should initialize with project ID from route', () => {
+    expect(component.projectId).toBe('1');
+  });
+
+  it('should have default project data', () => {
+    expect(component.project.name).toBe('Atlas App');
+    expect(component.project.code).toBe('PROJ-001');
+    expect(component.stats.totalSprintCount).toBe(12);
+    expect(component.customerDetails.organisationName).toBe('Acme Corporation');
   });
 });

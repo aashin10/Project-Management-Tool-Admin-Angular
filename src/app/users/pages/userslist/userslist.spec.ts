@@ -599,7 +599,7 @@ describe('Userslist', () => {
       expect(firstUser.type).toBe(component.users[0].type);
       expect(firstUser.status).toBe(component.users[0].status);
       expect(firstUser.created).toBe(component.users[0].created);
-      expect(firstUser.lastActivity).toBe(component.users[0].lastActivity);
+      expect(firstUser.lastLogin).toBe(component.users[0].lastActivity);
     });
   });
 

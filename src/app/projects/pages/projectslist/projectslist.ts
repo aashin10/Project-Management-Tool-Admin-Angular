@@ -10,6 +10,7 @@ import { Table, TableColumn } from '../../../shared/table/table';
 import { AdvancedFilters } from './advanced-filters/advanced-filters';
 import { ProjectTemplateModal } from './project-template-modal/project-template-modal';
 import { CreateProjectModal } from './create-project-modal/create-project-modal';
+import { NotificationService } from '../../../shared/services/notification.service';
  
 interface Project {
   id: string;
@@ -62,6 +63,10 @@ export class Projectslist implements AfterViewChecked, OnInit {
   showDeleteModal = false;
   projectToDelete: Project | null = null;
 
+  // Loading / error states for project listing
+  isLoading: boolean = false;
+  loadingError: string | null = null;
+
   // Multi-select filter options
   selectedStatuses: string[] = [];
   selectedDeliveryUnits: string[] = [];
@@ -82,7 +87,8 @@ export class Projectslist implements AfterViewChecked, OnInit {
   constructor(
     private router: Router, 
     private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
@@ -97,7 +103,65 @@ export class Projectslist implements AfterViewChecked, OnInit {
         // Force change detection
         this.cdr.detectChanges();
       }
+      // If navigation includes a deleted project id, remove it from the list
+      if (params['deleted']) {
+        const deletedId = params['deleted'];
+        this.projects = this.projects.filter(p => p.id !== deletedId);
+        // Remove the query param from the URL without reloading
+        this.router.navigate([], { relativeTo: this.route, queryParams: { deleted: null }, queryParamsHandling: 'merge' });
+        this.cdr.detectChanges();
+      }
     });
+
+    // Initial fetch (simulate or call service)
+    this.fetchProjects();
+  }
+
+  /**
+   * Fetch projects from API or service. Currently simulates async load.
+   */
+  fetchProjects(): void {
+    // If we already have projects locally, skip showing the spinner to avoid flicker
+    if (this.projects && this.projects.length > 0) {
+      this.isLoading = false;
+      this.loadingError = null;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.isLoading = true;
+    this.loadingError = null;
+
+    // Simulate a very short async load. Replace with actual service call.
+    setTimeout(() => {
+      try {
+        // If using a real service, assign returned projects here.
+        // this.projects = response.data;
+        // For now, just finish loading quickly but keep spinner visible for a small moment
+        // so loading indicator can be observed.
+        setTimeout(() => {
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        }, 1000);
+      } catch (err: any) {
+        // Ensure error state hides spinner after short delay as well
+        setTimeout(() => {
+          this.isLoading = false;
+          this.loadingError = err?.message || 'Failed to load projects. Please try again.';
+          this.cdr.detectChanges();
+        }, 1000);
+      }
+    }, 1000);
+  }
+
+  loadSampleDataManually(): void {
+    // Helpful debug action: populate with a small sample set when error occurs
+    this.projects = [
+      { id: '1', name: 'Atlas App', projectCode: 'PROJ-001', status: 'Active', deliveryUnit: 'DU1', projectManager: 'Asha Varma', teamSize: 12, selected: false }
+    ];
+    this.loadingError = null;
+    this.isLoading = false;
+    this.cdr.detectChanges();
   }
 
   // Available filter options
@@ -508,11 +572,18 @@ export class Projectslist implements AfterViewChecked, OnInit {
 
   // Create project modal handlers
   onCreateProject(projectData: { name: string; projectKey: string; shareWithExisting: boolean; selectedProject?: string }): void {
+    // Ensure projectKey exists: derive from first 3 alphanumeric chars of name if not provided
+    let projectKey = projectData.projectKey && projectData.projectKey.trim()
+      ? projectData.projectKey.trim()
+      : (projectData.name || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().substring(0, 3);
+
+    if (!projectKey) projectKey = 'PRJ';
+
     this.router.navigate(['/projects/create'], {
       queryParams: {
         template: this.selectedTemplate,
         name: projectData.name,
-        projectKey: projectData.projectKey,
+        projectKey,
         shareWithExisting: projectData.shareWithExisting,
         selectedProject: projectData.selectedProject
       }
@@ -536,12 +607,17 @@ export class Projectslist implements AfterViewChecked, OnInit {
 
   confirmDelete(): void {
     if (this.projectToDelete) {
+      const deletedName = this.projectToDelete.name;
       this.projects = this.projects.filter(project => project.id !== this.projectToDelete!.id);
-      console.log('Project deleted:', this.projectToDelete.name);
+      console.log('Project deleted:', deletedName);
+      // Notify
+      this.notificationService.addNotification('success', `Project "${deletedName}" was deleted.`, 'Project Deleted');
       this.projectToDelete = null;
     } else {
+      const count = this.selectedProjects.length;
       this.projects = this.projects.filter(project => !this.selectedProjects.some(selected => selected.id === project.id));
       console.log('Selected projects removed');
+      this.notificationService.addNotification('success', `${count} project${count > 1 ? 's' : ''} were deleted.`, 'Projects Deleted');
     }
 
     this.showDeleteModal = false;

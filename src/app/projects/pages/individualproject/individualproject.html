@@ -1,5 +1,38 @@
 <!-- Main Container -->
 <div class="min-h-screen transition-all duration-300">
+  <!-- Loading / Error states -->
+  <div *ngIf="isLoading" class="flex items-center justify-center py-12">
+    <div class="text-center">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#0052CC]"></div>
+      <p class="mt-4 text-sm text-gray-600">Loading project...</p>
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading && loadingError" class="flex items-center justify-center py-12">
+    <div class="text-center max-w-xl w-full px-6">
+      <div class="inline-block bg-red-50 border border-red-200 rounded-md p-6">
+        <svg class="mx-auto h-12 w-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+        </svg>
+        <h3 class="mt-4 text-sm font-medium text-red-900">{{ loadingError }}</h3>
+        <div class="mt-4 flex justify-center gap-3">
+          <app-custom-button label="Retry" (action)="retryFetchProject()" bgClass="bg-[#0052CC]" textColor="text-white"></app-custom-button>
+          <app-custom-button label="Back to Projects" (action)="goBackToProjects()" bgClass="bg-white" textColor="text-gray-700" borderClass="border border-gray-300"></app-custom-button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty fallback if project missing -->
+  <div *ngIf="!isLoading && !loadingError && !project" class="max-w-3xl mx-auto mt-6 bg-[rgba(220,224,231,0.04)] border border-gray-200 rounded-md p-6 text-center">
+    <h3 class="text-sm font-medium text-gray-900">Project not found</h3>
+    <p class="mt-2 text-sm text-gray-600">The requested project could not be located. It may have been deleted or the ID is invalid.</p>
+    <div class="mt-4">
+      <app-custom-button label="Back to Projects" (action)="goBackToProjects()" bgClass="bg-blue-600" textColor="text-white"></app-custom-button>
+    </div>
+  </div>
+
+  <ng-container *ngIf="!isLoading && !loadingError && project">
   
   <!-- Back to Projects Button -->
   <div class="bg-white border-b border-gray-200 py-1">
@@ -292,4 +325,45 @@
     <app-project-teams></app-project-teams>
   </div>
 
+  </ng-container>
+
 </div>
+
+<!-- Delete Confirmation Modal -->
+<app-modal [isOpen]="showDeleteModal" (close)="cancelDelete()">
+  <div class="px-6 py-6">
+    <!-- Modal Header -->
+    <h2 class="text-xl font-semibold text-gray-900 mb-2">Confirm Deletion</h2>
+    <!-- Modal Content -->
+    <div class="mb-6">
+      <p class="text-gray-700">
+  Are you sure you want to delete the project <span class="font-semibold text-gray-900">"{{ project.name }}"</span>?
+        This action cannot be undone.
+      </p>
+    </div>
+
+    <!-- Modal Actions -->
+    <div class="flex gap-3 justify-end">
+      <app-custom-button
+        (action)="cancelDelete()"
+        label="Cancel"
+        bgClass="bg-gray-100"
+        textColor="text-gray-700"
+        hoverClass="hover:bg-gray-200"
+        borderClass="border border-gray-300"
+        height="h-10"
+        padding="px-4"
+      />
+      <app-custom-button
+        (action)="confirmDelete()"
+        label="Delete"
+        bgClass="bg-red-600"
+        textColor="text-white"
+        hoverClass="hover:bg-red-700"
+        borderClass="border-none"
+        height="h-10"
+        padding="px-4"
+      />
+    </div>
+  </div>
+</app-modal>

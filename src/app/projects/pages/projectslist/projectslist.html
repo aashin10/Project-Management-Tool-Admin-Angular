@@ -72,11 +72,93 @@
       [initialSelectedManagers]="selectedManagers"
       (filtersChanged)="onFiltersChanged($event)">
     </app-advanced-filters>
+    
 
-    <!-- Project Count -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 py-4">
-      <div class="text-sm text-gray-500">
-        Showing all projects • Total: {{ filteredProjects.length }} projects
+    <!-- Leading area replacing table: loading / error / empty / table -->
+    <div class="mt-4">
+      <!-- Loading -->
+      <div *ngIf="isLoading" class="flex items-center justify-center py-12">
+        <div class="text-center">
+          <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#0052CC]"></div>
+          <p class="mt-4 text-sm text-gray-600">Loading projects...</p>
+        </div>
+      </div>
+
+      <!-- Error (same centered area as loading) -->
+      <div *ngIf="!isLoading && loadingError" class="flex items-center justify-center py-12">
+        <div class="text-center max-w-xl w-full px-6">
+          <div class="inline-block bg-red-50 border border-red-200 rounded-md p-6">
+            <svg class="mx-auto h-12 w-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            <h3 class="mt-4 text-sm font-medium text-red-900">{{ loadingError }}</h3>
+            <div class="mt-4 flex justify-center gap-3">
+              <app-custom-button label="Retry" (action)="fetchProjects()" bgClass="bg-[#0052CC]" textColor="text-white"></app-custom-button>
+              <app-custom-button label="Show Sample" (action)="loadSampleDataManually()" bgClass="bg-gray-500" textColor="text-white"></app-custom-button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loaded: show count + table or empty message -->
+      <div *ngIf="!isLoading && !loadingError">
+        <!-- count duplicated above intentionally removed from here -->
+
+        <div *ngIf="filteredProjects.length === 0" class="bg-[rgba(220,224,231,0.04)] border border-gray-200 rounded-md p-8 text-center">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 0 0 2 2h14"></path>
+          </svg>
+          <h3 class="mt-4 text-sm font-medium text-gray-900">No projects found</h3>
+          <p class="mt-2 text-sm text-gray-600">There are no projects matching your current filters or search. Try clearing filters or create a new project.</p>
+
+        </div>
+
+        <div *ngIf="!loadingError && filteredProjects.length > 0" class="overflow-x-auto">
+          <!-- Project Count (single, always visible) -->
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 py-4">
+            <div class="text-sm text-gray-500">
+              Showing all projects • Total: {{ filteredProjects.length }} projects
+            </div>
+          </div>
+
+          <!-- Bulk action toolbar (visible when one or more rows selected) -->
+          <div *ngIf="selectedProjects.length > 0" class="mb-4 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="text-sm font-medium text-blue-900">{{ selectedProjects.length }} project{{ selectedProjects.length > 1 ? 's' : '' }} selected</span>
+              </div>
+              <div>
+                <app-custom-button
+                  (action)="deleteSelected()"
+                  label="Remove Selected"
+                  icon="images/deletewhite.svg"
+                  bgClass="bg-red-600"
+                  textColor="text-white"
+                  hoverClass="hover:bg-red-700"
+                  borderClass="border-none"
+                  height="h-8"
+                  padding="px-3 py-1"
+                ></app-custom-button>
+              </div>
+            </div>
+          </div>
+          <app-table
+            [columns]="tableColumns"
+            [data]="tableData"
+            [showCheckbox]="true"
+            [itemsPerPage]="10"
+            [selectAllAcrossPages]="true"
+            [rowClickAction]="'navigate'"
+            [resetPagination]="resetPagination"
+            (actionClick)="handleTableAction($event)"
+            (selectionChange)="handleSelectionChange($event)"
+            (rowClick)="handleRowClick($event)"
+          >
+          </app-table>
+        </div>
       </div>
     </div>
 
@@ -103,20 +185,7 @@
       ></app-custom-button>
     </div>
 
-    <!-- Projects Table -->
-    <app-table
-      [columns]="tableColumns"
-      [data]="tableData"
-      [showCheckbox]="true"
-      [itemsPerPage]="10"
-      [selectAllAcrossPages]="true"
-      [rowClickAction]="'navigate'"
-      [resetPagination]="resetPagination"
-      (actionClick)="handleTableAction($event)"
-      (selectionChange)="handleSelectionChange($event)"
-      (rowClick)="handleRowClick($event)"
-    >
-    </app-table>
+    <!-- Duplicate table removed: table is rendered inside the guarded leading area above -->
   </div>
 
   <!-- Delete Confirmation Modal -->
