@@ -7,7 +7,6 @@ import { Sectiontitle } from '../../../../shared/sectiontitle/sectiontitle';
 import { BasicInformationComponent } from '../../../pages/createproject/basicinfo/basicinfo';
 import { TeamOrganizationComponent } from '../../../pages/createproject/teaminfo/teaminfo';
 import { Additionalinfo } from '../../../pages/createproject/additionalinfo/additionalinfo';
-import { ProjectPreviewComponent } from '../../../pages/createproject/projectpreview/projectpreview';
 import { CustomButton } from '../../../../shared/custom-button/custom-button';
 
 @Component({
@@ -20,7 +19,6 @@ import { CustomButton } from '../../../../shared/custom-button/custom-button';
     BasicInformationComponent,
     TeamOrganizationComponent,
     Additionalinfo,
-    ProjectPreviewComponent,
     CustomButton
   ],
   templateUrl: './editproject.html',
