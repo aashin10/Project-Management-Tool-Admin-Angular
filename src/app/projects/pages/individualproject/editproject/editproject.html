@@ -1,12 +1,17 @@
-<div class="create-project-container">
-  <div class="header-content">
+
+<div class="create-project-container w-full px-2 md:px-6 lg:px-12 xl:px-32 py-4">
+  <div *ngIf="showSuccess" class="fixed top-0 left-0 w-full z-50 flex justify-center mt-4">
+    <div class="bg-green-500 text-white px-6 py-3 rounded shadow-lg font-semibold text-lg animate-fade-in">
+      Project edited successfully
+    </div>
+  </div>
+  <div class="header-content mb-4">
     <app-sectiontitle title="Edit Project" description="Update your project details, team members and objectives"></app-sectiontitle>
   </div>
 
-  <div class="content-wrapper">
+  <div class="content-wrapper grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- Left Section - Form -->
-    <div class="form-section">
-      <!-- Basic Information Component -->
+    <div class="form-section w-full">
       <app-basic-information
         [(projectName)]="projectName"
         [(projectKey)]="projectKey"
@@ -22,7 +27,6 @@
         (phoneNumberChange)="onPhoneNumberChange($event)"
       ></app-basic-information>
 
-      <!-- Team & Organization Component -->
       <app-team-organization
         [(manager)]="manager"
         [(deliveryUnit)]="deliveryUnit"
@@ -37,7 +41,7 @@
     </div>
 
     <!-- Right Section - Enhanced Project Preview Component -->
-    <div class="preview-section">
+    <div class="preview-section w-full">
       <div class="sticky top-20 max-h-[calc(100vh-5rem)] overflow-auto p-6 bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col items-stretch h-fit">
         <!-- Header -->
         <div class="flex items-center gap-2 mb-4">
@@ -90,7 +94,7 @@
 
         <!-- Action Buttons -->
         <div class="flex flex-col gap-2 mt-auto">
-          <app-custom-button
+          <!-- <app-custom-button
             [label]="'Edit Team Members'"
            
             [bgClass]="'bg-white'"
@@ -101,7 +105,7 @@
             [hoverClass]="'hover:text-gray-700 hover:bg-gray-50'"
             [padding]="'py-2 px-4'"
             (action)="onEditTeamMembers()"
-          ></app-custom-button>
+          ></app-custom-button> -->
 
           <app-custom-button
             [label]="'Update Project'"
