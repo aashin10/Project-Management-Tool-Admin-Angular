@@ -1,10 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
 import { CustomButton } from '../../../shared/custom-button/custom-button';
 import { Modal } from '../../../shared/modal/modal';
 import { SearchBar } from '../../../shared/components/search-bar/search-bar';
+import { ToastrService } from 'ngx-toastr';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 
 interface SuperAdmin {
@@ -25,6 +27,9 @@ interface SuperAdmin {
   styleUrl: './settingsmain.css'
 })
 export class Settingsmain {
+  private toastr = inject(ToastrService);
+  private notificationService = inject(NotificationService);
+
   superAdmins: SuperAdmin[] = [
     {
       id: '1',
@@ -81,7 +86,23 @@ export class Settingsmain {
 
   confirmDelete() {
     if (this.selectedAdmin) {
+      const adminName = this.selectedAdmin.name;
       this.superAdmins = this.superAdmins.filter(admin => admin.id !== this.selectedAdmin!.id);
+      
+      // Show toast popup notification
+      this.toastr.success('Super Admin Deleted Successfully', '', {
+        timeOut: 3000,
+        progressBar: true,
+        closeButton: true,
+      });
+      
+      // Add notification to notification service (stored in localStorage)
+      this.notificationService.addNotification(
+        'success',
+        `Super admin "${adminName}" has been successfully removed from the system.`,
+        'Admin Deleted'
+      );
+      
       this.closeDeleteModal();
     }
   }
@@ -127,6 +148,20 @@ export class Settingsmain {
           isActive: this.editAdminStatus,
           initials: this.getInitials(this.editAdminName)
         };
+        
+        // Show toast popup notification
+        this.toastr.success('Super Admin Updated Successfully', '', {
+          timeOut: 3000,
+          progressBar: true,
+          closeButton: true,
+        });
+        
+        // Add notification to notification service (stored in localStorage)
+        this.notificationService.addNotification(
+          'success',
+          `Super admin "${this.editAdminName.trim()}" has been successfully updated.`,
+          'Admin Updated'
+        );
       }
       this.closeEditModal();
     }
@@ -145,6 +180,21 @@ export class Settingsmain {
         isActive: this.newAdminStatus
       };
       this.superAdmins.push(newAdmin);
+      
+      // Show toast popup notification
+      this.toastr.success('Super Admin Added Successfully', '', {
+        timeOut: 3000,
+        progressBar: true,
+        closeButton: true,
+      });
+      
+      // Add notification to notification service (stored in localStorage)
+      this.notificationService.addNotification(
+        'success',
+        `Super admin "${this.newAdminName.trim()}" has been successfully added to the system.`,
+        'Admin Added'
+      );
+      
       this.closeAddModal();
     }
   }
