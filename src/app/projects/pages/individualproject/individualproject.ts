@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { SharedModule } from '../../../shared/shared-module';
 import { ProjectTeams } from './project-teams/project-teams';
 import { NotificationService } from '../../../shared/services/notification.service';
+import { ProjectsService, Project } from '../../../shared/services/projects.service';
 
 @Component({
   selector: 'app-individualproject',
@@ -15,45 +16,8 @@ import { NotificationService } from '../../../shared/services/notification.servi
 export class IndividualprojectComponent implements OnInit {
   projectId: string = '';
   
-  // Project data
-  project = {
-    name: 'Atlas App',
-    code: 'PROJ-001',
-    status: 'Ongoing',
-    description: 'Mobile application for atlas navigation and mapping',
-    avatar: 'AA',
-    avatarColor: '#3b82f6' // blue-500
-  };
-
-  // Stats data
-  stats = {
-    totalSprintCount: 12,
-    teamMembers: 23
-  };
-
-  // Customer details
-  customerDetails = {
-    organisationName: 'Acme Corporation',
-    description: 'A leading technology company specializing in cloud solutions and enterprise software. Acme has been in business for over 20 years and serves Fortune 500 clients globally.',
-    website: 'https://www.acmecorp.com',
-    pocEmail: 'contact@acmecorp.com',
-    pocPhone: '+1 (555) 123-4567'
-  };
-
-  // Project details
-  projectDetails = {
-    projectManager: {
-      name: 'Asha Varma',
-      avatar: 'AV',
-      role: 'Project Manager',
-      avatarColor: '#3b82f6' // blue-500
-    },
-    deliveryUnit: 'Engineering',
-    startDate: 'Jan 2, 2025',
-    endDate: 'Jan 9, 2025',
-    status: 'ongoing',
-    teamSize: 23
-  };
+  // Project data - now loaded from service
+  project: Project | null = null;
 
   // Loading / error states
   isLoading: boolean = false;
@@ -63,8 +27,9 @@ export class IndividualprojectComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router
-    , private notificationService: NotificationService
+    private router: Router,
+    private notificationService: NotificationService,
+    private projectsService: ProjectsService
   ) {
     // Get project ID from route params
     const id = this.route.snapshot.paramMap.get('id');
@@ -93,7 +58,7 @@ export class IndividualprojectComponent implements OnInit {
   }
 
   /**
-   * Fetch the project detail. Replace with real service call.
+   * Fetch the project detail from service.
    */
   fetchProject(): void {
     // If project data is already present, skip showing spinner
@@ -106,21 +71,22 @@ export class IndividualprojectComponent implements OnInit {
     this.isLoading = true;
     this.loadingError = null;
 
-    setTimeout(() => {
-      try {
-        // Simulate success; in a real app, load and assign the data.
-        // Keep spinner visible briefly so loading indicator is noticeable.
-        setTimeout(() => {
-          this.isLoading = false;
-        }, 1000);
-      } catch (err: any) {
-        // Hide spinner after a short delay and show error message
-        setTimeout(() => {
-          this.isLoading = false;
-          this.loadingError = err?.message || 'Failed to load project details.';
-        }, 1000);
+    try {
+      // Load project from service
+      const projectData = this.projectsService.getProjectById(this.projectId);
+      
+      if (projectData) {
+        this.project = projectData;
+        this.isLoading = false;
+      } else {
+        // Project not found
+        this.isLoading = false;
+        this.loadingError = 'Project not found';
       }
-    }, 1000);
+    } catch (err: any) {
+      this.isLoading = false;
+      this.loadingError = err?.message || 'Failed to load project details.';
+    }
   }
 
   retryFetchProject(): void {
@@ -163,31 +129,43 @@ export class IndividualprojectComponent implements OnInit {
   confirmDelete(): void {
     this.showDeleteModal = false;
     if (!this.projectId) return;
-    // In a real app, call the service to delete, then navigate. Here we navigate and let the list remove it.
-    // Notify the app about deletion
-    this.notificationService.addNotification('success', `Project "${this.project?.name || this.projectId}" was deleted.`, 'Project Deleted');
-    this.router.navigate(['/projects'], { queryParams: { deleted: this.projectId } });
+    
+    // Call the service to delete the project
+    const deleted = this.projectsService.deleteProject(this.projectId);
+    
+    if (deleted) {
+      this.notificationService.addNotification('error', `Project "${this.project?.name || this.projectId}" was deleted successfully.`, 'Project Deleted');
+      this.router.navigate(['/projects']);
+    } else {
+      this.notificationService.addNotification('error', 'Failed to delete the project. Please try again.', 'Delete Failed');
+    }
   }
 
   /**
    * Open customer website in new tab
    */
   openWebsite(): void {
-    window.open(this.customerDetails.website, '_blank');
+    if (this.project?.organisationWebsite) {
+      window.open(this.project.organisationWebsite, '_blank');
+    }
   }
 
   /**
    * Open email client
    */
   sendEmail(): void {
-    window.location.href = `mailto:${this.customerDetails.pocEmail}`;
+    if (this.project?.pocEmail) {
+      window.location.href = `mailto:${this.project.pocEmail}`;
+    }
   }
 
   /**
    * Initiate phone call
    */
   makeCall(): void {
-    window.location.href = `tel:${this.customerDetails.pocPhone}`;
+    if (this.project?.pocPhone) {
+      window.location.href = `tel:${this.project.pocPhone}`;
+    }
   }
 
   /**
@@ -198,9 +176,20 @@ export class IndividualprojectComponent implements OnInit {
       'ongoing': 'bg-green-100 text-green-700 border-green-200',
       'completed': 'bg-blue-100 text-blue-700 border-blue-200',
       'on-hold': 'bg-yellow-100 text-yellow-700 border-yellow-200',
-      'cancelled': 'bg-red-100 text-red-700 border-red-200'
+      'cancelled': 'bg-red-100 text-red-700 border-red-200',
+      'Active': 'bg-green-100 text-green-700 border-green-200',
+      'Inactive': 'bg-yellow-100 text-yellow-700 border-yellow-200',
+      'Completed': 'bg-blue-100 text-blue-700 border-blue-200'
     };
-    return statusClasses[status.toLowerCase()] || 'bg-gray-100 text-gray-700 border-gray-200';
+    return statusClasses[status] || 'bg-gray-100 text-gray-700 border-gray-200';
+  }
+
+  /**
+   * Get initials from name
+   */
+  getInitials(name: string): string {
+    if (!name) return 'U';
+    return name.split(' ').map(word => word.charAt(0).toUpperCase()).join('').substring(0, 2);
   }
 
   /**

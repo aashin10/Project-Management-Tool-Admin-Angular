@@ -90,10 +90,9 @@ describe('IndividualprojectComponent (focused)', () => {
     expect(component.projectId).toBe('1');
   });
 
-  it('should have default project data', () => {
-    expect(component.project.name).toBe('Atlas App');
-    expect(component.project.code).toBe('PROJ-001');
-    expect(component.stats.totalSprintCount).toBe(12);
-    expect(component.customerDetails.organisationName).toBe('Acme Corporation');
+  it('should load project data from service', () => {
+    expect(component.project).toBeTruthy();
+    expect(component.project?.name).toBe('Atlas App');
+    expect(component.project?.projectCode).toBe('PROJ-001');
   });
 });

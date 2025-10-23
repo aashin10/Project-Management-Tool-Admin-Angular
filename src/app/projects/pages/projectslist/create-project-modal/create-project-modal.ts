@@ -4,17 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Modal } from '../../../../shared/modal/modal';
 import { CustomButton } from '../../../../shared/custom-button/custom-button';
-
-interface Project {
-  id: string;
-  name: string;
-  projectCode: string;
-  status: 'Active' | 'Inactive' | 'Completed';
-  deliveryUnit: string;
-  projectManager: string;
-  teamSize: number;
-  selected?: boolean;
-}
+import { ProjectsService, Project } from '../../../../shared/services/projects.service';
 
 @Component({
   selector: 'app-create-project-modal',
@@ -42,7 +32,10 @@ export class CreateProjectModal implements OnInit {
   projectSearchQuery: string = '';
   filteredProjects: Project[] = [];
 
+  constructor(private projectsService: ProjectsService) {}
+
   ngOnInit(): void {
+    this.projects = this.projectsService.getProjects();
     this.filteredProjects = this.projects;
   }
 
