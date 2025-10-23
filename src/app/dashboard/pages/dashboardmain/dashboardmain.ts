@@ -24,6 +24,9 @@ export interface MetricCard {
   styleUrls: ['./dashboardmain.css']
 })
 export class DashboardMainComponent {
+redirectToUserSide() {
+  window.location.href = 'https://pmt-user-frontend.vercel.app/projects';
+}
 
   metricCards: MetricCard[] = [
     {

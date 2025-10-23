@@ -1,4 +1,7 @@
 import { Component } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
+import { NotificationService } from '../../../shared/services/notification.service';
+import { ToastrService } from 'ngx-toastr';
 import { CommonModule } from '@angular/common';
 import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
 import { BasicInformationComponent } from './basicinfo/basicinfo';
@@ -32,6 +35,22 @@ export class Createproject {
   deliveryUnit: string = '';
   additionalFields: Array<{name: string, value: string}> = [];
 
+  showSuccess: boolean = false;
+  selectedTemplate: string = '';
+
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private notificationService: NotificationService,
+    private toastr: ToastrService
+  ) {
+    this.route.queryParams.subscribe(params => {
+      if (params['template']) {
+        this.selectedTemplate = params['template'];
+      }
+    });
+  }
+
   onProjectNameChange(name: string) {
     this.projectName = name;
   }
@@ -56,8 +75,6 @@ export class Createproject {
     this.phoneNumber = phone;
   }
 
-  
-
   onManagerChange(manager: string) {
     this.manager = manager;
   }
@@ -67,16 +84,37 @@ export class Createproject {
   }
 
   onCreateProject() {
-    // Handle create project logic
+    // Handle create project logic (save to backend or local data)
     console.log('Creating project:', {
       name: this.projectName,
       key: this.projectKey,
       description: this.description,
       manager: this.manager,
-      deliveryUnit: this.deliveryUnit
-      , additionalFields: this.additionalFields
+      deliveryUnit: this.deliveryUnit,
+      additionalFields: this.additionalFields
     });
+    // Show notification using NotificationService
+    this.notificationService.addNotification(
+      'success',
+      `${this.projectName} created successfully`,
+      'Project Created'
+    );
+    // Show Toastr success message
+    this.toastr.success(
+      `${this.projectName} created successfully`,
+      '',
+      {
+        timeOut: 3000,
+        progressBar: true,
+        closeButton: true
+      }
+    );
+    // Navigate after short delay
+    setTimeout(() => {
+      this.router.navigate(['/projects']);
+    }, 600);
   }
+  
 
   onCancel() {
     // Handle cancel logic
