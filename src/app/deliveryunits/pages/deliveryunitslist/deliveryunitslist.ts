@@ -372,3 +372,8 @@ export class Deliveryunitslist {
     this.filteredDeliveryUnits = this.filteredDeliveryUnits.filter(u => u.duCode !== du.duCode);
   }
 }
+
+// Backend integration code
+
+// ... existing imports
+// ... existing imports
