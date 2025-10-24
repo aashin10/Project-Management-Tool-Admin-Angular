@@ -8,6 +8,7 @@ import { TeamOrganizationComponent } from '../../../pages/createproject/teaminfo
 import { Additionalinfo } from '../../../pages/createproject/additionalinfo/additionalinfo';
 import { CustomButton } from '../../../../shared/custom-button/custom-button';
 import { ProjectsService, Project } from '../../../../shared/services/projects.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-editproject',
@@ -55,7 +56,8 @@ export class Editproject implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private projectsService: ProjectsService
+    private projectsService: ProjectsService,
+    private toastr: ToastrService
   ) {}
 
   ngOnInit() {
@@ -142,6 +144,15 @@ export class Editproject implements OnInit {
       console.log('Project updated successfully');
       // Show success message
       this.showSuccess = true;
+      this.toastr.success(
+        `${this.projectName} updated successfully`,
+        '',
+        {
+          timeOut: 3000,
+          progressBar: true,
+          closeButton: true
+        }
+      );
       setTimeout(() => {
         this.showSuccess = false;
         this.router.navigate(['/projects']);

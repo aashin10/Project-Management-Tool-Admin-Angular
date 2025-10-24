@@ -14,7 +14,6 @@ export class BasicInformationComponent {
   @Input() projectName: string = '';
   @Input() projectKey: string = '';
   @Input() description: string = '';
-  @Input() template: string = 'Scrum';
   // Customer information inputs
   @Input() organisationName: string = '';
   @Input() customerDescription: string = '';
@@ -23,7 +22,6 @@ export class BasicInformationComponent {
   @Input() phoneNumber: string = '';
   @Input() status: string = 'Active'; // default to 'Active'
   @Output() statusChange = new EventEmitter<string>();
-  @Output() templateChange = new EventEmitter<string>();
 
   @Output() projectNameChange = new EventEmitter<string>();
   @Output() projectKeyChange = new EventEmitter<string>();
@@ -63,7 +61,6 @@ export class BasicInformationComponent {
   ];
   
   statusDropdownOpen = false;
-  templateDropdownOpen = false;
 
   onProjectNameChange() {
     this.projectNameChange.emit(this.projectName);
