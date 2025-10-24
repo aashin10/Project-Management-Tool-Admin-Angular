@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SharedModule } from '../../../shared/shared-module';
 import { ProjectTeams } from './project-teams/project-teams';
+import { NotificationService } from '../../../shared/services/notification.service';
+import { ProjectsService, Project } from '../../../shared/services/projects.service';
 
 @Component({
   selector: 'app-individualproject',
@@ -14,49 +16,20 @@ import { ProjectTeams } from './project-teams/project-teams';
 export class IndividualprojectComponent implements OnInit {
   projectId: string = '';
   
-  // Project data
-  project = {
-    name: 'Atlas App',
-    code: 'PROJ-001',
-    status: 'Ongoing',
-    description: 'Mobile application for atlas navigation and mapping',
-    avatar: 'AA',
-    avatarColor: '#3b82f6' // blue-500
-  };
+  // Project data - now loaded from service
+  project: Project | null = null;
 
-  // Stats data
-  stats = {
-    totalSprintCount: 12,
-    teamMembers: 23
-  };
-
-  // Customer details
-  customerDetails = {
-    organisationName: 'Acme Corporation',
-    description: 'A leading technology company specializing in cloud solutions and enterprise software. Acme has been in business for over 20 years and serves Fortune 500 clients globally.',
-    website: 'https://www.acmecorp.com',
-    pocEmail: 'contact@acmecorp.com',
-    pocPhone: '+1 (555) 123-4567'
-  };
-
-  // Project details
-  projectDetails = {
-    projectManager: {
-      name: 'Asha Varma',
-      avatar: 'AV',
-      role: 'Project Manager',
-      avatarColor: '#3b82f6' // blue-500
-    },
-    deliveryUnit: 'Engineering',
-    startDate: 'Jan 2, 2025',
-    endDate: 'Jan 9, 2025',
-    status: 'ongoing',
-    teamSize: 23
-  };
+  // Loading / error states
+  isLoading: boolean = false;
+  loadingError: string | null = null;
+  // Delete modal state
+  showDeleteModal: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private notificationService: NotificationService,
+    private projectsService: ProjectsService
   ) {
     // Get project ID from route params
     const id = this.route.snapshot.paramMap.get('id');
@@ -65,7 +38,7 @@ export class IndividualprojectComponent implements OnInit {
 
   ngOnInit(): void {
     // Load project data when component initializes
-    this.loadProjectData();
+    this.fetchProject();
   }
 
   /**
@@ -85,6 +58,42 @@ export class IndividualprojectComponent implements OnInit {
   }
 
   /**
+   * Fetch the project detail from service.
+   */
+  fetchProject(): void {
+    // If project data is already present, skip showing spinner
+    if (this.project) {
+      this.isLoading = false;
+      this.loadingError = null;
+      return;
+    }
+
+    this.isLoading = true;
+    this.loadingError = null;
+
+    try {
+      // Load project from service
+      const projectData = this.projectsService.getProjectById(this.projectId);
+      
+      if (projectData) {
+        this.project = projectData;
+        this.isLoading = false;
+      } else {
+        // Project not found
+        this.isLoading = false;
+        this.loadingError = 'Project not found';
+      }
+    } catch (err: any) {
+      this.isLoading = false;
+      this.loadingError = err?.message || 'Failed to load project details.';
+    }
+  }
+
+  retryFetchProject(): void {
+    this.fetchProject();
+  }
+
+  /**
    * Navigate back to projects list
    */
   goBackToProjects(): void {
@@ -95,65 +104,68 @@ export class IndividualprojectComponent implements OnInit {
    * Open edit project dialog/page
    */
   editProject(): void {
+    // Navigate to the edit page for this project
     console.log('Edit project:', this.projectId);
-    // TODO: Implement edit functionality
-    // Option 1: Navigate to edit page
-    // this.router.navigate(['/projects', this.projectId, 'edit']);
-    
-    // Option 2: Open edit modal
-    // this.dialogService.open(EditProjectComponent, { data: this.project });
+    if (this.projectId) {
+      this.router.navigate(['/projects', this.projectId, 'edit']);
+    }
   }
 
-  /**
-   * Archive the current project
-   */
-  archiveProject(): void {
-    console.log('Archive project:', this.projectId);
-    // TODO: Implement archive functionality
-    // Show confirmation dialog
-    // if (confirm('Are you sure you want to archive this project?')) {
-    //   this.projectService.archiveProject(this.projectId).subscribe(() => {
-    //     this.router.navigate(['/projects']);
-    //   });
-    // }
-  }
 
   /**
    * Delete the current project
    */
+  // Open the delete confirmation modal
   deleteProject(): void {
-    console.log('Delete project:', this.projectId);
-    // TODO: Implement delete functionality
-    // Show confirmation dialog
-    // const confirmDelete = confirm(
-    //   'Are you sure you want to delete this project? This action cannot be undone.'
-    // );
-    // if (confirmDelete) {
-    //   this.projectService.deleteProject(this.projectId).subscribe(() => {
-    //     this.router.navigate(['/projects']);
-    //   });
-    // }
+    this.showDeleteModal = true;
+  }
+
+  // Cancel delete modal
+  cancelDelete(): void {
+    this.showDeleteModal = false;
+  }
+
+  // Confirm deletion from modal
+  confirmDelete(): void {
+    this.showDeleteModal = false;
+    if (!this.projectId) return;
+    
+    // Call the service to delete the project
+    const deleted = this.projectsService.deleteProject(this.projectId);
+    
+    if (deleted) {
+      this.notificationService.addNotification('error', `Project "${this.project?.name || this.projectId}" was deleted successfully.`, 'Project Deleted');
+      this.router.navigate(['/projects']);
+    } else {
+      this.notificationService.addNotification('error', 'Failed to delete the project. Please try again.', 'Delete Failed');
+    }
   }
 
   /**
    * Open customer website in new tab
    */
   openWebsite(): void {
-    window.open(this.customerDetails.website, '_blank');
+    if (this.project?.organisationWebsite) {
+      window.open(this.project.organisationWebsite, '_blank');
+    }
   }
 
   /**
    * Open email client
    */
   sendEmail(): void {
-    window.location.href = `mailto:${this.customerDetails.pocEmail}`;
+    if (this.project?.pocEmail) {
+      window.location.href = `mailto:${this.project.pocEmail}`;
+    }
   }
 
   /**
    * Initiate phone call
    */
   makeCall(): void {
-    window.location.href = `tel:${this.customerDetails.pocPhone}`;
+    if (this.project?.pocPhone) {
+      window.location.href = `tel:${this.project.pocPhone}`;
+    }
   }
 
   /**
@@ -164,9 +176,20 @@ export class IndividualprojectComponent implements OnInit {
       'ongoing': 'bg-green-100 text-green-700 border-green-200',
       'completed': 'bg-blue-100 text-blue-700 border-blue-200',
       'on-hold': 'bg-yellow-100 text-yellow-700 border-yellow-200',
-      'cancelled': 'bg-red-100 text-red-700 border-red-200'
+      'cancelled': 'bg-red-100 text-red-700 border-red-200',
+      'Active': 'bg-green-100 text-green-700 border-green-200',
+      'Inactive': 'bg-yellow-100 text-yellow-700 border-yellow-200',
+      'Completed': 'bg-blue-100 text-blue-700 border-blue-200'
     };
-    return statusClasses[status.toLowerCase()] || 'bg-gray-100 text-gray-700 border-gray-200';
+    return statusClasses[status] || 'bg-gray-100 text-gray-700 border-gray-200';
+  }
+
+  /**
+   * Get initials from name
+   */
+  getInitials(name: string): string {
+    if (!name) return 'U';
+    return name.split(' ').map(word => word.charAt(0).toUpperCase()).join('').substring(0, 2);
   }
 
   /**
