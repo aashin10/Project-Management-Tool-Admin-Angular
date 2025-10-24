@@ -37,8 +37,8 @@
   <div class="flex-1 bg-white flex items-center justify-center p-12">
     <div class="w-full max-w-md">
       <!-- Welcome Header -->
-      <h2 class="text-3xl font-bold text-gray-900 mb-2">Welcome back</h2>
-      <p class="text-base text-gray-600 mb-10 leading-relaxed">
+      <h2 class="text-2xl font-bold text-gray-900 mb-2">Welcome back</h2>
+      <p class="text-sm text-gray-600 mb-10 leading-relaxed">
         Enter your credentials to access your admin dashboard
       </p>
 
@@ -54,7 +54,7 @@
             id="email"
             name="email"
             [(ngModel)]="email"
-            class="w-full px-4 py-3.5 text-base border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200"
+            class="w-full px-4 py-3 text-sm border border-gray-300 rounded-sm bg-gray-50 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-600 focus:bg-white placeholder:text-gray-400 transition-all duration-200"
             placeholder="name@company.com"
             required
           />
@@ -71,7 +71,7 @@
               id="password"
               name="password"
               [(ngModel)]="password"
-              class="w-full px-4 py-3.5 pr-12 text-base border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200"
+              class="w-full px-4 py-3 pr-12 text-sm border border-gray-300 rounded-sm bg-gray-50 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-600 focus:bg-white placeholder:text-gray-400 transition-all duration-200"
               placeholder="Enter your password"
               required
             />
@@ -122,20 +122,20 @@
         </div>
 
         <!-- Submit Button -->
-        <button
-          type="submit"
-          class="w-full bg-blue-600 text-white font-semibold py-4 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-600/30 flex items-center justify-center gap-2"
+        <app-custom-button
+          label="Sign in to dashboard"
+          bgClass="bg-blue-600"
+          textColor="text-white"
+          hoverClass="hover:bg-blue-700"
+          borderClass="border-none"
+          height="h-12"
+          fontSize="text-sm"
+          fontWeight="font-semibold"
+          rounded="rounded-sm"
+          extraClasses="w-full focus:ring-4 focus:ring-blue-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-600/30"
+          (action)="onSubmit()"
         >
-          Sign in to dashboard
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M13 7l5 5m0 0l-5 5m5-5H6"
-            ></path>
-          </svg>
-        </button>
+        </app-custom-button>
       </form>
 
       <!-- Security Text -->
