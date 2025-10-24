@@ -39,12 +39,10 @@
   <app-table
     [columns]="columns"
     [data]="filteredDeliveryUnits"
-    [showCheckbox]="true"
+    [showCheckbox]="false"
     [itemsPerPage]="10"
-    [rowClickAction]="'select'"
     [resetPagination]="resetPagination"
     (actionClick)="onActionClick($event)"
-    (selectionChange)="onSelectionChange($event)"
   >
   </app-table>
 
