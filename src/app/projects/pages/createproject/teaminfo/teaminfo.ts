@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DeliveryUnitsService } from '../../../../shared/services/delivery-units.service';
 
 @Component({
   selector: 'app-team-organization',
@@ -15,6 +16,12 @@ export class TeamOrganizationComponent {
 
   @Output() managerChange = new EventEmitter<string>();
   @Output() deliveryUnitChange = new EventEmitter<string>();
+
+  constructor(private deliveryUnitsService: DeliveryUnitsService) {}
+
+  get deliveryUnits() {
+    return this.deliveryUnitsService.getDeliveryUnits();
+  }
 
   // Autocomplete data + state
   users = [
@@ -68,31 +75,6 @@ export class TeamOrganizationComponent {
     { user: 'Vanessa Brooks', email: 'vanessa.brooks@customer.com' },
     { user: 'William Sanders', email: 'william.sanders@company.com' },
     { user: 'Ximena Ward', email: 'ximena.ward@external.com' }
-  ];
-
-  // Delivery units data
-  deliveryUnits = [
-    {
-      duInfo: { initials: 'EN', name: 'Engineering', subtitle: 'Software Development & Architecture' },
-      duCode: 'ENG-001',
-      duHead: { avatar: 'SC', name: 'Sarah Chen', email: 'sarah.chen@company.com' },
-      activeMembers: '24',
-      activeProjects: '8'
-    },
-    {
-      duInfo: { initials: 'PR', name: 'Product Management', subtitle: 'Product Strategy & Planning' },
-      duCode: 'PM-002',
-      duHead: { avatar: 'MR', name: 'Michael Rodriguez', email: 'michael.rodriguez@company.com' },
-      activeMembers: '12',
-      activeProjects: '5'
-    },
-    {
-      duInfo: { initials: 'DE', name: 'Design', subtitle: 'UX/UI Design & Research' },
-      duCode: 'DES-003',
-      duHead: { avatar: 'ET', name: 'Emma Thompson', email: 'emma.thompson@company.com' },
-      activeMembers: '8',
-      activeProjects: '6'
-    }
   ];
 
   filteredManagers: Array<{user:string,email:string}> = [];

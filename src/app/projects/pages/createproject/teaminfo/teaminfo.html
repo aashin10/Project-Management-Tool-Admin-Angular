@@ -61,7 +61,7 @@
         [ngClass]="deliveryUnit === '' ? 'text-gray-400' : 'text-black'"
       >
         <option value="" class="text-gray-400" style="font-weight:400">Select delivery unit</option>
-        <option *ngFor="let du of deliveryUnits" [value]="du.duCode" class="text-black">{{ du.duInfo.name }} — {{ du.duInfo.subtitle }}</option>
+        <option *ngFor="let du of deliveryUnits" [value]="du.code" class="text-black">{{ du.code }} — {{ du.name }}</option>
       </select>
       <div *ngIf="duRef.invalid && duRef.touched" class="text-red-600 text-xs mt-1">Delivery Unit is required.</div>
     </div>

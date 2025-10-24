@@ -539,7 +539,7 @@ projects: Project[] = [
         user.type.toLowerCase().includes(searchLower) ||
         user.status.toLowerCase().includes(searchLower) ||
         user.created.toLowerCase().includes(searchLower) ||
-        user.last_Login.toLowerCase().includes(searchLower);
+        user.lastActivity.toLowerCase().includes(searchLower);
       
       // If filter is empty string, it means "All" is selected, so match all
       const matchesType = !selectedType || userType === selectedType;
@@ -565,7 +565,7 @@ projects: Project[] = [
       type: user.type,
       status: user.status,
       created: user.created,
-      lastLogin: user.last_Login || '-',
+      lastLogin: user.lastActivity || '-',
       actions: user, // Pass the full user object for actions
       selected: this.selectedUsers.some(selectedUser => selectedUser.actions === user) // Check if user is selected
     }));

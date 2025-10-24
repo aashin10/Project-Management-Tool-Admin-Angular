@@ -54,41 +54,67 @@
     </div>
   </div>
 
-  <!-- Members List -->
-  <div class="divide-y divide-gray-100">
-    <div *ngFor="let member of filteredMembers" 
-      class="px-6 py-4 hover:bg-gray-50 transition-colors">
-      <div class="flex items-center justify-between">
-        <!-- Member Info -->
-        <div class="flex items-center gap-3 flex-1 min-w-0">
-          <!-- Avatar -->
-          <div
-            [style.background-color]="member.avatarColor"
-            class="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
-            {{ member.avatar }}
-          </div>
-
-          <!-- Name and Email -->
-          <div class="flex-1 min-w-0">
-            <h3 class="text-sm font-medium text-gray-900">{{ member.name }}</h3>
-            <p class="text-sm text-gray-500 truncate">{{ member.email }}</p>
-          </div>
+  <!-- Members Grid -->
+  <div class="p-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div *ngFor="let member of filteredMembers" 
+        class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+        
+        <!-- Member Name -->
+        <div class="mb-3">
+          <h3 class="text-base font-semibold text-gray-900">{{ member.name }}</h3>
         </div>
 
-        <!-- Role Badge -->
-        <div class="ml-4">
-          <span
-            [ngClass]="{
-              'bg-purple-50 text-purple-700 border-purple-200': member.role.includes('Lead'),
-              'bg-blue-50 text-blue-700 border-blue-200': member.role.includes('Developer'),
-              'bg-pink-50 text-pink-700 border-pink-200': member.role.includes('UX'),
-              'bg-orange-50 text-orange-700 border-orange-200': member.role === 'UI Designer'
-            }"
-            class="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium border">
-            {{ member.role }}
-          </span>
+        <!-- Member Details - 2 columns -->
+        <div class="grid grid-cols-2 gap-3">
+          <!-- Left Column -->
+          <div class="space-y-2">
+            <!-- Role -->
+            <div>
+              <p class="text-xs text-gray-500 mb-1">Role</p>
+              <span
+                [ngClass]="{
+                  'bg-purple-50 text-purple-700 border-purple-200': member.role.includes('Lead'),
+                  'bg-blue-50 text-blue-700 border-blue-200': member.role.includes('Developer'),
+                  'bg-pink-50 text-pink-700 border-pink-200': member.role.includes('UX'),
+                  'bg-orange-50 text-orange-700 border-orange-200': member.role === 'UI Designer',
+                  'bg-green-50 text-green-700 border-green-200': member.role.includes('DevOps'),
+                  'bg-amber-50 text-amber-700 border-amber-200': member.role.includes('QA'),
+                  'bg-gray-50 text-gray-700 border-gray-200': member.role === 'Client'
+                }"
+                class="inline-flex items-center px-2 py-1 rounded text-xs font-medium border">
+                {{ member.role }}
+              </span>
+            </div>
+
+            <!-- Team -->
+            <div>
+              <p class="text-xs text-gray-500 mb-1">Team</p>
+              <p class="text-sm text-gray-900">{{ getTeamName(member.team) }}</p>
+            </div>
+          </div>
+
+          <!-- Right Column -->
+          <div class="space-y-2">
+            <!-- Email -->
+            <div>
+              <p class="text-xs text-gray-500 mb-1">Email</p>
+              <p class="text-sm text-gray-900 truncate" [title]="member.email">{{ member.email }}</p>
+            </div>
+
+            <!-- ID -->
+            <div>
+              <p class="text-xs text-gray-500 mb-1">Member ID</p>
+              <p class="text-sm text-gray-900">{{ member.id }}</p>
+            </div>
+          </div>
         </div>
       </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="filteredMembers.length === 0" class="text-center py-8">
+      <p class="text-gray-500 text-sm">No team members found for this team.</p>
     </div>
   </div>
 </div>

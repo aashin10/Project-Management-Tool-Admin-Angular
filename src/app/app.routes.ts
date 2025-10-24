@@ -3,16 +3,24 @@ import { Login } from './authentication/pages/login/login';
 import { Layout } from './shared/layout/layout';
 
 export const routes: Routes = [
-  { path: 'login', component: Login },
+  // Redirect root to login - must be first
+  {
+    path: '',
+    redirectTo: 'login',
+    pathMatch: 'full'
+  },
+  
+  // Login route (outside layout) - must be before Layout
+  { 
+    path: 'login', 
+    component: Login 
+  },
+  
+  // All authenticated routes wrapped inside the layout
   {
     path: '',
     component: Layout,
     children: [
-      {
-        path: '',
-        redirectTo: 'dashboard',
-        pathMatch: 'full'
-      },
       {
         path: 'dashboard',
         loadChildren: () => import('./dashboard/dashboard-module').then((m) => m.DashboardModule),
