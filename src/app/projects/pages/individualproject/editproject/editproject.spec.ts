@@ -1,14 +1,23 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 
 import { Editproject } from './editproject';
 
 describe('Editproject', () => {
   let component: Editproject;
   let fixture: ComponentFixture<Editproject>;
+  let routerSpy: any;
 
   beforeEach(async () => {
+    routerSpy = { navigate: jasmine.createSpy('navigate') };
+
     await TestBed.configureTestingModule({
-      imports: [Editproject]
+      imports: [Editproject],
+      providers: [
+        { provide: Router, useValue: routerSpy },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { id: '1' } } } }
+      ]
     })
     .compileComponents();
 
@@ -32,24 +41,21 @@ describe('Editproject', () => {
   });
 
   it('should call onEditTeamMembers and navigate', () => {
-    const spy = spyOn(component['router'], 'navigate');
     component.projectId = '1';
     component.onEditTeamMembers();
-    expect(spy).toHaveBeenCalledWith(['/projects', '1', 'team']);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/projects', '1', 'team']);
   });
 
   it('should call onUpdateProject and navigate', () => {
-    const spy = spyOn(component['router'], 'navigate');
     component.projectId = '1';
     component.onUpdateProject();
-    expect(spy).toHaveBeenCalledWith(['/projects', '1']);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/projects', '1']);
   });
 
   it('should call onCancel and navigate', () => {
-    const spy = spyOn(component['router'], 'navigate');
     component.projectId = '1';
     component.onCancel();
-    expect(spy).toHaveBeenCalledWith(['/projects', '1']);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/projects', '1']);
   });
 
   it('should return true for canCreate when all fields are filled', () => {
@@ -80,5 +86,66 @@ describe('Editproject', () => {
       'POC Email',
       'Phone Number'
     ]);
+  });
+
+  it('should handle form change events', () => {
+    component.onProjectNameChange('New Name');
+    expect(component.projectName).toBe('New Name');
+
+    component.onProjectKeyChange('NEW');
+    expect(component.projectKey).toBe('NEW');
+
+    component.onDescriptionChange('New desc');
+    expect(component.description).toBe('New desc');
+
+    component.onOrganisationNameChange('New Org');
+    expect(component.organisationName).toBe('New Org');
+
+    component.onPocEmailChange('new@email.com');
+    expect(component.pocEmail).toBe('new@email.com');
+
+    component.onPhoneNumberChange('1234567890');
+    expect(component.phoneNumber).toBe('1234567890');
+
+    component.onManagerChange('New Manager');
+    expect(component.manager).toBe('New Manager');
+
+    component.onDeliveryUnitChange('New Unit');
+    expect(component.deliveryUnit).toBe('New Unit');
+
+    component.onAdditionalFieldsChange([{ name: 'Field1', value: 'Value1' }]);
+    expect(component.additionalFields).toEqual([{ name: 'Field1', value: 'Value1' }]);
+  });
+
+  it('should get correct initials for project name', () => {
+    component.projectName = 'Test Project';
+    expect(component.getInitials()).toBe('TP');
+
+    component.projectName = 'Single';
+    expect(component.getInitials()).toBe('SI');
+
+    component.projectName = '';
+    expect(component.getInitials()).toBe('PN');
+
+    component.projectName = '   ';
+    expect(component.getInitials()).toBe('PN');
+  });
+
+  it('should load project data on init', () => {
+    expect(component.projectName).toBe('Atlasss App');
+    expect(component.projectKey).toBe('ATL');
+    expect(component.manager).toBe('John Smith');
+    expect(component.organisationName).toBe('Tech Solutions Inc');
+  });
+
+  it('should return false for canCreate when fields are missing', () => {
+    component.projectName = '';
+    component.projectKey = 'ATL';
+    component.manager = 'John';
+    component.deliveryUnit = 'Dev';
+    component.organisationName = 'Org';
+    component.pocEmail = 'email@test.com';
+    component.phoneNumber = '123';
+    expect(component.canCreate).toBeFalse();
   });
 });

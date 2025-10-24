@@ -1,4 +1,3 @@
-// projectslist.component.ts
 import { Component, ViewChild, ElementRef, AfterViewChecked, ChangeDetectorRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -10,18 +9,10 @@ import { Table, TableColumn } from '../../../shared/table/table';
 import { AdvancedFilters } from './advanced-filters/advanced-filters';
 import { ProjectTemplateModal } from './project-template-modal/project-template-modal';
 import { CreateProjectModal } from './create-project-modal/create-project-modal';
- 
-interface Project {
-  id: string;
-  name: string;
-  projectCode: string;
-  status: 'Active' | 'Inactive' | 'Completed';
-  deliveryUnit: string;
-  projectManager: string;
-  teamSize: number;
-  selected?: boolean;
-  isImportedFromJira?: boolean;
-}
+import { NotificationService } from '../../../shared/services/notification.service';
+import { ProjectsService, Project } from '../../../shared/services/projects.service';
+import { DeliveryUnitsService } from '../../../shared/services/delivery-units.service';
+import { ProjectStatusService } from '../../../shared/services/project-status.service';
 
 interface TableHeader {
   field: string | null;
@@ -62,6 +53,10 @@ export class Projectslist implements AfterViewChecked, OnInit {
   showDeleteModal = false;
   projectToDelete: Project | null = null;
 
+  // Loading / error states for project listing
+  isLoading: boolean = false;
+  loadingError: string | null = null;
+
   // Multi-select filter options
   selectedStatuses: string[] = [];
   selectedDeliveryUnits: string[] = [];
@@ -82,7 +77,11 @@ export class Projectslist implements AfterViewChecked, OnInit {
   constructor(
     private router: Router, 
     private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private notificationService: NotificationService,
+    private projectsService: ProjectsService,
+    private deliveryUnitsService: DeliveryUnitsService,
+    private projectStatusService: ProjectStatusService
   ) {}
 
   ngOnInit(): void {
@@ -97,128 +96,119 @@ export class Projectslist implements AfterViewChecked, OnInit {
         // Force change detection
         this.cdr.detectChanges();
       }
+      // If navigation includes a deleted project id, remove it from the list
+      if (params['deleted']) {
+        const deletedId = params['deleted'];
+        this.projects = this.projects.filter(p => p.id !== deletedId);
+        // Remove the query param from the URL without reloading
+        this.router.navigate([], { relativeTo: this.route, queryParams: { deleted: null }, queryParamsHandling: 'merge' });
+        this.cdr.detectChanges();
+      }
     });
+
+    // Initial fetch (simulate or call service)
+    this.fetchProjects();
   }
 
-  // Available filter options
-  statusOptions = ['Active', 'Inactive', 'Completed'];
-  // Updated Delivery Unit options as requested
-  deliveryUnitOptions = ['DU1', 'DU2', 'DU3', 'DU4', 'DU5', 'DU6', 'DU7', 'DU8'];
-
-  // Table columns configuration
-  tableColumns: TableColumn[] = [
-    {
-      header: 'Project Info',
-      field: 'projectInfo',
-      type: 'avatar',
-      width: '25%'
-    },
-    {
-      header: 'Status',
-      field: 'status',
-      type: 'badge',
-      badgeColors: {
-        'Active': 'bg-green-100 text-green-800',
-        'Inactive': 'bg-gray-100 text-gray-800',
-        'Completed': 'bg-blue-100 text-blue-800'
-      },
-      width: '15%'
-    },
-    {
-      header: 'Delivery Unit',
-      field: 'deliveryUnit',
-      type: 'badge',
-      // Map DU1..DU8 to distinct badge color classes
-      badgeColors: {
-        'DU1': 'bg-blue-100 text-blue-800',
-        'DU2': 'bg-green-100 text-green-800',
-        'DU3': 'bg-purple-100 text-purple-800',
-        'DU4': 'bg-pink-100 text-pink-800',
-        'DU5': 'bg-yellow-100 text-yellow-800',
-        'DU6': 'bg-indigo-100 text-indigo-800',
-        'DU7': 'bg-red-100 text-red-800',
-        'DU8': 'bg-teal-100 text-teal-800',
-        '--': 'bg-gray-100 text-gray-800'
-      },
-      width: '20%'
-    },
-    {
-      header: 'Project Manager',
-      field: 'projectManager',
-      type: 'user',
-      width: '25%'
-    },
-    {
-      header: 'Team Size',
-      field: 'teamSize',
-      type: 'text',
-      icon: 'images/team-size.svg',
-      width: '15%'
-    },
-    {
-      header: 'Actions',
-      field: 'actions',
-      type: 'actions',
-      actions: [
-        { label: 'Edit', icon: '/images/edit-black.svg', action: 'edit' },
-        { label: 'Delete', icon: '/images/delete-black.svg', action: 'delete', class: 'danger' }
-      ]
+  /**
+   * Fetch projects from API or service. Currently simulates async load.
+   */
+  fetchProjects(): void {
+    // If we already have projects locally, skip showing the spinner to avoid flicker
+    if (this.projects && this.projects.length > 0) {
+      this.isLoading = false;
+      this.loadingError = null;
+      this.cdr.detectChanges();
+      return;
     }
-  ];
 
-  projects: Project[] = [
-  // Some projects updated to use the new DU values (randomized sample)
-  { id: '1', name: 'Atlas App', projectCode: 'PROJ-001', status: 'Active', deliveryUnit: 'DU1', projectManager: 'Asha Varma', teamSize: 12, selected: false, isImportedFromJira: false },
-  { id: '2', name: 'RoadSim', projectCode: 'PROJ-002', status: 'Inactive', deliveryUnit: 'DU3', projectManager: 'Pranav Iyer', teamSize: 8, selected: false, isImportedFromJira: true },
-  { id: '3', name: 'CloudSync Pro', projectCode: 'PROJ-003', status: 'Completed', deliveryUnit: 'DU2', projectManager: 'Sarah Chen', teamSize: 15, selected: false, isImportedFromJira: false },
-  { id: '4', name: 'DataViz Dashboard', projectCode: 'PROJ-004', status: 'Active', deliveryUnit: 'DU4', projectManager: 'Michael Rodriguez', teamSize: 6, selected: false, isImportedFromJira: false },
-  { id: '5', name: 'SecureAuth API', projectCode: 'PROJ-005', status: 'Active', deliveryUnit: 'DU8', projectManager: 'Emma Thompson', teamSize: 9, selected: false, isImportedFromJira: true },
-  { id: '6', name: 'E-Learning Hub', projectCode: 'PROJ-006', status: 'Active', deliveryUnit: 'DU1', projectManager: 'James Wilson', teamSize: 11, selected: false, isImportedFromJira: false },
-  { id: '7', name: 'MarketPlace Connect', projectCode: 'PROJ-007', status: 'Completed', deliveryUnit: 'DU3', projectManager: 'Lisa Anderson', teamSize: 18, selected: false, isImportedFromJira: true },
-  { id: '8', name: 'Mobile Banking App', projectCode: 'PROJ-008', status: 'Active', deliveryUnit: 'DU2', projectManager: 'David Kumar', teamSize: 20, selected: false, isImportedFromJira: false },
-  { id: '9', name: 'Healthcare Portal', projectCode: 'PROJ-009', status: 'Active', deliveryUnit: 'DU5', projectManager: 'Rachel Green', teamSize: 14, selected: false, isImportedFromJira: true },
-  { id: '10', name: 'Inventory Management', projectCode: 'PROJ-010', status: 'Inactive', deliveryUnit: 'DU8', projectManager: 'Tom Harris', teamSize: 7, selected: false, isImportedFromJira: false },
-    { id: '11', name: 'Social Media Platform', projectCode: 'PROJ-011', status: 'Active', deliveryUnit: 'DU1', projectManager: 'Nina Patel', teamSize: 25, selected: false, isImportedFromJira: true },
-    { id: '12', name: 'CRM System', projectCode: 'PROJ-012', status: 'Completed', deliveryUnit: 'DU3', projectManager: 'Alex Johnson', teamSize: 10, selected: false, isImportedFromJira: false },
-    { id: '13', name: 'Analytics Dashboard', projectCode: 'PROJ-013', status: 'Active', deliveryUnit: 'DU5', projectManager: 'Sophie Turner', teamSize: 8, selected: false, isImportedFromJira: false },
-    { id: '14', name: 'Payment Gateway', projectCode: 'PROJ-014', status: 'Active', deliveryUnit: 'DU6', projectManager: 'Robert Chen', teamSize: 12, selected: false, isImportedFromJira: true },
-    { id: '15', name: 'Logistics Tracker', projectCode: 'PROJ-015', status: 'Active', deliveryUnit: 'DU7', projectManager: 'Maria Garcia', teamSize: 9, selected: false, isImportedFromJira: false },
-    { id: '16', name: 'Video Streaming Service', projectCode: 'PROJ-016', status: 'Inactive', deliveryUnit: 'DU8', projectManager: 'Kevin Lee', teamSize: 16, selected: false, isImportedFromJira: true },
-    { id: '17', name: 'Smart Home App', projectCode: 'PROJ-017', status: 'Active', deliveryUnit: 'DU4', projectManager: 'Laura Martinez', teamSize: 11, selected: false, isImportedFromJira: false },
-    { id: '18', name: 'Restaurant Management', projectCode: 'PROJ-018', status: 'Completed', deliveryUnit: 'DU5', projectManager: 'Chris Brown', teamSize: 6, selected: false, isImportedFromJira: false },
-    { id: '19', name: 'Fitness Tracking App', projectCode: 'PROJ-019', status: 'Active', deliveryUnit: 'DU6', projectManager: 'Amanda White', teamSize: 8, selected: false, isImportedFromJira: true },
-    { id: '20', name: 'Real Estate Platform', projectCode: 'PROJ-020', status: 'Active', deliveryUnit: 'DU7', projectManager: 'Daniel Kim', teamSize: 13, selected: false, isImportedFromJira: false },
-    { id: '21', name: 'Travel Booking System', projectCode: 'PROJ-021', status: 'Active', deliveryUnit: 'DU8', projectManager: 'Jessica Wang', teamSize: 15, selected: false, isImportedFromJira: true },
-    { id: '22', name: 'HR Management Portal', projectCode: 'PROJ-022', status: 'Inactive', deliveryUnit: 'DU4', projectManager: 'Michael Smith', teamSize: 7, selected: false, isImportedFromJira: false },
-    { id: '23', name: 'Customer Support Chat', projectCode: 'PROJ-023', status: 'Active', deliveryUnit: 'DU1', projectManager: 'Olivia Davis', teamSize: 10, selected: false, isImportedFromJira: true },
-    { id: '24', name: 'Weather Forecast App', projectCode: 'PROJ-024', status: 'Completed', deliveryUnit: 'DU2', projectManager: 'Ryan Taylor', teamSize: 5, selected: false, isImportedFromJira: false },
-    { id: '25', name: 'Task Management Tool', projectCode: 'PROJ-025', status: 'Active', deliveryUnit: 'DU3', projectManager: 'Emily Wilson', teamSize: 12, selected: false, isImportedFromJira: false },
-    { id: '26', name: 'AI Chatbot Platform', projectCode: 'PROJ-026', status: 'Active', deliveryUnit: 'DU1', projectManager: 'Benjamin Clarke', teamSize: 18, selected: false, isImportedFromJira: true },
-    { id: '27', name: 'Blockchain Wallet', projectCode: 'PROJ-027', status: 'Active', deliveryUnit: 'DU2', projectManager: 'Sophia Williams', teamSize: 14, selected: false, isImportedFromJira: false },
-    { id: '28', name: 'Supply Chain Management', projectCode: 'PROJ-028', status: 'Active', deliveryUnit: 'DU1', projectManager: 'Lucas Brown', teamSize: 22, selected: false, isImportedFromJira: false },
-    { id: '29', name: 'Virtual Event Platform', projectCode: 'PROJ-029', status: 'Completed', deliveryUnit: 'DU3', projectManager: 'Isabella Martinez', teamSize: 9, selected: false, isImportedFromJira: true },
-    { id: '30', name: 'Code Review Automation', projectCode: 'PROJ-030', status: 'Inactive', deliveryUnit: 'DU1', projectManager: 'Ethan Anderson', teamSize: 7, selected: false, isImportedFromJira: false },
-    { id: '31', name: 'Document Management System', projectCode: 'PROJ-031', status: 'Active', deliveryUnit: 'DU2', projectManager: 'Mia Thompson', teamSize: 11, selected: false, isImportedFromJira: false },
-    { id: '32', name: 'Fleet Management App', projectCode: 'PROJ-032', status: 'Active', deliveryUnit: 'DU3', projectManager: 'Noah Garcia', teamSize: 13, selected: false, isImportedFromJira: false },
-    { id: '33', name: 'Expense Tracking Tool', projectCode: 'PROJ-033', status: 'Active', deliveryUnit: 'DU1', projectManager: 'Ava Rodriguez', teamSize: 6, selected: false, isImportedFromJira: false },
-    { id: '34', name: 'Network Monitoring System', projectCode: 'PROJ-034', status: 'Active', deliveryUnit: 'DU1', projectManager: 'William Lee', teamSize: 16, selected: false, isImportedFromJira: true },
-    { id: '35', name: 'Content Management CMS', projectCode: 'PROJ-035', status: 'Completed', deliveryUnit: 'DU2', projectManager: 'Charlotte Davis', teamSize: 10, selected: false, isImportedFromJira: false },
-    { id: '36', name: 'Recruitment Portal', projectCode: 'PROJ-036', status: 'Active', deliveryUnit: 'DU3', projectManager: 'James Miller', teamSize: 12, selected: false, isImportedFromJira: false },
-    { id: '37', name: 'IoT Device Manager', projectCode: 'PROJ-037', status: 'Active', deliveryUnit: 'DU1', projectManager: 'Amelia Wilson', teamSize: 19, selected: false, isImportedFromJira: true },
-    { id: '38', name: 'Email Marketing Suite', projectCode: 'PROJ-038', status: 'Completed', deliveryUnit: 'DU2', projectManager: 'Oliver Moore', teamSize: 8, selected: false, isImportedFromJira: false },
-    { id: '39', name: 'Bug Tracking System', projectCode: 'PROJ-039', status: 'Active', deliveryUnit: 'DU3', projectManager: 'Emma Taylor', teamSize: 14, selected: false, isImportedFromJira: false },
-    { id: '40', name: 'Appointment Scheduler', projectCode: 'PROJ-040', status: 'Inactive', deliveryUnit: 'DU1', projectManager: 'Liam Anderson', teamSize: 5, selected: false, isImportedFromJira: false },
-    { id: '41', name: 'Digital Asset Management', projectCode: 'PROJ-041', status: 'Active', deliveryUnit: 'DU2', projectManager: 'Harper Thomas', teamSize: 11, selected: false, isImportedFromJira: false },
-    { id: '42', name: 'Knowledge Base System', projectCode: 'PROJ-042', status: 'Active', deliveryUnit: 'DU3', projectManager: 'Elijah Jackson', teamSize: 9, selected: false, isImportedFromJira: false },
-    { id: '43', name: 'Invoice Generator', projectCode: 'PROJ-043', status: 'Completed', deliveryUnit: 'DU1', projectManager: 'Abigail White', teamSize: 4, selected: false, isImportedFromJira: false },
-    { id: '44', name: 'Video Conference App', projectCode: 'PROJ-044', status: 'Active', deliveryUnit: 'DU1', projectManager: 'Alexander Harris', teamSize: 21, selected: false, isImportedFromJira: true },
-    { id: '45', name: 'Sales Forecasting Tool', projectCode: 'PROJ-045', status: 'Active', deliveryUnit: 'DU2', projectManager: 'Emily Martin', teamSize: 15, selected: false, isImportedFromJira: false },
-    { id: '46', name: 'Warehouse Management', projectCode: 'PROJ-046', status: 'Inactive', deliveryUnit: 'DU3', projectManager: 'Daniel Thompson', teamSize: 17, selected: false, isImportedFromJira: true },
-    { id: '47', name: 'Learning Management System', projectCode: 'PROJ-047', status: 'Active', deliveryUnit: 'DU1', projectManager: 'Sofia Garcia', teamSize: 20, selected: false, isImportedFromJira: false },
-    { id: '48', name: 'API Gateway Service', projectCode: 'PROJ-048', status: 'Active', deliveryUnit: 'DU1', projectManager: 'Matthew Martinez', teamSize: 13, selected: false, isImportedFromJira: false },
-    { id: '49', name: 'Performance Analytics', projectCode: 'PROJ-049', status: 'Active', deliveryUnit: 'DU2', projectManager: 'Chloe Robinson', teamSize: 10, selected: false, isImportedFromJira: false },
-    { id: '50', name: 'Notification Service', projectCode: 'PROJ-050', status: 'Completed', deliveryUnit: 'DU3', projectManager: 'Jacob Clark', teamSize: 6, selected: false, isImportedFromJira: false }
-  ];
+    this.isLoading = true;
+    this.loadingError = null;
+
+    // Load projects from service
+    try {
+      this.projects = this.projectsService.getProjects();
+      setTimeout(() => {
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }, 1000);
+    } catch (err: any) {
+      setTimeout(() => {
+        this.isLoading = false;
+        this.loadingError = err?.message || 'Failed to load projects. Please try again.';
+        this.cdr.detectChanges();
+      }, 1000);
+    }
+  }
+
+  loadSampleDataManually(): void {
+    // Helpful debug action: populate with a small sample set when error occurs
+    this.projects = [
+      { id: '1', name: 'Atlas App', projectCode: 'PROJ-001', status: 'Active', deliveryUnit: 'DU1', projectManager: 'Asha Varma', teamSize: 12, template: 'Scrum', organisationName: 'TechCorp Solutions', selected: false }
+    ];
+    this.loadingError = null;
+    this.isLoading = false;
+    this.cdr.detectChanges();
+  }
+
+  // Available filter options - now using services
+  get statusOptions(): string[] {
+    return this.projectStatusService.getStatusCodes();
+  }
+
+  get deliveryUnitOptions(): string[] {
+    return this.deliveryUnitsService.getDeliveryUnitCodes();
+  }
+
+  // Table columns configuration - now using services for colors
+  get tableColumns(): TableColumn[] {
+    return [
+      {
+        header: 'Project Info',
+        field: 'projectInfo',
+        type: 'avatar',
+        width: '25%'
+      },
+      {
+        header: 'Status',
+        field: 'status',
+        type: 'badge',
+        badgeColors: this.getStatusBadgeColors(),
+        width: '15%'
+      },
+      {
+        header: 'Delivery Unit',
+        field: 'deliveryUnit',
+        type: 'badge',
+        badgeColors: this.getDeliveryUnitBadgeColors(),
+        width: '20%'
+      },
+      {
+        header: 'Project Manager',
+        field: 'projectManager',
+        type: 'user',
+        width: '25%'
+      },
+      {
+        header: 'Team Size',
+        field: 'teamSize',
+        type: 'text',
+        icon: 'images/team-size.svg',
+        width: '15%'
+      },
+      {
+        header: 'Actions',
+        field: 'actions',
+        type: 'actions',
+        actions: [
+          { label: 'Edit', icon: '/images/edit-black.svg', action: 'edit' },
+          { label: 'Delete', icon: '/images/delete-black.svg', action: 'delete', class: 'danger' }
+        ]
+      }
+    ];
+  }
+
+  projects: Project[] = [];
 
   // Getters
   get hasActiveFilters(): boolean {
@@ -266,8 +256,8 @@ export class Projectslist implements AfterViewChecked, OnInit {
         name: project.name,
         subtitle: project.projectCode,
         initials: project.name.substring(0, 2).toUpperCase(),
-        // bgColor should match CSS utility classes used in table template
-        bgColor: this.getAvatarBgColor(project.id),
+        // Use a fixed blue Tailwind class for all projects
+        bgColor: 'bg-blue-600',
         // expose whether this project was imported from Jira so the table can show a badge
         isImportedFromJira: !!project.isImportedFromJira
       },
@@ -301,6 +291,44 @@ export class Projectslist implements AfterViewChecked, OnInit {
 
   get selectedProjects(): Project[] {
     return this.filteredProjects.filter(p => p.selected);
+  }
+
+  // Helper methods for badge colors
+  private getStatusBadgeColors(): { [key: string]: string } {
+    const colors: { [key: string]: string } = {};
+    this.projectStatusService.getStatuses().forEach(status => {
+      if (status.code === 'Active') {
+        colors[status.code] = 'bg-green-100 text-green-800';
+      } else if (status.code === 'Inactive') {
+        colors[status.code] = 'bg-gray-100 text-gray-800';
+      } else if (status.code === 'Completed') {
+        colors[status.code] = 'bg-blue-100 text-blue-800';
+      } else {
+        colors[status.code] = 'bg-gray-100 text-gray-800';
+      }
+    });
+    return colors;
+  }
+
+  private getDeliveryUnitBadgeColors(): { [key: string]: string } {
+    const colors: { [key: string]: string } = {
+      '--': 'bg-gray-100 text-gray-800'
+    };
+    // Map DU1..DU8 to distinct badge color classes
+    const duColors = [
+      'bg-blue-100 text-blue-800',
+      'bg-green-100 text-green-800',
+      'bg-purple-100 text-purple-800',
+      'bg-pink-100 text-pink-800',
+      'bg-yellow-100 text-yellow-800',
+      'bg-indigo-100 text-indigo-800',
+      'bg-red-100 text-red-800',
+      'bg-teal-100 text-teal-800'
+    ];
+    this.deliveryUnitsService.getDeliveryUnits().forEach((du, index) => {
+      colors[du.code] = duColors[index % duColors.length];
+    });
+    return colors;
   }
 
   get allSelectedProjects(): Project[] {
@@ -508,11 +536,18 @@ export class Projectslist implements AfterViewChecked, OnInit {
 
   // Create project modal handlers
   onCreateProject(projectData: { name: string; projectKey: string; shareWithExisting: boolean; selectedProject?: string }): void {
+    // Ensure projectKey exists: derive from first 3 alphanumeric chars of name if not provided
+    let projectKey = projectData.projectKey && projectData.projectKey.trim()
+      ? projectData.projectKey.trim()
+      : (projectData.name || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().substring(0, 3);
+
+    if (!projectKey) projectKey = 'PRJ';
+
     this.router.navigate(['/projects/create'], {
       queryParams: {
         template: this.selectedTemplate,
         name: projectData.name,
-        projectKey: projectData.projectKey,
+        projectKey,
         shareWithExisting: projectData.shareWithExisting,
         selectedProject: projectData.selectedProject
       }
@@ -536,12 +571,52 @@ export class Projectslist implements AfterViewChecked, OnInit {
 
   confirmDelete(): void {
     if (this.projectToDelete) {
-      this.projects = this.projects.filter(project => project.id !== this.projectToDelete!.id);
-      console.log('Project deleted:', this.projectToDelete.name);
+      // Single project deletion
+      const deletedName = this.projectToDelete.name;
+      const deletedId = this.projectToDelete.id;
+      
+      const deleted = this.projectsService.deleteProject(deletedId);
+      
+      if (deleted) {
+        // Remove from local array as well
+        this.projects = this.projects.filter(project => project.id !== deletedId);
+        this.notificationService.addNotification('error', `Project "${deletedName}" was deleted successfully.`, 'Project Deleted');
+      } else {
+        this.notificationService.addNotification('error', `Failed to delete project "${deletedName}".`, 'Delete Failed');
+      }
+      
       this.projectToDelete = null;
     } else {
-      this.projects = this.projects.filter(project => !this.selectedProjects.some(selected => selected.id === project.id));
-      console.log('Selected projects removed');
+      // Bulk deletion of selected projects
+      const count = this.selectedProjects.length;
+      let successCount = 0;
+      
+      this.selectedProjects.forEach(project => {
+        const deleted = this.projectsService.deleteProject(project.id);
+        if (deleted) {
+          successCount++;
+        }
+      });
+      
+      if (successCount > 0) {
+        // Remove deleted projects from local array
+        this.projects = this.projects.filter(project => 
+          !this.selectedProjects.some(selected => selected.id === project.id)
+        );
+        this.notificationService.addNotification(
+          'error', 
+          `${successCount} project${successCount > 1 ? 's' : ''} ${successCount > 1 ? 'were' : 'was'} deleted successfully.`, 
+          'Projects Deleted'
+        );
+      }
+      
+      if (successCount < count) {
+        this.notificationService.addNotification(
+          'error', 
+          `${count - successCount} project${count - successCount > 1 ? 's' : ''} could not be deleted.`, 
+          'Partial Deletion'
+        );
+      }
     }
 
     this.showDeleteModal = false;

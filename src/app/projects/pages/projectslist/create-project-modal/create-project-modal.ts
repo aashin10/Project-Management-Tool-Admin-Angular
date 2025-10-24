@@ -4,17 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Modal } from '../../../../shared/modal/modal';
 import { CustomButton } from '../../../../shared/custom-button/custom-button';
-
-interface Project {
-  id: string;
-  name: string;
-  projectCode: string;
-  status: 'Active' | 'Inactive' | 'Completed';
-  deliveryUnit: string;
-  projectManager: string;
-  teamSize: number;
-  selected?: boolean;
-}
+import { ProjectsService, Project } from '../../../../shared/services/projects.service';
 
 @Component({
   selector: 'app-create-project-modal',
@@ -42,7 +32,10 @@ export class CreateProjectModal implements OnInit {
   projectSearchQuery: string = '';
   filteredProjects: Project[] = [];
 
+  constructor(private projectsService: ProjectsService) {}
+
   ngOnInit(): void {
+    this.projects = this.projectsService.getProjects();
     this.filteredProjects = this.projects;
   }
 
@@ -50,11 +43,12 @@ export class CreateProjectModal implements OnInit {
     this.generateProjectKey();
   }
 
+  // Generate project key using the first 3 alphanumeric characters of the project name (uppercase)
   generateProjectKey(): void {
-    if (this.projectName.trim()) {
-      const prefix = this.projectName.trim().substring(0, 3).toUpperCase();
-      const randomId = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-      this.projectKey = `${prefix}-${randomId}`;
+    if (this.projectName && this.projectName.trim()) {
+      const normalized = this.projectName.trim().replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+      // take first 3 characters
+      this.projectKey = normalized.substring(0, 3);
     } else {
       this.projectKey = '';
     }

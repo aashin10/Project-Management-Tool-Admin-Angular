@@ -12,27 +12,28 @@ describe('UsersApi', () => {
   const mockApiUsers: ApiUser[] = [
     {
       id: 1,
-      userName: 'Alice Johnson',
+      name: 'Alice Johnson',
       email: 'alice.johnson@company.com',
-      createdAt: '2025-09-23T10:00:00Z',
+      created_At: '2025-09-23T10:00:00Z',
       type: 'Internal',
       status: 'Active',
-      lastActivity: '2025-09-25T15:30:00Z'
+      last_Login: '2025-09-25T15:30:00Z'
     },
     {
       id: 2,
-      userName: 'Bob Smith',
+      name: 'Bob Smith',
       email: 'bob.smith@company.com',
-      createdAt: '2025-09-20T09:15:00Z',
+      created_At: '2025-09-20T09:15:00Z',
       type: 'External',
       status: 'Active',
-      lastActivity: '2025-09-24T11:45:00Z'
+      last_Login: '2025-09-24T11:45:00Z'
     }
   ];
 
   const mockApiResponse: ApiResponse = {
     status: 200,
-    data: mockApiUsers
+    data: mockApiUsers,
+    message: 'Success'
   };
 
   const expectedTransformedUsers: User[] = [
@@ -225,14 +226,14 @@ describe('UsersApi', () => {
     it('should format dates and return strings', fakeAsync(() => {
       // Create a date that is definitely in the past (older format)
       const pastDate = new Date('2023-01-15T10:00:00Z');
-      const mockApiUser = {
+      const mockApiUser: ApiUser = {
         id: 1,
-        userName: 'Test User',
+        name: 'Test User',
         email: 'test@example.com',
-        createdAt: pastDate.toISOString(),
+        created_At: pastDate.toISOString(),
         type: 'Internal',
         status: 'Active',
-        lastActivity: pastDate.toISOString()
+        last_Login: pastDate.toISOString()
       };
 
       service.getUsers().subscribe(users => {
@@ -250,14 +251,14 @@ describe('UsersApi', () => {
 
     it('should format older dates as MM/DD/YYYY', fakeAsync(() => {
       const date = new Date('2025-09-23T10:00:00Z');
-      const mockApiUser = {
+      const mockApiUser: ApiUser = {
         id: 1,
-        userName: 'Test User',
+        name: 'Test User',
         email: 'test@example.com',
-        createdAt: date.toISOString(),
+        created_At: date.toISOString(),
         type: 'Internal',
         status: 'Active',
-        lastActivity: date.toISOString()
+        last_Login: date.toISOString()
       };
 
       service.getUsers().subscribe(users => {
@@ -271,14 +272,14 @@ describe('UsersApi', () => {
     }));
 
     it('should handle empty date string', fakeAsync(() => {
-      const mockApiUser = {
+      const mockApiUser: ApiUser = {
         id: 1,
-        userName: 'Test User',
+        name: 'Test User',
         email: 'test@example.com',
-        createdAt: '',
+        created_At: '',
         type: 'Internal',
         status: 'Active',
-        lastActivity: ''
+        last_Login: ''
       };
 
       service.getUsers().subscribe(users => {
@@ -293,14 +294,14 @@ describe('UsersApi', () => {
 
     it('should format current dates appropriately', fakeAsync(() => {
       const currentDate = new Date();
-      const mockApiUser = {
+      const mockApiUser: ApiUser = {
         id: 1,
-        userName: 'Test User',
+        name: 'Test User',
         email: 'test@example.com',
-        createdAt: currentDate.toISOString(),
+        created_At: currentDate.toISOString(),
         type: 'Internal',
         status: 'Active',
-        lastActivity: currentDate.toISOString()
+        last_Login: currentDate.toISOString()
       };
 
       service.getUsers().subscribe(users => {
