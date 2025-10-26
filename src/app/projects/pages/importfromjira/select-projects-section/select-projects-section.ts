@@ -28,6 +28,7 @@ export class SelectProjectsSection implements OnInit {
   allProjects: any[] = [];
   loadingProjects: boolean = false;
   cloudIds: any[] | undefined = [];
+  selectedCloudId: string = '';
 
   dropdownOpen: boolean = false;
 
@@ -97,6 +98,7 @@ export class SelectProjectsSection implements OnInit {
   onCloudIdChange(event: Event): void {
     const newCloudId = (event.target as HTMLSelectElement).value;
     this.fetchProjectsByCloudId(newCloudId);
+    this.selectedCloudId = newCloudId;
     this.cdr.detectChanges();
   }
 
@@ -127,19 +129,20 @@ export class SelectProjectsSection implements OnInit {
       this.toastr.warning('Please select at least one project to import.', 'No Projects Selected');
       return;
     }
-    this.jiraApi
-      .importProjectsFromJira(
-        this.cloudIds![0].id,
-        sessionStorage.getItem('jira_access_token')!,
-        selectedProjects.map((project) => project.id)
-      )
-      .subscribe({
-        next: (response) => {
-          this.toastr.success('Projects imported successfully!', 'Import Successful');
-        },
-        error: (error) => {
-          this.toastr.error('Failed to import projects.', 'Import Failed');
-        },
-      });
+    this.toastr.info('Import functionality is not yet implemented.', 'Import Projects');
+    // this.jiraApi
+    //   .importProjectsFromJira(
+    //     this.selectedCloudId,
+    //     sessionStorage.getItem('jira_access_token')!,
+    //     selectedProjects.map((project) => project.id)
+    //   )
+    //   .subscribe({
+    //     next: (response) => {
+    //       this.toastr.success('Projects imported successfully!', 'Import Successful');
+    //     },
+    //     error: (error) => {
+    //       this.toastr.error('Failed to import projects.', 'Import Failed');
+    //     },
+    //   });
   }
 }
