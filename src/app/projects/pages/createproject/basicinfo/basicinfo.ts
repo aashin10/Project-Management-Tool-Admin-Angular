@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ProjectStatusService } from '../../../../shared/services/project-status.service';
 
 @Component({
   selector: 'app-basic-information',
@@ -19,7 +20,7 @@ export class BasicInformationComponent {
   @Input() domainLink: string = '';
   @Input() pocEmail: string = '';
   @Input() phoneNumber: string = '';
-  @Input() status: string = 'active'; // default to 'active'
+  @Input() status: string = 'Active'; // default to 'Active'
   @Output() statusChange = new EventEmitter<string>();
 
   @Output() projectNameChange = new EventEmitter<string>();
@@ -32,27 +33,34 @@ export class BasicInformationComponent {
   @Output() pocEmailChange = new EventEmitter<string>();
   @Output() phoneNumberChange = new EventEmitter<string>();
 
-  statusOptions = [
-    { value: 'active', label: 'Active', color: '#2196F3' },
-    { value: 'inactive', label: 'Inactive', color: '#9E9E9E' },
-    { value: 'completed', label: 'Completed', color: '#4CAF50' }
+  constructor(private projectStatusService: ProjectStatusService) {}
+
+  get statusOptions() {
+    return this.projectStatusService.getStatuses().map(status => ({
+      value: status.code,
+      label: status.name,
+      color: this.getStatusColor(status.code)
+    }));
+  }
+
+  // Get color for status circle indicator
+  getStatusColor(statusCode: string): string {
+    if (statusCode === 'Active') {
+      return 'bg-green-500';
+    } else if (statusCode === 'Inactive') {
+      return 'bg-gray-500';
+    } else if (statusCode === 'Completed') {
+      return 'bg-blue-500';
+    }
+    return 'bg-gray-500';
+  }
+
+  templateOptions = [
+    { value: 'Scrum', label: 'Scrum', color: '#10B981' },
+    { value: 'Kanban', label: 'Kanban', color: '#3B82F6' }
   ];
-
+  
   statusDropdownOpen = false;
-
-  get selectedStatus() {
-    return this.statusOptions.find(opt => opt.value === this.status) || this.statusOptions[0];
-  }
-
-  toggleStatusDropdown() {
-    this.statusDropdownOpen = !this.statusDropdownOpen;
-  }
-
-  selectStatus(value: string) {
-    this.status = value;
-    this.statusChange.emit(this.status);
-    this.statusDropdownOpen = false;
-  }
 
   onProjectNameChange() {
     this.projectNameChange.emit(this.projectName);

@@ -10,7 +10,7 @@ export interface User {
   type: string;
   status: string;
   created: string;
-  last_Login: string;
+  lastActivity: string;
 }
 
 export interface ApiResponse {
@@ -102,7 +102,7 @@ export class UsersApi {
             type: apiUser.type,
             status: apiUser.status,
             created: this.formatDate(apiUser.created_At),
-            last_Login: this.formatDate(apiUser.last_Login || '')
+            lastActivity: this.formatDate(apiUser.last_Login || '')
           }));
           this.cachedUsers = users; // Cache the data
           console.log('UsersApi: Users loaded successfully:', users.length);
@@ -271,7 +271,7 @@ export class UsersApi {
         type: 'Internal',
         status: 'Active',
         created: '09/23/2025',
-        last_Login: '09/25/2025'
+        lastActivity: '09/25/2025'
       },
       {
         id: 2,
@@ -280,7 +280,7 @@ export class UsersApi {
         type: 'External',
         status: 'Active',
         created: '09/20/2025',
-        last_Login: '09/24/2025'
+        lastActivity: '09/24/2025'
       },
       {
         id: 3,
@@ -289,7 +289,7 @@ export class UsersApi {
         type: 'Internal',
         status: 'Inactive',
         created: '09/15/2025',
-        last_Login: '09/20/2025'
+        lastActivity: '09/20/2025'
       },
       {
         id: 4,
@@ -298,7 +298,7 @@ export class UsersApi {
         type: 'Customer',
         status: 'Active',
         created: '09/10/2025',
-        last_Login: '09/23/2025'
+        lastActivity: '09/23/2025'
       },
       {
         id: 5,
@@ -307,7 +307,7 @@ export class UsersApi {
         type: 'Internal',
         status: 'Active',
         created: '09/05/2025',
-        last_Login: '09/22/2025'
+        lastActivity: '09/22/2025'
       }
     ];
     console.log('UsersApi: Sample data loaded, users count:', sampleUsers.length);

@@ -2,11 +2,12 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { CustomButton } from "../../../shared/custom-button/custom-button";
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CustomButton],
   templateUrl: './login.html',
   styleUrl: './login.css'
 })
@@ -26,27 +27,79 @@ export class Login {
   }
 
   validateEmail(): void {
-    const emailValue = this.email.trim().toLowerCase();
+    const emailValue = this.email.trim();
     
     if (!emailValue) {
       this.emailError = 'Email is required';
-    } else if (!emailValue.endsWith('@gmail.com')) {
-      this.emailError = 'Please use a valid Gmail address (@gmail.com)';
-    } else if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(emailValue)) {
-      this.emailError = 'Invalid Gmail format';
-    } else {
-      this.emailError = '';
+      return;
     }
+
+    // Comprehensive email validation regex
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    
+    if (!emailRegex.test(emailValue)) {
+      this.emailError = 'Please enter a valid email address';
+      return;
+    }
+
+    // Check for common issues
+    if (emailValue.startsWith('.') || emailValue.includes('..')) {
+      this.emailError = 'Email cannot start with a dot or contain consecutive dots';
+      return;
+    }
+
+    const [localPart, domain] = emailValue.split('@');
+    
+    // Validate local part (before @)
+    if (localPart.length === 0) {
+      this.emailError = 'Email must have characters before @';
+      return;
+    }
+
+    if (localPart.startsWith('.') || localPart.endsWith('.')) {
+      this.emailError = 'Email cannot start or end with a dot before @';
+      return;
+    }
+
+    // Validate domain part (after @)
+    if (!domain || domain.length === 0) {
+      this.emailError = 'Email must have a domain after @';
+      return;
+    }
+
+    if (!domain.includes('.')) {
+      this.emailError = 'Email domain must contain a dot (e.g., .com, .org)';
+      return;
+    }
+
+    const domainParts = domain.split('.');
+    if (domainParts.some(part => part.length === 0)) {
+      this.emailError = 'Email domain is invalid';
+      return;
+    }
+
+    // Check if domain extension is at least 2 characters
+    const extension = domainParts[domainParts.length - 1];
+    if (extension.length < 2) {
+      this.emailError = 'Email domain extension must be at least 2 characters';
+      return;
+    }
+
+    this.emailError = '';
   }
 
   validatePassword(): void {
     if (!this.password.trim()) {
       this.passwordError = 'Password is required';
-    } else if (this.password.length < 6) {
-      this.passwordError = 'Password must be at least 6 characters';
-    } else {
-      this.passwordError = '';
+      return;
     }
+    
+    if (this.password.length < 6) {
+      this.passwordError = 'Password must be at least 6 characters';
+      return;
+    }
+
+    this.passwordError = '';
   }
 
   isFormValid(): boolean {
@@ -54,9 +107,7 @@ export class Login {
       this.email.trim() !== '' &&
       this.password.trim() !== '' &&
       this.emailError === '' &&
-      this.passwordError === '' &&
-      this.email.toLowerCase().endsWith('@gmail.com') &&
-      this.password.length >= 6
+      this.passwordError === ''
     );
   }
 

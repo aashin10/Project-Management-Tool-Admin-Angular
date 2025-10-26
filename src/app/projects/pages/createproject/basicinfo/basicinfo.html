@@ -82,28 +82,40 @@
         Initial Status
       </label>
       <div class="h-2"></div>
-      <div class="relative">
-          <button type="button"
-            class="flex items-center justify-between px-3 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white"
-            style="width:220px; height:36px;"
-            (click)="toggleStatusDropdown()"
-          >
-          <span class="flex items-center gap-2" [ngClass]="selectedStatus.value === '' ? 'text-gray-400' : 'text-black'">
-            <span *ngIf="selectedStatus.value" class="inline-block w-2 h-2 rounded-full" [ngStyle]="{background: selectedStatus.color}"></span>
-            {{ selectedStatus.label }}
+      
+      <!-- Custom Dropdown for Status -->
+      <div class="relative w-[220px]">
+        <button
+          type="button"
+          (click)="statusDropdownOpen = !statusDropdownOpen"
+          class="w-full h-9 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 font-normal text-left flex items-center justify-between"
+          [ngClass]="status === '' ? 'text-gray-400' : 'text-black'"
+        >
+          <span class="flex items-center gap-2">
+            <span *ngIf="status !== ''" class="inline-block w-2 h-2 rounded-full" [ngClass]="getStatusColor(status)"></span>
+            {{ status === '' ? 'Select status' : status }}
           </span>
-          <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+          <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
         </button>
-          <ul *ngIf="statusDropdownOpen" class="absolute z-10 mt-1 bg-white border border-gray-200 rounded shadow-lg" style="width:220px;">
-          <li *ngFor="let opt of statusOptions" (click)="selectStatus(opt.value)"
-            class="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-gray-100 text-sm"
-            [ngClass]="opt.value === '' ? 'text-gray-400' : 'text-black'"
+        
+        <div
+          *ngIf="statusDropdownOpen"
+          class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-auto"
+        >
+          <div
+            *ngFor="let opt of statusOptions"
+            (click)="status = opt.value; statusChange.emit(opt.value); statusDropdownOpen = false"
+            class="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2 text-sm text-black"
           >
-            <span *ngIf="opt.value" class="inline-block w-2 h-2 rounded-full" [ngStyle]="{background: opt.color}"></span>
+            <span class="inline-block w-2 h-2 rounded-full" [ngClass]="opt.color"></span>
             {{ opt.label }}
-          </li>
-        </ul>
+          </div>
+        </div>
       </div>
+      <input type="hidden" name="status" [(ngModel)]="status" #statusRef="ngModel" />
+      <div *ngIf="statusRef.invalid && statusRef.touched" class="text-red-600 text-xs mt-1">Status is required.</div>
     </div>
   </div>
 

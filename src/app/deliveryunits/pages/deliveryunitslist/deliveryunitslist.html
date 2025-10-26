@@ -24,6 +24,7 @@
 
       <!-- Search Bar -->
       <app-search-bar
+        class="mb-3"
         [placeholder]="'Search delivery units by name, code, description, or head...'"
         [backgroundColor]="'bg-white'"
         [border]="'border'"
@@ -38,12 +39,10 @@
   <app-table
     [columns]="columns"
     [data]="filteredDeliveryUnits"
-    [showCheckbox]="true"
+    [showCheckbox]="false"
     [itemsPerPage]="10"
-    [rowClickAction]="'select'"
     [resetPagination]="resetPagination"
     (actionClick)="onActionClick($event)"
-    (selectionChange)="onSelectionChange($event)"
   >
   </app-table>
 
@@ -79,7 +78,7 @@
       </div>
 
       <!-- Form Content -->
-      <form (ngSubmit)="onCreateDeliveryUnit($event)" class="space-y-4">
+      <form (ngSubmit)="onCloseModal()" class="space-y-4">
         <!-- DU Name and Code Row -->
         <div class="grid grid-cols-2 gap-4">
           <div>
@@ -187,19 +186,33 @@
 
         <!-- Action Buttons -->
         <div class="flex justify-end gap-3 pt-4">
-          <button
-            type="button"
-            (click)="onCloseModal()"
-            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            {{ isEditMode ? 'Update Delivery Unit' : 'Create Delivery Unit' }}
-          </button>
+          <app-custom-button
+            label="Cancel"
+            bgClass="bg-white"
+            textColor="text-gray-700"
+            borderClass="border border-gray-300"
+            hoverClass="hover:bg-gray-50"
+            height="h-9"
+            padding="px-4"
+            fontSize="text-sm"
+            fontWeight="font-medium"
+            rounded="rounded-lg"
+            (action)="onCloseModal()"
+          ></app-custom-button>
+
+          <app-custom-button
+            [label]="isEditMode ? 'Update Delivery Unit' : 'Create Delivery Unit'"
+            bgClass="bg-blue-600"
+            textColor="text-white"
+            borderClass="border-none"
+            hoverClass="hover:bg-blue-700"
+            height="h-9"
+            padding="px-4"
+            fontSize="text-sm"
+            fontWeight="font-medium"
+            rounded="rounded-lg"
+            (action)="onCloseModal()"
+          ></app-custom-button>
         </div>
       </form>
     </div>

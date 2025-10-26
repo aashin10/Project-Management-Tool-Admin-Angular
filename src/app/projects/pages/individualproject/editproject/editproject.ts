@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-// import { ProjectService } from 'src/app/shared/services/project.service'; // Uncomment and adjust path if you have a service
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Sectiontitle } from '../../../../shared/sectiontitle/sectiontitle';
@@ -8,6 +7,8 @@ import { BasicInformationComponent } from '../../../pages/createproject/basicinf
 import { TeamOrganizationComponent } from '../../../pages/createproject/teaminfo/teaminfo';
 import { Additionalinfo } from '../../../pages/createproject/additionalinfo/additionalinfo';
 import { CustomButton } from '../../../../shared/custom-button/custom-button';
+import { ProjectsService, Project } from '../../../../shared/services/projects.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-editproject',
@@ -55,7 +56,8 @@ export class Editproject implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    // private projectService: ProjectService // Uncomment if you have a service
+    private projectsService: ProjectsService,
+    private toastr: ToastrService
   ) {}
 
   ngOnInit() {
@@ -65,33 +67,18 @@ export class Editproject implements OnInit {
   }
 
   loadProjectData() {
-    // Replace with actual API/service call
-    // Example using a service:
-    // this.projectService.getProjectById(this.projectId).subscribe(project => {
-    //   this.projectName = project.name;
-    //   this.projectKey = project.key;
-    //   this.description = project.description;
-    //   this.organisationName = project.organisationName;
-    //   this.pocEmail = project.pocEmail;
-    //   this.phoneNumber = project.phoneNumber;
-    //   this.manager = project.manager;
-    //   this.deliveryUnit = project.deliveryUnit;
-    //   this.additionalFields = project.additionalFields;
-    // });
-
-    // For now, using mock data (remove this when you connect to backend)
-    this.projectName = 'Atlasss App';
-    this.projectKey = 'ATL';
-    this.description = 'Mobile application for atlas navigation and mapping';
-    this.organisationName = 'Tech Solutions Inc';
-    this.pocEmail = 'john.doe@techsolutions.com';
-    this.phoneNumber = '+1-555-0123';
-    this.manager = 'John Smith';
-    this.deliveryUnit = 'Mobile Development';
-    this.additionalFields = [
-      { name: 'Budget', value: '$50,000' },
-      { name: 'Timeline', value: '6 months' }
-    ];
+    const project = this.projectsService.getProjectById(this.projectId);
+    if (project) {
+      this.projectName = project.name;
+      this.projectKey = project.projectCode;
+      this.description = project.additionalInformation?.find(info => info.name === 'Description')?.value || '';
+      this.organisationName = project.organisationName || '';
+      this.pocEmail = project.pocEmail || '';
+      this.phoneNumber = project.pocPhone || '';
+      this.manager = project.projectManager;
+      this.deliveryUnit = project.deliveryUnit;
+      this.additionalFields = project.additionalInformation || [];
+    }
   }
 
   // Event handlers for form changes
@@ -132,25 +119,47 @@ export class Editproject implements OnInit {
   }
 
   onUpdateProject() {
-    // Implement project update logic
-    console.log('Updating project:', {
-      id: this.projectId,
-      projectName: this.projectName,
-      projectKey: this.projectKey,
+    // Get the current project to preserve fields not being edited
+    const currentProject = this.projectsService.getProjectById(this.projectId);
+    
+    if (!currentProject) {
+      console.error('Project not found');
+      return;
+    }
+
+    // Update the project using the service
+    const success = this.projectsService.updateProject(this.projectId, {
+      name: this.projectName,
+      projectCode: this.projectKey,
       description: this.description,
       organisationName: this.organisationName,
       pocEmail: this.pocEmail,
-      phoneNumber: this.phoneNumber,
-      manager: this.manager,
+      pocPhone: this.phoneNumber,
+      projectManager: this.manager,
       deliveryUnit: this.deliveryUnit,
-      additionalFields: this.additionalFields
+      additionalInformation: this.additionalFields
     });
-    // Show success message
-    this.showSuccess = true;
-    setTimeout(() => {
-      this.showSuccess = false;
-      this.router.navigate(['/projects', this.projectId]);
-    }, 1800);
+
+    if (success) {
+      console.log('Project updated successfully');
+      // Show success message
+      this.showSuccess = true;
+      this.toastr.success(
+        `${this.projectName} updated successfully`,
+        '',
+        {
+          timeOut: 3000,
+          progressBar: true,
+          closeButton: true
+        }
+      );
+      setTimeout(() => {
+        this.showSuccess = false;
+        this.router.navigate(['/projects']);
+      }, 1800);
+    } else {
+      console.error('Failed to update project');
+    }
   }
 
   onEditTeamMembers() {
