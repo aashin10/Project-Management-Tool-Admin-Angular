@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { ToastrService } from 'ngx-toastr';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
@@ -39,6 +40,10 @@ interface Role {
 })
 export class Roleslist {
   isModalOpen = false;
+  showDeleteModal = false;
+  roleToDelete: Role | null = null;
+  deleteIndex: number = -1;
+  constructor(private toastr: ToastrService) {}
   isEditMode = false;
   editingIndex: number = -1;
   
@@ -223,21 +228,7 @@ export class Roleslist {
     }
   }
 
-  // Handle delete button click
-  handleDeleteClick(role: Role, event: Event) {
-    event.stopPropagation();
-    if (role.isDefault) {
-      return;
-    }
-    
-    const index = this.roles.findIndex(r => 
-      r.roleInfo.name === role.roleInfo.name && r.created === role.created
-    );
-    
-    if (index !== -1) {
-      this.deleteRole(index);
-    }
-  }
+
 
   // ✏️ Edit role (prefills modal)
   editRole(role: Role, index: number) {
@@ -315,7 +306,15 @@ export class Roleslist {
         users: this.roles[this.editingIndex].users, // Keep existing user count
         created: this.roles[this.editingIndex].created // Keep original creation date
       };
-      alert('Role updated successfully!');
+      this.toastr.success(
+        `${roleToSave.roleInfo.name} updated successfully`,
+        '',
+        {
+          timeOut: 3000,
+          progressBar: true,
+          closeButton: true
+        }
+      );
     } else {
       // Create new role
       this.roles.push({
@@ -323,7 +322,15 @@ export class Roleslist {
         users: 0,
         created: new Date().toISOString().split('T')[0]
       });
-      alert('Role created successfully!');
+      this.toastr.success(
+        `${roleToSave.roleInfo.name} created successfully`,
+        '',
+        {
+          timeOut: 3000,
+          progressBar: true,
+          closeButton: true
+        }
+      );
     }
  
     this.filteredRoles = [...this.roles];
@@ -331,19 +338,38 @@ export class Roleslist {
   }
  
   // 🗑️ Delete role
-  deleteRole(index: number) {
-    const role = this.roles[index];
-    
-    // Don't allow deleting default roles
-    if (role.isDefault) {
-      return;
-    }
+  handleDeleteClick(role: Role, event: Event) {
+    event.stopPropagation();
+    if (role.isDefault) return;
+    this.roleToDelete = role;
+    this.deleteIndex = this.roles.findIndex(r => r.roleInfo.name === role.roleInfo.name && r.created === role.created);
+    this.showDeleteModal = true;
+  }
 
-    if (confirm(`Delete role "${role.roleInfo.name}"?`)) {
-      this.roles.splice(index, 1);
+  confirmDeleteRole() {
+    if (this.deleteIndex > -1) {
+      const deletedRole = this.roles[this.deleteIndex];
+      this.roles.splice(this.deleteIndex, 1);
       this.filteredRoles = [...this.roles];
-      alert('Role deleted successfully!');
+      this.toastr.success(
+        `${deletedRole.roleInfo.name} deleted successfully`,
+        '',
+        {
+          timeOut: 3000,
+          progressBar: true,
+          closeButton: true
+        }
+      );
     }
+    this.showDeleteModal = false;
+    this.roleToDelete = null;
+    this.deleteIndex = -1;
+  }
+
+  cancelDeleteRole() {
+    this.showDeleteModal = false;
+    this.roleToDelete = null;
+    this.deleteIndex = -1;
   }
  
   closeModal() {
@@ -385,7 +411,10 @@ export class Roleslist {
     if (action === 'edit') {
       this.editRole(row, index);
     } else if (action === 'delete') {
-      this.deleteRole(index);
+      // Use modal-based delete confirmation
+      this.roleToDelete = row;
+      this.deleteIndex = index;
+      this.showDeleteModal = true;
     }
   }
 }
