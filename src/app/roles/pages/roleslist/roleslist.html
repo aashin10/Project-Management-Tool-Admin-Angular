@@ -70,6 +70,21 @@
           (mouseleave)="hideActionTooltip()">
           <img src="images/delete.svg" class="w-4 h-4" alt="Delete" />
         </button>
+
+<!-- Delete Confirmation Modal -->
+<div *ngIf="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center" style="background-color: rgba(0, 0, 0, 0.1);">
+  <div class="bg-white rounded-lg shadow-lg p-8 max-w-md w-full relative">
+    <button (click)="cancelDeleteRole()" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+    <h2 class="text-xl font-semibold mb-2">Confirm Deletion</h2>
+  <p class="mb-6">Are you sure you want to delete the role <b>"{{ roleToDelete?.roleInfo?.name || '' }}"</b>? This action cannot be undone.</p>
+    <div class="flex justify-end gap-3">
+      <button (click)="cancelDeleteRole()" class="px-4 py-2 rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">Cancel</button>
+      <button (click)="confirmDeleteRole()" class="px-4 py-2 rounded bg-red-600 text-white font-semibold hover:bg-red-700">Delete</button>
+    </div>
+  </div>
+</div>
       </div>
     </div>
 
