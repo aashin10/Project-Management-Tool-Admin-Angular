@@ -24,7 +24,7 @@ export class ImportProjectCardList implements OnInit, OnChanges {
   paginatedProjects: ImportProjectMinimal[] = [];
 
   currentPage = 1;
-  itemsPerPage = 3;
+  itemsPerPage = 5;
 
   onProjectSelect(event: { selected: boolean; id: string }): void {
     // Find the project in the original projects array (this is the key fix)
