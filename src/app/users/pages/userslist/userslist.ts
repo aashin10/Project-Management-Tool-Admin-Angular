@@ -9,6 +9,7 @@ import { Modal } from '../../../shared/modal/modal';
 import { UsersApi, User } from '../../services/users-api';
 import { ToastrService } from 'ngx-toastr';
 import { NotificationService } from '../../../shared/services/notification.service';
+import * as bcrypt from 'bcryptjs';
 
 
 interface Project {
@@ -104,13 +105,12 @@ export class Userslist implements OnInit {
   };
 
   typeOptions = [
-    { label: 'Internal', value: 'internal' },
-    { label: 'External', value: 'external' },
-    { label: 'Customer', value: 'customer' }
+    { label: 'Internal', value: 'Internal' },
+    { label: 'External', value: 'External' }
   ];
   statusOptions = [
-    { label: 'Active', value: 'active' },
-    { label: 'Inactive', value: 'inactive' }
+    { label: 'Active', value: 'Active' },
+    { label: 'Inactive', value: 'Inactive' }
   ];
 
   onAddUser() {
@@ -157,25 +157,97 @@ export class Userslist implements OnInit {
       return;
     }
     
-    // Add user logic here
-    console.log('New user:', this.newUser);
+    // Extract first name and last name from full name
+    const nameParts = this.newUser.fullName.trim().split(/\s+/);
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts[1] || '';
     
-    // Show success toaster notification
-    this.toastr.success('User Added Successfully', '', {
-      timeOut: 3000,
-      progressBar: true,
-      closeButton: true,
-    });
+    // Generate avatar URL
+    const avatarUsername = lastName ? `${firstName}+${lastName}` : firstName;
+    const avatarUrl = `https://avatar.iran.liara.run/username?username=${avatarUsername}`;
     
-    // Add notification to notification service (stored in localStorage)
-    this.notificationService.addNotification(
-      'success',
-      `User "${this.newUser.fullName}" has been added successfully.`,
-      'User Added'
-    );
+    // Generate password hash using bcrypt
+    const passwordText = `${lastName || firstName}@experionglobal.123`;
+    const saltRounds = 10;
+    const passwordHash = bcrypt.hashSync(passwordText, saltRounds);
     
-    // Close modal and reset form
+    // Map status to is_active boolean (Active = true, Inactive = false)
+    const isActive = this.newUser.status === 'Active';
+    
+    // Prepare user data for API
+    const createUserData = {
+      name: this.newUser.fullName.trim(),
+      email: this.newUser.email.trim(),
+      jira_id: this.newUser.jiraId?.trim() || undefined,
+      type: this.newUser.type, // Already capitalized: "Internal" or "External"
+      status: this.newUser.status, // "Active" or "Inactive"
+      is_active: isActive,
+      avatar_url: avatarUrl,
+      is_super_admin: false,
+      password_hash: passwordHash,
+      created_by: 1
+    };
+    
+    console.log('Creating new user:', createUserData);
+    
+    // Show loading state first
+    this.isLoading = true;
+    
+    // Close modal immediately
     this.closeAddUserModal();
+    
+    // Call API to create user
+    this.usersApi.createUser(createUserData).subscribe({
+      next: (response) => {
+        console.log('User created successfully:', response);
+        this.isLoading = false;
+        
+        // Show success toaster notification
+        this.toastr.success('User Added Successfully', '', {
+          timeOut: 3000,
+          progressBar: true,
+          closeButton: true,
+        });
+        
+        // Add notification to notification service (stored in localStorage)
+        this.notificationService.addNotification(
+          'success',
+          `User "${createUserData.name}" has been added successfully.`,
+          'User Added'
+        );
+        
+        // Clear cache and refresh the users list to show the new user
+        this.usersApi.refreshUsers().subscribe({
+          next: (users) => {
+            this.users = users;
+            this.isLoading = false;
+            this.cdr.detectChanges();
+          },
+          error: (error) => {
+            console.error('Failed to refresh users after creation:', error);
+            this.isLoading = false;
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Failed to create user:', error);
+        console.log('Component: Error object:', error);
+        console.log('Component: Error.message:', error.message);
+        console.log('Component: Error type:', typeof error);
+        this.isLoading = false;
+        
+        // Extract the error message
+        const errorMessage = error?.message || 'Failed to create user';
+        console.log('Component: Final error message to display:', errorMessage);
+        
+        // Show error toaster notification
+        this.toastr.error(errorMessage, 'Error', {
+          timeOut: 5000,
+          progressBar: true,
+          closeButton: true,
+        });
+      }
+    });
   }
   onImport() {
     // Show import modal
@@ -633,30 +705,99 @@ projects: Project[] = [
   }
 
   confirmDelete() {
+    // Collect user IDs to delete
+    let userIdsToDelete: number[] = [];
+    let userNamesToDelete: string[] = [];
+    
     if (this.pendingDeleteAction === 'bulk') {
-      // Delete selected users
-      this.selectedUsers.forEach(selectedUser => {
-        const index = this.users.findIndex(u => 
+      // Collect IDs from selected users
+      userIdsToDelete = this.selectedUsers.map(selectedUser => {
+        // Find the actual user object to get the ID
+        const user = this.users.find(u => 
           u.user === selectedUser.user.name && u.email === selectedUser.user.email
         );
-        if (index !== -1) {
-          this.users.splice(index, 1);
+        if (user) {
+          userNamesToDelete.push(user.user);
+          return user.id;
         }
-      });
-      this.selectedUsers = [];
-      console.log('Deleted users:', this.selectedUsers);
+        return null;
+      }).filter(id => id !== null) as number[];
     } else if (this.pendingDeleteAction === 'single' && this.userToDelete) {
-      // Delete single user
-      const index = this.users.findIndex(u => 
+      // Find the user to get the ID
+      const user = this.users.find(u => 
         u.user === this.userToDelete.user.name && u.email === this.userToDelete.user.email
       );
-      if (index !== -1) {
-        this.users.splice(index, 1);
+      if (user) {
+        userIdsToDelete = [user.id];
+        userNamesToDelete = [user.user];
       }
-      this.userToDelete = null;
-      console.log('Deleted user:', this.userToDelete);
     }
+    
+    // Close modal immediately
     this.closeDeleteConfirmModal();
+    
+    if (userIdsToDelete.length === 0) {
+      this.toastr.error('No users selected for deletion', 'Error');
+      return;
+    }
+    
+    // Show loading state
+    this.isLoading = true;
+    
+    // Call delete API
+    this.usersApi.deleteUsers(userIdsToDelete).subscribe({
+      next: (response) => {
+        console.log('Users deleted successfully:', response);
+        this.isLoading = false;
+        
+        const userCount = userIdsToDelete.length;
+        const successMessage = userCount === 1 
+          ? `User "${userNamesToDelete[0]}" has been deleted successfully.`
+          : `${userCount} users have been deleted successfully.`;
+        
+        // Show success toaster notification
+        this.toastr.success('User(s) Deleted Successfully', '', {
+          timeOut: 3000,
+          progressBar: true,
+          closeButton: true,
+        });
+        
+        // Add notification to notification service
+        this.notificationService.addNotification(
+          'success',
+          successMessage,
+          'User Deleted'
+        );
+        
+        // Clear selections
+        this.selectedUsers = [];
+        this.userToDelete = null;
+        
+        // Clear cache and refresh the users list
+        this.usersApi.refreshUsers().subscribe({
+          next: (users) => {
+            this.users = users;
+            this.isLoading = false;
+            this.cdr.detectChanges();
+          },
+          error: (error) => {
+            console.error('Failed to refresh users after deletion:', error);
+            this.isLoading = false;
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Failed to delete users:', error);
+        this.isLoading = false;
+        
+        // Show error toaster notification
+        this.toastr.error(error.message || 'Failed to delete users', 'Error', {
+          timeOut: 5000,
+          progressBar: true,
+          closeButton: true,
+        });
+      }
+    });
   }
 
   closeDeleteConfirmModal() {
