@@ -61,7 +61,7 @@ export class ProjectActivityTimelineComponent implements OnInit {
     
     this.chart = {
       series: [{
-        name: 'Active Projects',
+        name: 'Projects',
         data: data.map(item => item.projects)
       }],
       chart: {
@@ -120,7 +120,7 @@ export class ProjectActivityTimelineComponent implements OnInit {
       },
       yaxis: {
         title: {
-          text: 'Active Projects',
+          text: 'Projects  Created',
           style: {
             fontSize: '12px',
             fontWeight: 400,
