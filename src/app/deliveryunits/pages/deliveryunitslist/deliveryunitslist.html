@@ -1,4 +1,122 @@
 <div class="content-area">
+  <!-- Success Notification -->
+  <div *ngIf="showNotification" class="fixed top-4 right-4 z-50 animate-slide-in">
+    <div
+      class="flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border min-w-[300px] max-w-[400px]"
+      [ngClass]="{
+        'bg-green-50 border-green-200': notificationType === 'success',
+        'bg-red-50 border-red-200': notificationType === 'error',
+        'bg-yellow-50 border-yellow-200': notificationType === 'warning',
+        'bg-blue-50 border-blue-200': notificationType === 'info'
+      }"
+    >
+      <!-- Icon -->
+      <div class="flex-shrink-0">
+        <!-- Success Icon -->
+        <svg
+          *ngIf="notificationType === 'success'"
+          class="w-5 h-5 text-green-600"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 13l4 4L19 7"
+          />
+        </svg>
+        <!-- Error Icon -->
+        <svg
+          *ngIf="notificationType === 'error'"
+          class="w-5 h-5 text-red-600"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+        <!-- Warning Icon -->
+        <svg
+          *ngIf="notificationType === 'warning'"
+          class="w-5 h-5 text-yellow-600"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+          />
+        </svg>
+        <!-- Info Icon -->
+        <svg
+          *ngIf="notificationType === 'info'"
+          class="w-5 h-5 text-blue-600"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      </div>
+
+      <!-- Message -->
+      <div class="flex-1">
+        <p
+          class="text-sm font-medium"
+          [ngClass]="{
+            'text-green-800': notificationType === 'success',
+            'text-red-800': notificationType === 'error',
+            'text-yellow-800': notificationType === 'warning',
+            'text-blue-800': notificationType === 'info'
+          }"
+        >
+          {{ notificationMessage }}
+        </p>
+      </div>
+
+      <!-- Close Button -->
+      <button
+        (click)="hideNotification()"
+        class="flex-shrink-0 p-1 rounded hover:bg-black hover:bg-opacity-5 transition-colors"
+      >
+        <svg
+          class="w-4 h-4"
+          [ngClass]="{
+            'text-green-600': notificationType === 'success',
+            'text-red-600': notificationType === 'error',
+            'text-yellow-600': notificationType === 'warning',
+            'text-blue-600': notificationType === 'info'
+          }"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+    </div>
+  </div>
+
   <!-- Header Section -->
   <div class="header">
     <div class="header-content">
@@ -78,7 +196,7 @@
       </div>
 
       <!-- Form Content -->
-      <form (ngSubmit)="onCloseModal()" class="space-y-4">
+      <div class="space-y-4">
         <!-- DU Name and Code Row -->
         <div class="grid grid-cols-2 gap-4">
           <div>
@@ -211,10 +329,95 @@
             fontSize="text-sm"
             fontWeight="font-medium"
             rounded="rounded-lg"
-            (action)="onCloseModal()"
+            (action)="onSaveDeliveryUnit()"
           ></app-custom-button>
         </div>
-      </form>
+      </div>
+    </div>
+  </app-modal>
+
+  <!-- Delete Confirmation Modal -->
+  <app-modal [isOpen]="isDeleteModalOpen" (close)="onCloseDeleteModal()">
+    <div class="p-6">
+      <!-- Modal Header -->
+      <div class="flex items-start gap-3 mb-6">
+        <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
+          <svg class="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900">Confirm Deletion</h2>
+          <p class="text-sm text-gray-500 mt-1">
+            Are you sure you want to delete the delivery unit
+            <span class="font-semibold text-gray-900">"{{ duToDelete?.duInfo?.name }}"</span>? This
+            action cannot be undone.
+          </p>
+        </div>
+      </div>
+
+      <!-- Warning Message -->
+      <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+        <div class="flex gap-3">
+          <svg
+            class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <div class="text-sm text-red-800">
+            <p class="font-medium mb-1">This will permanently delete:</p>
+            <ul class="list-disc list-inside space-y-1 ml-2">
+              <li>All delivery unit information and settings</li>
+              <li>Associated team member assignments</li>
+              <li>Project associations ({{ duToDelete?.activeProjects }} active projects)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex justify-end gap-3">
+        <app-custom-button
+          label="Cancel"
+          bgClass="bg-white"
+          textColor="text-gray-700"
+          borderClass="border border-gray-300"
+          hoverClass="hover:bg-gray-50"
+          height="h-9"
+          padding="px-4"
+          fontSize="text-sm"
+          fontWeight="font-medium"
+          rounded="rounded-lg"
+          (action)="onCloseDeleteModal()"
+        ></app-custom-button>
+
+        <app-custom-button
+          label="Delete"
+          bgClass="bg-red-600"
+          textColor="text-white"
+          borderClass="border-none"
+          hoverClass="hover:bg-red-700"
+          height="h-9"
+          padding="px-4"
+          fontSize="text-sm"
+          fontWeight="font-medium"
+          rounded="rounded-lg"
+          (action)="confirmDelete()"
+        ></app-custom-button>
+      </div>
     </div>
   </app-modal>
 </div>
