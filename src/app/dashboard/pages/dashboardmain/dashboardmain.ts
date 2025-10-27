@@ -68,35 +68,42 @@ redirectToUserSide() {
 
   projectStatusData: ProjectStatusData[] = [
     {
-      deliveryUnit: 'Engineering',
+      deliveryUnit: 'Automotive. Travel & Transportation, Construction Solutions',
       inProgress: 8,
       completed: 6,
       onHold: 2,
       total: 16
     },
     {
-      deliveryUnit: 'Design',
+      deliveryUnit: 'Digital & Commerce Solutions',
       inProgress: 4,
       completed: 3,
       onHold: 1,
       total: 8
     },
     {
-      deliveryUnit: 'Product',
+      deliveryUnit: 'Retail & Warehouse Automation Solutions',
       inProgress: 3,
       completed: 2,
       onHold: 1,
       total: 6
     },
     {
-      deliveryUnit: 'Quality Assurance',
+      deliveryUnit: 'Data & AI Solutions',
       inProgress: 2,
       completed: 2,
       onHold: 1,
       total: 5
     },
     {
-      deliveryUnit: 'DevOps',
+      deliveryUnit: 'Experience Design Studio',
+      inProgress: 1,
+      completed: 1,
+      onHold: 0,
+      total: 2
+    },
+        {
+      deliveryUnit: 'Experience Design Studio',
       inProgress: 1,
       completed: 1,
       onHold: 0,
