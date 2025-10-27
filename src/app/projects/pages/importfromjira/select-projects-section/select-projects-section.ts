@@ -7,6 +7,7 @@ import { ImportProjectCardList } from '../import-projects-list/import-project-ca
 import { JiraService } from '../services/jira-service';
 import { NotificationService } from '../../../../shared/services/notification.service';
 import { ToastrService } from 'ngx-toastr';
+import { JiraApi } from '../services/jira-api';
 
 @Component({
   selector: 'app-select-projects-section',
@@ -17,6 +18,7 @@ import { ToastrService } from 'ngx-toastr';
 export class SelectProjectsSection implements OnInit {
   constructor(
     private jiraService: JiraService,
+    private jiraApi: JiraApi,
     private cdr: ChangeDetectorRef,
     private toastr: ToastrService,
     private notificationService: NotificationService
@@ -104,6 +106,40 @@ export class SelectProjectsSection implements OnInit {
     this.cdr.detectChanges();
   }
 
-  
- 
+  get selectedProjectCount(): number {
+    return this.allProjects.filter((project) => project.selected).length;
   }
+
+  get allSelected(): boolean {
+    return this.allProjects.length > 0 && this.allProjects.every((project) => project.selected);
+  }
+
+  toggleSelectAll(): void {
+    const shouldSelect = !this.allSelected;
+    this.projects.forEach((project) => (project.selected = shouldSelect));
+    this.allProjects.forEach((project) => (project.selected = shouldSelect));
+    this.cdr.detectChanges();
+  }
+
+  importProjects(): void {
+    const selectedProjects = this.allProjects.filter((project) => project.selected);
+    if (selectedProjects.length === 0) {
+      this.toastr.warning('Please select at least one project to import.', 'No Projects Selected');
+      return;
+    }
+    this.jiraApi
+      .importProjectsFromJira(
+        this.cloudIds![0].id,
+        sessionStorage.getItem('jira_access_token')!,
+        selectedProjects.map((project) => project.id)
+      )
+      .subscribe({
+        next: (response) => {
+          this.toastr.success('Projects imported successfully!', 'Import Successful');
+        },
+        error: (error) => {
+          this.toastr.error('Failed to import projects.', 'Import Failed');
+        },
+      });
+  }
+}

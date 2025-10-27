@@ -22,10 +22,10 @@
       </option>
     </select>
     <app-custom-button
-      label="Select All"
-      shortLabel="Select All"
+      [label]="allSelected ? 'Unselect All' : 'Select All'"
+      [shortLabel]="allSelected ? 'Unselect All' : 'Select All'"
       bgClass="border border-gray-300 hover:bg-gray-50 ml-4"
-      (action)="selectAllProjects()"
+      (action)="toggleSelectAll()"
     ></app-custom-button>
   </div>
 
@@ -41,7 +41,8 @@
 
   <div class="w-full md:max-w-md mt-4 flex justify-center">
     <app-custom-button
-      label="Import Projects"
+      label="Import Projects ({{ selectedProjectCount }})"
+      (action)="importProjects()"
       class="w-3/4 flex justify-center items-center"
       shortLabel="Import"
       bgClass="bg-[#0052cc] border border-gray-300 w-3/4"
