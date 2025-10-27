@@ -33,17 +33,17 @@ export class Settingsmain {
   superAdmins: SuperAdmin[] = [
     {
       id: '1',
-      name: 'John Doe',
-      email: 'john.doe@company.com',
+      name: 'Sharath Shetty',
+      email: 'sharat.shetty@company.com',
       addedDate: 'Jan 15, 2024',
-      initials: 'JD',
+      initials: 'SS',
       initialsColor: 'bg-blue-100 text-blue-700',
       isActive: true
     },
     {
       id: '2',
-      name: 'Jane Smith',
-      email: 'jane.smith@company.com',
+      name: 'Aiman Khan',
+      email: 'aiman.khan@company.com',
       addedDate: 'Feb 20, 2024',
       initials: 'JS',
       initialsColor: 'bg-blue-100 text-blue-700',
