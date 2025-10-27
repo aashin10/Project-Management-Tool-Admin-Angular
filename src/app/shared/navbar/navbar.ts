@@ -23,6 +23,7 @@ import { NotificationService } from '../services/notification.service';
 export class Navbar implements OnInit, OnDestroy {
   isUserMenuVisible = false;
   isNotificationDropdownVisible = false;
+  isSearchBarVisible = false;
   unreadNotificationCount = 0;
   private subscription!: Subscription;
 
@@ -45,6 +46,16 @@ export class Navbar implements OnInit, OnDestroy {
     // Close notification dropdown when opening user menu
     if (this.isUserMenuVisible) {
       this.isNotificationDropdownVisible = false;
+      this.isSearchBarVisible = false;
+    }
+  }
+
+  toggleSearchBar() {
+    this.isSearchBarVisible = !this.isSearchBarVisible;
+    // Close user menu and notification dropdown when opening search bar
+    if (this.isSearchBarVisible) {
+      this.isUserMenuVisible = false;
+      this.isNotificationDropdownVisible = false;
     }
   }
 
@@ -53,6 +64,7 @@ export class Navbar implements OnInit, OnDestroy {
     // Close user menu when opening notification dropdown
     if (this.isNotificationDropdownVisible) {
       this.isUserMenuVisible = false;
+      this.isSearchBarVisible = false;
     }
   }
 
@@ -63,6 +75,7 @@ export class Navbar implements OnInit, OnDestroy {
   } | null = null;
 
   onSearch(query: string) {
+    this.isSearchBarVisible = true;
     // Replace with actual search logic
     this.searchResults = {
       projects: this.searchProjects(query),
@@ -103,6 +116,7 @@ export class Navbar implements OnInit, OnDestroy {
     const notificationDropdown = target.closest('.notification-dropdown');
     const userMenu = target.closest('.dropdown-menu');
     const actionButtons = target.closest('app-action-buttons');
+    const searchBar = target.closest('app-search-bar');
 
     // Close notification dropdown if clicking outside
     if (!notificationDropdown && !actionButtons && this.isNotificationDropdownVisible) {
@@ -112,6 +126,10 @@ export class Navbar implements OnInit, OnDestroy {
     // Close user menu if clicking outside
     if (!userMenu && !actionButtons && this.isUserMenuVisible) {
       this.isUserMenuVisible = false;
+    }
+
+    if (!searchBar && !actionButtons && this.isSearchBarVisible) {
+      this.isSearchBarVisible = false;
     }
   }
 }
