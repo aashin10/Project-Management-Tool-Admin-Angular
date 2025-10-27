@@ -54,12 +54,23 @@ export class AuthorizeWithJiraSection implements OnInit {
     'client_id=' +
     environment.jiraClientId +
     '&' +
-    'scope=read:jira-work read:jira-user read:me&' +
+    'scope=' +
+    'read:jira-work ' +
+    'read:jira-user ' +
+    'read:me ' +
+    'read:board-scope:jira-software ' +
+    'read:project:jira ' +
+    'read:epic:jira-software ' +
+    'read:project-role:jira ' +
+    'read:sprint:jira-software ' +
+    'read:issue:jira ' +
+    'read:issue-details:jira&' +
     'redirect_uri=' +
     environment.jiraRedirectUri +
     '&' +
     'response_type=code&' +
-    'prompt=consent';
+    'prompt=consent&' +
+    'state=secureRandomState123';
 
   onAuthorize() {
     window.location.href = this.url;
