@@ -19,10 +19,17 @@ export class Deliveryunitslist {
   searchQuery: string = '';
   filteredDeliveryUnits: any[] = [];
   isModalOpen: boolean = false;
+  isDeleteModalOpen: boolean = false;
+  duToDelete: any = null;
   selectedDeliveryUnits: any[] = [];
   private _resetPagination: boolean = false;
   isEditMode: boolean = false;
   editingDUCode: string = '';
+  
+  // Notification properties
+  showNotification: boolean = false;
+  notificationMessage: string = '';
+  notificationType: 'success' | 'error' | 'warning' | 'info' = 'success';
 
   get resetPagination(): boolean {
     return this._resetPagination;
@@ -127,6 +134,23 @@ export class Deliveryunitslist {
     this.updateFilteredDeliveryUnits();
   }
 
+  // Show notification method
+  displayNotification(message: string, type: 'success' | 'error' | 'warning' | 'info' = 'success'): void {
+    this.notificationMessage = message;
+    this.notificationType = type;
+    this.showNotification = true;
+
+    // Auto-hide notification after 3 seconds
+    setTimeout(() => {
+      this.hideNotification();
+    }, 3000);
+  }
+
+  // Hide notification method
+  hideNotification(): void {
+    this.showNotification = false;
+  }
+
   onAddNewDU(): void {
     this.isModalOpen = true;
   }
@@ -136,6 +160,11 @@ export class Deliveryunitslist {
     this.isEditMode = false;
     this.editingDUCode = '';
     this.resetForm();
+  }
+
+  onCloseDeleteModal(): void {
+    this.isDeleteModalOpen = false;
+    this.duToDelete = null;
   }
 
   resetForm(): void {
@@ -178,45 +207,108 @@ export class Deliveryunitslist {
 
   validateForm(): boolean {
     if (!this.newDU.name.trim()) {
-      alert('Please enter a DU name');
+      this.displayNotification('Please enter a DU name', 'error');
       return false;
     }
     if (!this.newDU.code.trim()) {
-      alert('Please enter a DU code');
+      this.displayNotification('Please enter a DU code', 'error');
       return false;
     }
     // Validate DU code format
     const codePattern = /^[A-Z]{2,4}-\d{3}$/;
     if (!codePattern.test(this.newDU.code.toUpperCase())) {
-      alert('DU Code must be in format: 2-4 letters, dash, 3 digits (e.g., ENG-001)');
+      this.displayNotification('DU Code must be in format: 2-4 letters, dash, 3 digits (e.g., ENG-001)', 'error');
       return false;
     }
     // Check for duplicate code (skip check if editing the same DU)
     if (!this.isEditMode || this.newDU.code.toUpperCase() !== this.editingDUCode) {
       if (this.deliveryUnits.some(du => du.duCode === this.newDU.code.toUpperCase())) {
-        alert('This DU code already exists. Please use a unique code.');
+        this.displayNotification('This DU code already exists. Please use a unique code.', 'error');
         return false;
       }
     }
     if (!this.newDU.description.trim()) {
-      alert('Please enter a description');
+      this.displayNotification('Please enter a description', 'error');
       return false;
     }
     if (!this.newDU.headName.trim()) {
-      alert('Please enter the head name');
+      this.displayNotification('Please enter the head name', 'error');
       return false;
     }
     if (!this.newDU.headEmail.trim()) {
-      alert('Please enter the head email');
+      this.displayNotification('Please enter the head email', 'error');
       return false;
     }
     // Validate email format
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailPattern.test(this.newDU.headEmail)) {
-      alert('Please enter a valid email address');
+      this.displayNotification('Please enter a valid email address', 'error');
       return false;
     }
     return true;
+  }
+
+  onSaveDeliveryUnit(): void {
+    if (!this.validateForm()) {
+      return;
+    }
+
+    if (this.isEditMode) {
+      // Update existing delivery unit
+      const index = this.deliveryUnits.findIndex(du => du.duCode === this.editingDUCode);
+      if (index !== -1) {
+        this.deliveryUnits[index] = {
+          duInfo: {
+            initials: this.getInitials(this.newDU.name),
+            name: this.newDU.name,
+            subtitle: this.newDU.description,
+            bgColor: this.deliveryUnits[index].duInfo.bgColor // Keep original color
+          },
+          duCode: this.newDU.code.toUpperCase(),
+          duHead: {
+            avatar: this.getInitials(this.newDU.headName),
+            name: this.newDU.headName,
+            email: this.newDU.headEmail,
+            bgColor: 'bg-gray-200'
+          },
+          activeMembers: this.deliveryUnits[index].activeMembers,
+          activeProjects: this.deliveryUnits[index].activeProjects
+        };
+        
+        this.updateFilteredDeliveryUnits();
+        console.log('Delivery Unit updated successfully');
+        this.displayNotification('Delivery Unit updated successfully', 'success');
+      }
+    } else {
+      // Create new delivery unit
+      const newDeliveryUnit = {
+        duInfo: {
+          initials: this.getInitials(this.newDU.name),
+          name: this.newDU.name,
+          subtitle: this.newDU.description,
+          bgColor: this.getRandomColor()
+        },
+        duCode: this.newDU.code.toUpperCase(),
+        duHead: {
+          avatar: this.getInitials(this.newDU.headName),
+          name: this.newDU.headName,
+          email: this.newDU.headEmail,
+          bgColor: 'bg-gray-200'
+        },
+        activeMembers: '0',
+        activeProjects: '0'
+      };
+
+      // Add to the beginning of the array for visibility
+      this.deliveryUnits.unshift(newDeliveryUnit);
+      this.filteredDeliveryUnits = [...this.deliveryUnits];
+
+      console.log('Delivery Unit created successfully:', newDeliveryUnit);
+      this.displayNotification('Delivery Unit created successfully', 'success');
+    }
+    
+    // Close modal and reset form
+    this.onCloseModal();
   }
 
   onCreateDeliveryUnit(event: Event): void {
@@ -250,6 +342,7 @@ export class Deliveryunitslist {
         
         this.updateFilteredDeliveryUnits();
         console.log('Delivery Unit updated successfully');
+        this.displayNotification('Delivery Unit updated successfully', 'success');
       }
     } else {
       // Create new delivery unit
@@ -276,6 +369,7 @@ export class Deliveryunitslist {
       this.filteredDeliveryUnits = [...this.deliveryUnits];
 
       console.log('Delivery Unit created successfully:', newDeliveryUnit);
+      this.displayNotification('Delivery Unit created successfully', 'success');
     }
     
     // Close modal and reset form
@@ -365,15 +459,20 @@ export class Deliveryunitslist {
     // Handle null or malformed DU
     if (!du || !du.duInfo || !du.duInfo.name) return;
 
-    const confirmDelete = confirm(`Are you sure you want to delete ${du.duInfo.name}?`);
-    if (!confirmDelete) return;
+    // Store the DU to delete and open the confirmation modal
+    this.duToDelete = du;
+    this.isDeleteModalOpen = true;
+  }
 
-    this.deliveryUnits = this.deliveryUnits.filter(u => u.duCode !== du.duCode);
-    this.filteredDeliveryUnits = this.filteredDeliveryUnits.filter(u => u.duCode !== du.duCode);
+  confirmDelete(): void {
+    if (!this.duToDelete) return;
+
+    const duName = this.duToDelete.duInfo.name;
+    
+    this.deliveryUnits = this.deliveryUnits.filter(u => u.duCode !== this.duToDelete.duCode);
+    this.filteredDeliveryUnits = this.filteredDeliveryUnits.filter(u => u.duCode !== this.duToDelete.duCode);
+    
+    this.onCloseDeleteModal();
+    this.displayNotification(`${duName} deleted successfully`, 'success');
   }
 }
-
-// Backend integration code
-
-// ... existing imports
-// ... existing imports
