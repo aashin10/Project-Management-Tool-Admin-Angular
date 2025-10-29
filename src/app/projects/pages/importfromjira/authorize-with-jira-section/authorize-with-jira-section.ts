@@ -55,6 +55,7 @@ export class AuthorizeWithJiraSection implements OnInit {
     environment.jiraClientId +
     '&' +
     'scope=' +
+    'offline_access ' +
     'read:jira-work ' +
     'read:jira-user ' +
     'read:me ' +
@@ -90,7 +91,8 @@ export class AuthorizeWithJiraSection implements OnInit {
         return false;
       }
 
-      const now = Math.floor(Date.now() / 1000); // current time in seconds
+      const now = Math.floor(Date.now() / 1000);
+      this.cdr.detectChanges(); // current time in seconds
       return exp < now;
     } catch (error) {
       console.error('Invalid JWT format', error);

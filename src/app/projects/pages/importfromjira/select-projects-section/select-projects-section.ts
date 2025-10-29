@@ -8,6 +8,7 @@ import { JiraService } from '../services/jira-service';
 import { NotificationService } from '../../../../shared/services/notification.service';
 import { ToastrService } from 'ngx-toastr';
 import { JiraApi } from '../services/jira-api';
+import { ImportNavigationService } from '../services/import-navigation-service';
 
 @Component({
   selector: 'app-select-projects-section',
@@ -21,7 +22,8 @@ export class SelectProjectsSection implements OnInit {
     private jiraApi: JiraApi,
     private cdr: ChangeDetectorRef,
     private toastr: ToastrService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private navigationService: ImportNavigationService
   ) {}
 
   projects: any[] = [];
@@ -58,10 +60,12 @@ export class SelectProjectsSection implements OnInit {
         throw new Error('No accessible resources found');
       }
       this.cloudIds = ids;
+      this.selectedCloudId = ids[0].id;
       if (ids && ids.length > 0) {
         await this.fetchProjectsByCloudId(ids[0].id); // Load default cloudId
       }
-      this.projects = [...this.allProjects];
+      this.projects = this.allProjects.filter((project) => project.style === 'next-gen');
+      console.log('sdfsfd' + this.projects);
       this.loadingProjects = false;
       this.cdr.detectChanges();
     } else {
@@ -85,9 +89,11 @@ export class SelectProjectsSection implements OnInit {
         key: project.key,
         id: project.id,
         selected: false,
+        style: project.style,
       }));
 
-      this.projects = [...this.allProjects];
+      this.projects = this.allProjects.filter((project) => project.style === 'next-gen');
+      console.log('sdfsfd' + this.projects);
       this.loadingProjects = false;
       this.cdr.detectChanges();
     } else {
@@ -129,20 +135,24 @@ export class SelectProjectsSection implements OnInit {
       this.toastr.warning('Please select at least one project to import.', 'No Projects Selected');
       return;
     }
-    this.toastr.info('Import functionality is not yet implemented.', 'Import Projects');
-    // this.jiraApi
-    //   .importProjectsFromJira(
-    //     this.selectedCloudId,
-    //     sessionStorage.getItem('jira_access_token')!,
-    //     selectedProjects.map((project) => project.id)
-    //   )
-    //   .subscribe({
-    //     next: (response) => {
-    //       this.toastr.success('Projects imported successfully!', 'Import Successful');
-    //     },
-    //     error: (error) => {
-    //       this.toastr.error('Failed to import projects.', 'Import Failed');
-    //     },
-    //   });
+    alert(this.selectedCloudId);
+    this.navigationService.onNext();
+    //this.toastr.info('Import functionality is not yet implemented.', 'Import Projects');
+    this.jiraApi
+      .importProjectsFromJira(
+        this.selectedCloudId,
+        sessionStorage.getItem('jira_access_token')!,
+        selectedProjects.map((project) => project.id)
+      )
+      .subscribe({
+        next: (response) => {
+          this.navigationService.onNext();
+          this.cdr.detectChanges();
+          //this.toastr.success('Projects imported successfully!', 'Import Successful');
+        },
+        error: (error) => {
+          this.toastr.error('Failed to import projects.', 'Import Failed');
+        },
+      });
   }
 }

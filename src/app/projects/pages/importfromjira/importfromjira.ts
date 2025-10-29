@@ -49,7 +49,7 @@ export class Importfromjira implements OnInit {
             const response = await this.jiraService.exchangeToken(authorization_code);
             console.log('Token Exchange Response:', response);
             sessionStorage.setItem('jira_access_token', response.access_token);
-            this.toStep(3);
+            this.toStep(2);
             this.cdr.detectChanges();
             //Remove url params
             window.history.replaceState({}, document.title, window.location.pathname);
@@ -66,21 +66,21 @@ export class Importfromjira implements OnInit {
   importSteps = [
     {
       step: 1,
-      title: 'Import Users (Optional)',
-      description: 'Upload a CSV file to import users, or skip this step to import users later',
-      icon: Settings,
-    },
-    {
-      step: 2,
       title: 'Authorize with Jira',
       description: 'Sign in to your Jira account to access and import projects',
       icon: Database,
     },
     {
-      step: 3,
+      step: 2,
       title: 'Select Projects',
       description: 'Import users from your existing system',
       icon: Users,
+    },
+    {
+      step: 3,
+      title: 'Import Users (Optional)',
+      description: 'Upload a CSV file to import users, or skip this step to import users later',
+      icon: Settings,
     },
   ];
 
