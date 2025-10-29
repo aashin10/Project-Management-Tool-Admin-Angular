@@ -19,7 +19,7 @@ export interface PieChartSegment {
   endAngle: number;
 }
 
-type StatusType = 'In Progress' | 'Completed' | 'On Hold';
+type StatusType = 'Active' | 'Completed' | 'Inactive';
 
 @Component({
   selector: 'app-project-status',
@@ -40,9 +40,9 @@ export class ProjectStatusComponent implements OnInit {
 
   // Color scheme matching the screenshots
   private readonly colorScheme: Record<StatusType, { base: string; hover: string }> = {
-    'In Progress': { base: '#2563eb', hover: '#1d4ed8' },
+    'Active': { base: '#2563eb', hover: '#1d4ed8' },
     'Completed': { base: '#059669', hover: '#047857' },
-    'On Hold': { base: '#f59e0b', hover: '#d97706' }
+    'Inactive': { base: '#f59e0b', hover: '#d97706' }
   };
 
   ngOnInit() {
@@ -91,9 +91,9 @@ export class ProjectStatusComponent implements OnInit {
     let currentAngle = 0;
 
     const statuses: Array<{ status: StatusType; count: number }> = [
-      { status: 'In Progress', count: data.inProgress },
+      { status: 'Active', count: data.inProgress },
       { status: 'Completed', count: data.completed },
-      { status: 'On Hold', count: data.onHold }
+      { status: 'Inactive', count: data.onHold }
     ];
 
     statuses.forEach(item => {
