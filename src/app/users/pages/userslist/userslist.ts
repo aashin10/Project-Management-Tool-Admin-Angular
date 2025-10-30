@@ -6,7 +6,7 @@ import { CustomButton } from '../../../shared/custom-button/custom-button';
 import { SearchBar } from '../../../shared/components/search-bar/search-bar';
 import { PaginatedTable, PaginationState } from '../../../shared/paginated-table/paginated-table';
 import { Modal } from '../../../shared/modal/modal';
-import { UsersApi, User, CreateUserDto, BulkImportResponse } from '../../services/users-api';
+import { UsersApi, User, CreateUserDto, BulkImportResponse, UpdateUserDto, ApiUser } from '../../services/users-api';
 import { ToastrService } from 'ngx-toastr';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { Subscription, interval, Subject } from 'rxjs';
@@ -56,11 +56,10 @@ export class Userslist implements OnInit, OnDestroy {
     
     switch(event.action) {
       case 'edit':
-        console.log('Edit user:', event.row);
-        // Add your edit logic here
+        this.onEditUser(event.row.actions);
         break;
       case 'delete':
-        this.userToDelete = event.row;
+        this.userToDelete = event.row.actions;
         this.pendingDeleteAction = 'single';
         this.showDeleteConfirmModal = true;
         break;
@@ -94,6 +93,36 @@ export class Userslist implements OnInit, OnDestroy {
   // Custom dropdown states for Add User modal
   showAddUserTypeDropdown = false;
   showAddUserStatusDropdown = false;
+
+  // Edit User modal states
+  showEditUserModal = false;
+  showEditUserTypeDropdown = false;
+  showEditUserStatusDropdown = false;
+  showConfirmUpdateModal = false;
+  isLoadingUserDetails = false;
+  
+  // Edit User form fields
+  editUser = {
+    id: 0,
+    name: '',
+    email: '',
+    jiraId: '',
+    type: '',
+    status: ''
+  };
+
+  // Track original values for change detection
+  originalEditUser = {
+    id: 0,
+    name: '',
+    email: '',
+    jiraId: '',
+    type: '',
+    status: ''
+  };
+
+  // Character limits
+  maxJiraIdLength = 1024;
 
   get resetPagination(): boolean {
     return this._resetPagination;
@@ -262,6 +291,276 @@ export class Userslist implements OnInit, OnDestroy {
       }
     });
   }
+
+  // ============ EDIT USER METHODS ============
+
+  /**
+   * Opens edit modal and fetches user details
+   */
+  onEditUser(user: any) {
+    console.log('Opening edit modal for user:', user);
+    
+    if (!user.id) {
+      console.error('User ID is missing!', user);
+      this.toastr.error('Cannot edit user: ID is missing', 'Error');
+      return;
+    }
+    
+    // Show loading state
+    this.isLoadingUserDetails = true;
+    this.showEditUserModal = true;
+    
+    // Fetch user details by ID
+    this.usersApi.getUserById(user.id).subscribe({
+      next: (response) => {
+        console.log('User details fetched:', response);
+        
+        const userData = response.data;
+        
+        // Populate edit form
+        this.editUser = {
+          id: userData.id,
+          name: userData.name || '',
+          email: userData.email || '',
+          jiraId: userData.jiraId || '',
+          type: userData.type || '',
+          status: userData.status || ''
+        };
+
+        // Store original values for change detection
+        this.originalEditUser = { ...this.editUser };
+        
+        this.isLoadingUserDetails = false;
+        // Use setTimeout to avoid ExpressionChangedAfterItHasBeenCheckedError
+        setTimeout(() => this.cdr.detectChanges());
+      },
+      error: (error) => {
+        console.error('Failed to fetch user details:', error);
+        
+        this.isLoadingUserDetails = false;
+        this.showEditUserModal = false;
+        
+        this.toastr.error(error?.message || 'Failed to load user details', 'Error', {
+          timeOut: 5000,
+          progressBar: true,
+          closeButton: true,
+        });
+      }
+    });
+  }
+
+  /**
+   * Closes the edit modal and resets form
+   */
+  closeEditUserModal() {
+    this.showEditUserModal = false;
+    this.validationErrors = [];
+    this.isLoadingUserDetails = false;
+    
+    // Reset form
+    this.editUser = {
+      id: 0,
+      name: '',
+      email: '',
+      jiraId: '',
+      type: '',
+      status: ''
+    };
+
+    // Reset original values
+    this.originalEditUser = { ...this.editUser };
+
+    // Close dropdowns
+    this.showEditUserTypeDropdown = false;
+    this.showEditUserStatusDropdown = false;
+  }
+
+  /**
+   * Validates the edit form
+   */
+  validateEditForm(): boolean {
+    this.validationErrors = [];
+
+    // Validate Type (required)
+    if (!this.editUser.type) {
+      this.validationErrors.push('Type is required');
+    } else if (this.editUser.type !== 'Internal' && this.editUser.type !== 'External') {
+      this.validationErrors.push('Type must be either Internal or External');
+    }
+
+    // Validate Status (required)
+    if (!this.editUser.status) {
+      this.validationErrors.push('Status is required');
+    } else if (this.editUser.status !== 'Active' && this.editUser.status !== 'Inactive') {
+      this.validationErrors.push('Status must be either Active or Inactive');
+    }
+
+    // Validate Jira ID length
+    if (this.editUser.jiraId && this.editUser.jiraId.length > this.maxJiraIdLength) {
+      this.validationErrors.push(`Jira ID cannot exceed ${this.maxJiraIdLength} characters`);
+    }
+
+    return this.validationErrors.length === 0;
+  }
+
+  /**
+   * Detects which fields have changed
+   */
+  getChangedFields(): string[] {
+    const changes: string[] = [];
+
+    if (this.editUser.jiraId !== this.originalEditUser.jiraId) {
+      changes.push(`Jira ID: "${this.originalEditUser.jiraId || '(empty)'}" → "${this.editUser.jiraId || '(empty)'}"`);
+    }
+    if (this.editUser.type !== this.originalEditUser.type) {
+      changes.push(`Type: "${this.originalEditUser.type}" → "${this.editUser.type}"`);
+    }
+    if (this.editUser.status !== this.originalEditUser.status) {
+      changes.push(`Status: "${this.originalEditUser.status}" → "${this.editUser.status}"`);
+    }
+
+    return changes;
+  }
+
+  /**
+   * Opens confirmation dialog before updating
+   */
+  onUpdateUserClick() {
+    // Validate first
+    if (!this.validateEditForm()) {
+      return;
+    }
+
+    // Check if any changes were made
+    const changes = this.getChangedFields();
+    if (changes.length === 0) {
+      this.toastr.info('No changes detected', 'Info', {
+        timeOut: 3000,
+        progressBar: true,
+        closeButton: true,
+      });
+      return;
+    }
+
+    // Show confirmation modal
+    this.showConfirmUpdateModal = true;
+  }
+
+  /**
+   * Closes the confirmation dialog
+   */
+  closeConfirmUpdateModal() {
+    this.showConfirmUpdateModal = false;
+  }
+
+  /**
+   * Confirms and submits the user update
+   */
+  confirmUpdateUser() {
+    // Close confirmation modal
+    this.closeConfirmUpdateModal();
+
+    // Prepare update DTO with only changed fields
+    const updateDto: UpdateUserDto = {
+      updatedBy: 1 // TODO: Replace with actual logged-in user ID
+    };
+
+    // Only include changed fields
+    if (this.editUser.jiraId !== this.originalEditUser.jiraId) {
+      updateDto.jiraId = this.editUser.jiraId || '';
+    }
+    if (this.editUser.type !== this.originalEditUser.type) {
+      updateDto.type = this.editUser.type;
+    }
+    if (this.editUser.status !== this.originalEditUser.status) {
+      // Convert status string to isActive boolean
+      updateDto.isActive = this.editUser.status === 'Active';
+    }
+
+    console.log('Updating user with DTO:', updateDto);
+
+    // Show loading state
+    this.isLoading = true;
+
+    // Close edit modal immediately
+    this.closeEditUserModal();
+
+    // Call API to update user
+    this.usersApi.updateUser(this.editUser.id, updateDto).subscribe({
+      next: (response) => {
+        console.log('User updated successfully:', response);
+
+        setTimeout(() => {
+          this.isLoading = false;
+
+          // Show success toaster
+          this.toastr.success('User updated successfully', 'Success', {
+            timeOut: 3000,
+            progressBar: true,
+            closeButton: true,
+          });
+
+          // Add notification
+          this.notificationService.addNotification(
+            'success',
+            `User "${this.editUser.name}" has been updated successfully.`,
+            'User Updated'
+          );
+
+          // Refresh the users list
+          this.fetchUsers();
+        }, 0);
+      },
+      error: (error) => {
+        console.error('Failed to update user:', error);
+
+        setTimeout(() => {
+          this.isLoading = false;
+
+          const errorMessage = error?.message || 'Failed to update user';
+
+          this.toastr.error(errorMessage, 'Error', {
+            timeOut: 5000,
+            progressBar: true,
+            closeButton: true,
+          });
+        }, 0);
+      }
+    });
+  }
+
+  /**
+   * Handles type dropdown selection in edit modal
+   */
+  selectEditUserType(type: string) {
+    this.editUser.type = type;
+    this.showEditUserTypeDropdown = false;
+  }
+
+  /**
+   * Gets the label for the selected type in edit modal
+   */
+  getEditUserTypeLabel(): string {
+    return this.editUser.type || 'Select Type';
+  }
+
+  /**
+   * Handles status dropdown selection in edit modal
+   */
+  selectEditUserStatus(status: string) {
+    this.editUser.status = status;
+    this.showEditUserStatusDropdown = false;
+  }
+
+  /**
+   * Gets the label for the selected status in edit modal
+   */
+  getEditUserStatusLabel(): string {
+    return this.editUser.status || 'Select Status';
+  }
+
+  // ============ END EDIT USER METHODS ============
+
   onImport() {
     // Show import modal
     this.showImportModal = true;
@@ -531,7 +830,7 @@ export class Userslist implements OnInit, OnDestroy {
     { header: 'Type', field: 'type', type: 'badge' as const },
     { header: 'Status', field: 'status', type: 'badge' as const },
     { header: 'Created', field: 'created', type: 'text' as const },
-    { header: 'Last Login', field: 'lastLogin', type: 'text' as const },
+    { header: 'Last Login', field: 'lastLogin', type: 'badge' as const },
     { header: 'Actions', field: 'actions', type: 'actions' as const, actions: [
       { label: 'Edit', action: 'edit', icon: 'images/edit.svg' },
       { label: 'Delete', action: 'delete', icon: 'images/delete.svg', class: 'danger' }
@@ -814,7 +1113,7 @@ projects: Project[] = [
       type: user.type,
       status: user.status,
       created: user.created,
-      lastLogin: user.lastActivity || '-',
+      lastLogin: user.lastActivity,
       actions: user, // Pass the full user object for actions
       selected: this.selectedUsers.some(selectedUser => selectedUser.actions === user) // Check if user is selected
     }));
@@ -852,6 +1151,12 @@ projects: Project[] = [
     if (this.showAddUserModal && !addUserTypeDropdown) {
       this.showAddUserTypeDropdown = false;
       this.showAddUserStatusDropdown = false;
+    }
+    
+    // Close Edit User modal dropdowns if clicking outside
+    if (this.showEditUserModal && !addUserTypeDropdown) {
+      this.showEditUserTypeDropdown = false;
+      this.showEditUserStatusDropdown = false;
     }
   }
 
