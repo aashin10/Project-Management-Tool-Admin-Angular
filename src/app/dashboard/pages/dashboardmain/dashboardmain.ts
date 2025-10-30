@@ -1,13 +1,13 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DashboardMetricCards } from './dashboard-metric-cards/dashboard-metric-cards';
-import { ProjectActivityTimelineComponent, ChartData } from './project-activity-timeline/project-activity-timeline';
-import { ProjectStatusComponent, ProjectStatusData } from './project-status-pie/project-status-pie';
+import { ProjectActivityTimelineComponent } from './project-activity-timeline/project-activity-timeline';
+import { ProjectStatusComponent } from './project-status-pie/project-status-pie';
 import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
-
-import { forkJoin } from 'rxjs';
-import { DashboardService } from './dashboard-service';
 import { LoadingIndicator } from '../../../shared/loading-indicator/loading-indicator';
+import { forkJoin } from 'rxjs';
+import { DashboardService, DashboardSummaryDTO, ActivityChartDTO } from './dashboard-service';
+import { ToastrService } from 'ngx-toastr';
 
 export interface MetricCard {
   title: string;
@@ -20,18 +20,43 @@ export interface MetricCard {
   borderColor?: string;
 }
 
+export interface ProjectStatusData {
+  deliveryUnit: string;
+  inProgress: number;
+  completed: number;
+  onHold: number;
+  total: number;
+}
+
+export interface ChartData {
+  monthly: Array<{ period: string; projects: number }>;
+  quarterly: Array<{ period: string; projects: number }>;
+  yearly: Array<{ period: string; projects: number }>;
+  last5Years: Array<{ period: string; projects: number }>;
+  allTime: Array<{ period: string; projects: number }>;
+}
+
 @Component({
   selector: 'app-dashboard-main',
   standalone: true,
-  imports: [CommonModule, DashboardMetricCards, ProjectActivityTimelineComponent, ProjectStatusComponent, Sectiontitle, LoadingIndicator],
+  imports: [
+    CommonModule,
+    DashboardMetricCards,
+    ProjectActivityTimelineComponent,
+    ProjectStatusComponent,
+    Sectiontitle,
+    LoadingIndicator
+  ],
   templateUrl: './dashboardmain.html',
   styleUrls: ['./dashboardmain.css']
 })
 export class DashboardMainComponent implements OnInit {
+  private dashboardService = inject(DashboardService);
+  private cdr = inject(ChangeDetectorRef);
+  private toastr = inject(ToastrService);
+
   metricCards: MetricCard[] = [];
   projectStatusData: ProjectStatusData[] = [];
-  
-  // CRITICAL FIX: Initialize chartData with empty arrays to prevent undefined issues
   chartData: ChartData = {
     monthly: [],
     quarterly: [],
@@ -39,19 +64,12 @@ export class DashboardMainComponent implements OnInit {
     last5Years: [],
     allTime: []
   };
-  
-  isLoading = true;
+
+  isLoading = false;
   error: string | null = null;
 
-  constructor(
-    private dashboardService: DashboardService,
-    private cdr: ChangeDetectorRef
-  ) {}
-
   ngOnInit(): void {
-    // Initialize with default data first to establish layout
-    this.setDefaultData();
-    // Then load actual data immediately
+    this.initializeDefaultData();
     this.loadDashboardData();
   }
 
@@ -59,57 +77,109 @@ export class DashboardMainComponent implements OnInit {
    * Load all dashboard data from API
    */
   loadDashboardData(): void {
+    console.log('Loading dashboard data...');
     this.isLoading = true;
     this.error = null;
-    
-    // Force change detection to show loading indicator immediately
-    
 
     forkJoin({
-      metricCards: this.dashboardService.getMetricCards(),
-      projectStatus: this.dashboardService.getProjectStatusData(),
-      chartData: this.dashboardService.getChartData()
+      summary: this.dashboardService.getDashboardSummary(),
+      activity: this.dashboardService.getActivityChart()
     }).subscribe({
       next: (result) => {
-        // Clear any existing error state
-        this.error = null;
+        console.log('✅ Dashboard data loaded successfully:', result);
         
-        // Update data - component will detect changes via ngOnChanges
-        this.metricCards = result.metricCards;
-        this.projectStatusData = result.projectStatus;
-        
-        // CRITICAL: Ensure chartData structure is complete
-        this.chartData = {
-          monthly: result.chartData.monthly || [],
-          quarterly: result.chartData.quarterly || [],
-          yearly: result.chartData.yearly || [],
-          last5Years: result.chartData.last5Years || [],
-          allTime: result.chartData.allTime || []
-        };
+        this.metricCards = this.mapSummaryToMetricCards(result.summary);
+        this.projectStatusData = this.mapSummaryToProjectStatus(result.summary);
+        this.chartData = this.mapActivityToChartData(result.activity);
         
         this.isLoading = false;
-        
-        // Force change detection after data is loaded
         this.cdr.detectChanges();
       },
-      error: (err) => {
-        console.error('Error loading dashboard data:', err);
+      error: (error) => {
+        console.error('❌ Error loading dashboard data:', error);
         this.error = 'Failed to load dashboard data. Please try again.';
+        this.toastr.error('Failed to load dashboard data', 'Error');
+        
+        this.initializeDefaultData();
         this.isLoading = false;
-        
-        // Set default data on error
-        this.setDefaultData();
-        
-        // Force change detection on error
         this.cdr.detectChanges();
       }
     });
   }
 
   /**
-   * Set default data to establish initial layout
+   * Map summary DTO to metric cards
    */
-  public setDefaultData(): void {
+  private mapSummaryToMetricCards(summary: DashboardSummaryDTO): MetricCard[] {
+    return [
+      {
+        title: 'Total Projects',
+        value: summary.totalProjects,
+        icon: '/images/dashboard-card1.svg',
+        iconBgColor: 'bg-blue-50',
+        iconColor: 'text-blue-600',
+        trendColor: 'text-emerald-600',
+        borderColor: 'border-blue-100'
+      },
+      {
+        title: 'In Progress',
+        value: summary.inProgressProjects,
+        icon: '/images/dashboard-card2.svg',
+        iconBgColor: 'bg-emerald-50',
+        iconColor: 'text-emerald-600',
+        trendColor: 'text-emerald-600',
+        borderColor: 'border-emerald-100'
+      },
+      {
+        title: 'On Hold Projects',
+        value: summary.onHoldProjects,
+        icon: '/images/dashboard-card3.svg',
+        iconBgColor: 'bg-amber-50',
+        iconColor: 'text-amber-600',
+        borderColor: 'border-amber-100'
+      },
+      {
+        title: 'Delivery Units',
+        value: summary.totalDeliveryUnits,
+        icon: '/images/dashboard-card4.svg',
+        iconBgColor: 'bg-purple-50',
+        iconColor: 'text-purple-600',
+        trendColor: 'text-emerald-600',
+        borderColor: 'border-purple-100'
+      }
+    ];
+  }
+
+  /**
+   * Map summary DTO to project status data
+   */
+  private mapSummaryToProjectStatus(summary: DashboardSummaryDTO): ProjectStatusData[] {
+    return summary.projectStatuses.map(status => ({
+      deliveryUnit: status.deliveryUnit,
+      inProgress: status.inProgress,
+      completed: status.completed,
+      onHold: status.onHold,
+      total: status.total
+    }));
+  }
+
+  /**
+   * Map activity DTO to chart data
+   */
+  private mapActivityToChartData(activity: ActivityChartDTO): ChartData {
+    return {
+      monthly: activity.monthly || [],
+      quarterly: activity.quarterly || [],
+      yearly: activity.yearly || [],
+      last5Years: activity.last5Years || [],
+      allTime: activity.allTime || []
+    };
+  }
+
+  /**
+   * Initialize default data structure
+   */
+  private initializeDefaultData(): void {
     this.metricCards = [
       {
         title: 'Total Projects',
@@ -147,10 +217,15 @@ export class DashboardMainComponent implements OnInit {
         borderColor: 'border-purple-100'
       }
     ];
-    
+
     this.projectStatusData = [];
-    
-    // Keep chartData initialized with empty arrays (already done in declaration)
+    this.chartData = {
+      monthly: [],
+      quarterly: [],
+      yearly: [],
+      last5Years: [],
+      allTime: []
+    };
   }
 
   /**
@@ -167,6 +242,188 @@ export class DashboardMainComponent implements OnInit {
     window.location.href = 'https://pmt-user-frontend.vercel.app/projects';
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+// import { CommonModule } from '@angular/common';
+// import { DashboardMetricCards } from './dashboard-metric-cards/dashboard-metric-cards';
+// import { ProjectActivityTimelineComponent, ChartData } from './project-activity-timeline/project-activity-timeline';
+// import { ProjectStatusComponent, ProjectStatusData } from './project-status-pie/project-status-pie';
+// import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
+
+// import { forkJoin } from 'rxjs';
+// import { DashboardService } from './dashboard-service';
+// import { LoadingIndicator } from '../../../shared/loading-indicator/loading-indicator';
+
+// export interface MetricCard {
+//   title: string;
+//   value: number;
+//   icon: string;
+//   iconBgColor: string;
+//   iconColor: string;
+//   trend?: string;
+//   trendColor?: string;
+//   borderColor?: string;
+// }
+
+// @Component({
+//   selector: 'app-dashboard-main',
+//   standalone: true,
+//   imports: [CommonModule, DashboardMetricCards, ProjectActivityTimelineComponent, ProjectStatusComponent, Sectiontitle, LoadingIndicator],
+//   templateUrl: './dashboardmain.html',
+//   styleUrls: ['./dashboardmain.css']
+// })
+// export class DashboardMainComponent implements OnInit {
+//   metricCards: MetricCard[] = [];
+//   projectStatusData: ProjectStatusData[] = [];
+  
+//   // CRITICAL FIX: Initialize chartData with empty arrays to prevent undefined issues
+//   chartData: ChartData = {
+//     monthly: [],
+//     quarterly: [],
+//     yearly: [],
+//     last5Years: [],
+//     allTime: []
+//   };
+  
+//   isLoading = true;
+//   error: string | null = null;
+
+//   constructor(
+//     private dashboardService: DashboardService,
+//     private cdr: ChangeDetectorRef
+//   ) {}
+
+//   ngOnInit(): void {
+//     // Initialize with default data first to establish layout
+//     this.setDefaultData();
+//     // Then load actual data immediately
+//     this.loadDashboardData();
+//   }
+
+//   /**
+//    * Load all dashboard data from API
+//    */
+//   loadDashboardData(): void {
+//     this.isLoading = true;
+//     this.error = null;
+    
+//     // Force change detection to show loading indicator immediately
+    
+
+//     forkJoin({
+//       metricCards: this.dashboardService.getMetricCards(),
+//       projectStatus: this.dashboardService.getProjectStatusData(),
+//       chartData: this.dashboardService.getChartData()
+//     }).subscribe({
+//       next: (result) => {
+//         // Clear any existing error state
+//         this.error = null;
+        
+//         // Update data - component will detect changes via ngOnChanges
+//         this.metricCards = result.metricCards;
+//         this.projectStatusData = result.projectStatus;
+        
+//         // CRITICAL: Ensure chartData structure is complete
+//         this.chartData = {
+//           monthly: result.chartData.monthly || [],
+//           quarterly: result.chartData.quarterly || [],
+//           yearly: result.chartData.yearly || [],
+//           last5Years: result.chartData.last5Years || [],
+//           allTime: result.chartData.allTime || []
+//         };
+        
+//         this.isLoading = false;
+        
+//         // Force change detection after data is loaded
+//         this.cdr.detectChanges();
+//       },
+//       error: (err) => {
+//         console.error('Error loading dashboard data:', err);
+//         this.error = 'Failed to load dashboard data. Please try again.';
+//         this.isLoading = false;
+        
+//         // Set default data on error
+//         this.setDefaultData();
+        
+//         // Force change detection on error
+//         this.cdr.detectChanges();
+//       }
+//     });
+//   }
+
+//   /**
+//    * Set default data to establish initial layout
+//    */
+//   public setDefaultData(): void {
+//     this.metricCards = [
+//       {
+//         title: 'Total Projects',
+//         value: 0,
+//         icon: '/images/dashboard-card1.svg',
+//         iconBgColor: 'bg-blue-50',
+//         iconColor: 'text-blue-600',
+//         trendColor: 'text-emerald-600',
+//         borderColor: 'border-blue-100'
+//       },
+//       {
+//         title: 'In Progress',
+//         value: 0,
+//         icon: '/images/dashboard-card2.svg',
+//         iconBgColor: 'bg-emerald-50',
+//         iconColor: 'text-emerald-600',
+//         trendColor: 'text-emerald-600',
+//         borderColor: 'border-emerald-100'
+//       },
+//       {
+//         title: 'On Hold Projects',
+//         value: 0,
+//         icon: '/images/dashboard-card3.svg',
+//         iconBgColor: 'bg-amber-50',
+//         iconColor: 'text-amber-600',
+//         borderColor: 'border-amber-100'
+//       },
+//       {
+//         title: 'Delivery Units',
+//         value: 0,
+//         icon: '/images/dashboard-card4.svg',
+//         iconBgColor: 'bg-purple-50',
+//         iconColor: 'text-purple-600',
+//         trendColor: 'text-emerald-600',
+//         borderColor: 'border-purple-100'
+//       }
+//     ];
+    
+//     this.projectStatusData = [];
+    
+//     // Keep chartData initialized with empty arrays (already done in declaration)
+//   }
+
+//   /**
+//    * Refresh dashboard data
+//    */
+//   refreshData(): void {
+//     this.loadDashboardData();
+//   }
+
+//   /**
+//    * Redirect to user side
+//    */
+//   redirectToUserSide(): void {
+//     window.location.href = 'https://pmt-user-frontend.vercel.app/projects';
+//   }
+// }
 
 
 
