@@ -1,0 +1,306 @@
+<div class="w-full">
+  <!-- Loading Overlay -->
+  <div *ngIf="loading" class="relative">
+    <div class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10 rounded-lg">
+      <div class="flex flex-col items-center gap-3">
+        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+        <p class="text-sm text-gray-600">Loading...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="overflow-x-auto border border-gray-200 rounded-lg" [class.opacity-50]="loading">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <!-- Checkbox column -->
+          <th *ngIf="showCheckbox" class="w-12 px-6 py-3">
+            <input
+              #selectAllCheckbox
+              type="checkbox"
+              class="rounded border-gray-300 accent-blue-600 cursor-pointer"
+              (change)="toggleAll()"
+              [disabled]="loading"
+            />
+          </th>
+
+          <!-- Dynamic columns -->
+          <th
+            *ngFor="let column of columns"
+            class="px-6 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider"
+            [class.text-left]="column.type !== 'actions'"
+            [class.text-center]="column.type === 'actions'"
+            [style.width]="column.width"
+          >
+            <div class="flex items-center gap-2" [class.justify-center]="column.type === 'actions'">
+              {{ column.header }}
+              <span *ngIf="column.sortable" class="cursor-pointer">↕</span>
+            </div>
+          </th>
+        </tr>
+      </thead>
+
+      <tbody class="bg-white divide-y divide-gray-200">
+        <!-- Data Rows -->
+        <tr
+          *ngFor="let row of data; let i = index"
+          class="hover:bg-gray-50 transition-colors cursor-pointer"
+          [class.bg-blue-50]="isRowSelected(i)"
+          [class.pointer-events-none]="loading"
+          (click)="handleRowClick(row, i); $event.stopPropagation()"
+        >
+          <!-- Checkbox -->
+          <td *ngIf="showCheckbox" class="w-12 px-6 py-4" (click)="$event.stopPropagation()">
+            <input
+              type="checkbox"
+              class="rounded border-gray-300 accent-blue-600 cursor-pointer"
+              [checked]="isRowSelected(i)"
+              [disabled]="loading"
+              (change)="toggleRow(i)"
+            />
+          </td>
+
+          <!-- Dynamic cells -->
+          <td *ngFor="let column of columns" class="px-6 py-4">
+            <!-- Role Icon type -->
+            <div *ngIf="column.type === 'roleIcon'" class="flex items-center gap-3">
+              <div
+                class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0"
+              >
+                <svg
+                  class="w-4 h-4 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                  />
+                </svg>
+              </div>
+              <div class="text-sm font-medium text-gray-900">
+                {{ row[column.field].name }}
+              </div>
+            </div>
+
+            <!-- Text type -->
+            <div
+              *ngIf="!column.type || column.type === 'text'"
+              class="text-sm text-gray-900 flex items-center gap-2"
+              [class.text-left]="column.align === 'left' || !column.align"
+              [class.text-center]="column.align === 'center'"
+              [class.text-right]="column.align === 'right'"
+            >
+              <!-- Icon on the left -->
+              <ng-container *ngIf="column.icon">
+                <img [src]="column.icon" class="w-4 h-4" alt="" />
+              </ng-container>
+
+              {{ row[column.field] }}
+            </div>
+
+            <!-- Badge type -->
+            <div *ngIf="column.type === 'badge'" class="flex flex-wrap gap-1">
+              <!-- Single badge (string) -->
+              <ng-container *ngIf="!isArray(row[column.field])">
+                <span [class]="getBadgeClass(row[column.field], column)">
+                  {{ row[column.field] }}
+                </span>
+              </ng-container>
+              <!-- Multiple badges (array) -->
+              <ng-container *ngIf="isArray(row[column.field])">
+                <span
+                  *ngFor="let badge of row[column.field]"
+                  [class]="getBadgeClass(badge, column)"
+                >
+                  {{ badge }}
+                </span>
+              </ng-container>
+            </div>
+
+            <!-- Avatar type -->
+            <div *ngIf="column.type === 'avatar'" class="flex items-center gap-3">
+              <div class="relative">
+                <div
+                  [class]="
+                    row[column.field].bgColor +
+                    ' w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm'
+                  "
+                    >
+                      {{ row[column.field].initials }}
+                    </div>
+
+                <!-- Overlay badge on the avatar so layout doesn't shift -->
+                    <span *ngIf="row[column.field].isImportedFromJira" class="absolute -top-2 -right-2 w-5 h-5 bg-white border border-blue-100 rounded-full flex items-center justify-center shadow-sm" title="Imported from Jira">
+                      <img src="/images/import.svg" alt="Imported" class="w-3 h-3 object-contain" />
+                    </span>
+              </div>
+
+              <div>
+                <div class="text-sm font-medium text-gray-900">{{ row[column.field].name }}</div>
+                <div class="text-sm text-gray-500">{{ row[column.field].subtitle }}</div>
+              </div>
+            </div>
+
+            <!-- User type (with avatar and details) -->
+            <div *ngIf="column.type === 'user'" class="flex items-center gap-3">
+              <div
+                class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-semibold"
+              >
+                {{ row[column.field].avatar }}
+              </div>
+              <div>
+                <div class="text-sm font-medium text-gray-900">{{ row[column.field].name }}</div>
+                <div class="text-xs text-gray-500">{{ row[column.field].email }}</div>
+              </div>
+            </div>
+
+            <!-- Actions type - Direct Buttons -->
+            <div
+              *ngIf="column.type === 'actions'"
+              class="flex items-center justify-center gap-3"
+              (click)="$event.stopPropagation()"
+            >
+              <button
+                *ngFor="let actionItem of column.actions"
+                (click)="handleAction(actionItem.action, row); $event.stopPropagation()"
+                [class]="getActionButtonClass(actionItem.action)"
+                [disabled]="loading"
+                class="p-1 rounded-md text-sm font-medium transition-colors flex items-center justify-center min-w-[32px] min-h-[32px] disabled:opacity-50 disabled:cursor-not-allowed"
+                [title]="actionItem.label"
+              >
+                <img
+                  *ngIf="actionItem.icon"
+                  [src]="actionItem.icon"
+                  class="w-4 h-4 object-contain"
+                  alt=""
+                />
+              </button>
+            </div>
+          </td>
+        </tr>
+
+        <!-- Empty State -->
+        <tr *ngIf="data.length === 0 && !loading">
+          <td
+            [attr.colspan]="columns.length + (showCheckbox ? 1 : 0)"
+            class="px-6 py-12 text-center"
+          >
+            <div class="flex flex-col items-center justify-center text-gray-500">
+              <svg
+                class="w-12 h-12 mb-4 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                ></path>
+              </svg>
+              <p class="text-lg font-medium">No data available</p>
+              <p class="text-sm mt-1">There are no items to display</p>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination Footer -->
+  <div class="flex items-center justify-between px-6 py-3 bg-white border-t border-gray-200">
+    <div class="text-sm text-gray-700">
+      <ng-container *ngIf="pagination.totalCount > 0">
+        Showing {{ startIndex }}-{{ endIndex }} of {{ pagination.totalCount }}
+        {{ pagination.totalCount === 1 ? 'item' : 'items' }}
+      </ng-container>
+      <ng-container *ngIf="pagination.totalCount === 0">
+        No items
+      </ng-container>
+    </div>
+
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-gray-700">Rows per page</span>
+        <select
+          [(ngModel)]="pagination.pageSize"
+          (ngModelChange)="onPageSizeChange()"
+          [disabled]="loading"
+          class="border border-gray-300 rounded px-2 py-1 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <option [value]="10">10</option>
+          <option [value]="25">25</option>
+          <option [value]="50">50</option>
+          <option [value]="100">100</option>
+        </select>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-gray-700">
+          Page {{ pagination.currentPage }} of {{ totalPages || 1 }}
+        </span>
+
+        <div class="flex gap-1">
+          <!-- First page -->
+          <button
+            (click)="goToPage(1)"
+            [disabled]="pagination.currentPage === 1 || loading"
+            class="px-2 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="First page"
+          >
+            &lt;&lt;
+          </button>
+
+          <!-- Previous page -->
+          <button
+            (click)="previousPage()"
+            [disabled]="pagination.currentPage === 1 || loading"
+            class="px-2 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Previous page"
+          >
+            &lt;
+          </button>
+
+          <!-- Page numbers -->
+          <button
+            *ngFor="let page of getVisiblePages()"
+            (click)="page !== -1 ? goToPage(page) : null"
+            [disabled]="page === pagination.currentPage || page === -1 || loading"
+            [class.bg-blue-600]="page === pagination.currentPage"
+            [class.text-white]="page === pagination.currentPage"
+            [class.cursor-default]="page === -1"
+            class="px-3 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed min-w-[36px]"
+          >
+            {{ page === -1 ? '...' : page }}
+          </button>
+
+          <!-- Next page -->
+          <button
+            (click)="nextPage()"
+            [disabled]="pagination.currentPage === totalPages || loading || totalPages === 0"
+            class="px-2 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Next page"
+          >
+            &gt;
+          </button>
+
+          <!-- Last page -->
+          <button
+            (click)="goToPage(totalPages)"
+            [disabled]="pagination.currentPage === totalPages || loading || totalPages === 0"
+            class="px-2 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Last page"
+          >
+            &gt;&gt;
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

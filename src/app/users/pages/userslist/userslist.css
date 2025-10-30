@@ -55,10 +55,12 @@
 }
 
 .add-user-modal .custom-dropdown-item.selected {
-  background-color: #0052CC;
-  color: white;
+  background-color: #dbeafe;
+  color: #1e40af;
+  font-weight: 500;
 }
 
 .add-user-modal .custom-dropdown-item.selected:hover {
-  background-color: #0052CC;
+  background-color: #bfdbfe;
+  color: #1e40af;
 }
