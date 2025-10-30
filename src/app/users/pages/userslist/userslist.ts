@@ -6,7 +6,7 @@ import { CustomButton } from '../../../shared/custom-button/custom-button';
 import { SearchBar } from '../../../shared/components/search-bar/search-bar';
 import { PaginatedTable, PaginationState } from '../../../shared/paginated-table/paginated-table';
 import { Modal } from '../../../shared/modal/modal';
-import { UsersApi, User, CreateUserDto } from '../../services/users-api';
+import { UsersApi, User, CreateUserDto, BulkImportResponse } from '../../services/users-api';
 import { ToastrService } from 'ngx-toastr';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { Subscription, interval, Subject } from 'rxjs';
@@ -155,9 +155,22 @@ export class Userslist implements OnInit, OnDestroy {
     // Validate required fields
     if (!this.newUser.fullName?.trim()) {
       this.validationErrors.push('Full Name is required');
+    } else {
+      // Validate name format: only letters, spaces, hyphens, and apostrophes
+      const namePattern = /^[a-zA-Z\s'-]+$/;
+      if (!namePattern.test(this.newUser.fullName.trim())) {
+        this.validationErrors.push('Name should only contain letters, spaces, hyphens, and apostrophes (no numbers or special characters)');
+      }
     }
+    
     if (!this.newUser.email?.trim()) {
       this.validationErrors.push('Email is required');
+    } else {
+      // Validate email format
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(this.newUser.email.trim())) {
+        this.validationErrors.push('Please enter a valid email address');
+      }
     }
     
     // If there are validation errors, don't submit
@@ -311,6 +324,25 @@ export class Userslist implements OnInit, OnDestroy {
     this.isDragging = false;
   }
 
+  /**
+   * Format notification message to show only first 3 items, then count the rest
+   * @param items Array of message strings
+   * @param totalCount Total count of items
+   * @returns Formatted message string
+   */
+  formatNotificationMessage(items: string[], totalCount: number): string {
+    if (items.length === 0) return '';
+    
+    const maxItemsToShow = 3;
+    if (items.length <= maxItemsToShow) {
+      return items.join('; ');
+    }
+    
+    const firstThree = items.slice(0, maxItemsToShow);
+    const remaining = totalCount - maxItemsToShow;
+    return `${firstThree.join('; ')}; and ${remaining} more...`;
+  }
+
   onSearchChange(query: string) {
     console.log('Search input changed:', query);
     this.searchQuery = query;
@@ -405,8 +437,9 @@ export class Userslist implements OnInit, OnDestroy {
         const url = URL.createObjectURL(blob);
         
         link.setAttribute('href', url);
-        const exportType = this.selectedUsers.length > 0 ? 'selected' : 'filtered';
-        link.setAttribute('download', `users_export_${exportType}_${new Date().toISOString().split('T')[0]}.csv`);
+        // Format: users_exported_YYYY-MM-DD.csv
+        const dateStr = new Date().toISOString().split('T')[0];
+        link.setAttribute('download', `users_exported_${dateStr}.csv`);
         link.style.visibility = 'hidden';
         
         document.body.appendChild(link);
@@ -445,18 +478,15 @@ export class Userslist implements OnInit, OnDestroy {
   selectType(value: string) {
     this.filterType = value;
     this.showTypeDropdown = false;
-    // Reset pagination to first page when filter changes
-    this.resetPagination = true;
-    // Update selections to only include users that are still visible after filtering
-    this.updateSelectionsForFilteredUsers();
+    // Trigger filter change to fetch filtered data
+    this.onFilterChange();
   }
+  
   selectStatus(value: string) {
     this.filterStatus = value;
     this.showStatusDropdown = false;
-    // Reset pagination to first page when filter changes
-    this.resetPagination = true;
-    // Update selections to only include users that are still visible after filtering
-    this.updateSelectionsForFilteredUsers();
+    // Trigger filter change to fetch filtered data
+    this.onFilterChange();
   }
   getTypeLabel(): string {
     if (!this.filterType) return 'All Types';
@@ -748,14 +778,15 @@ projects: Project[] = [
       const selectedType = (this.filterType || '').toLowerCase().trim();
       const selectedStatus = (this.filterStatus || '').toLowerCase().trim();
       
-      // Search functionality
+      // Search functionality - handle null/undefined values safely
       const searchLower = this.searchQuery.toLowerCase().trim();
       const matchesSearch = !searchLower || 
-        user.user.toLowerCase().includes(searchLower) ||
-        user.type.toLowerCase().includes(searchLower) ||
-        user.status.toLowerCase().includes(searchLower) ||
-        user.created.toLowerCase().includes(searchLower) ||
-        user.lastActivity.toLowerCase().includes(searchLower);
+        (user.user || '').toLowerCase().includes(searchLower) ||
+        (user.email || '').toLowerCase().includes(searchLower) ||
+        (user.type || '').toLowerCase().includes(searchLower) ||
+        (user.status || '').toLowerCase().includes(searchLower) ||
+        (user.created || '').toLowerCase().includes(searchLower) ||
+        (user.lastActivity || '').toLowerCase().includes(searchLower);
       
       // If filter is empty string, it means "All" is selected, so match all
       const matchesType = !selectedType || userType === selectedType;
@@ -994,6 +1025,14 @@ projects: Project[] = [
       return;
     }
 
+    // Store reference to file before closing modal (modal close clears selectedFile)
+    const fileToImport = this.selectedFile;
+    const fileName = this.selectedFileName;
+
+    // Close modal immediately when import starts
+    this.closeImportModal();
+    this.isLoading = true;
+
     // Read and parse CSV file
     const reader = new FileReader();
     reader.onload = (e: any) => {
@@ -1061,10 +1100,30 @@ projects: Project[] = [
           return -1;
         };
 
-        const jiraIdIndex = getColumnIndex(['user id', 'userid', 'jiraid', 'jira_id', 'jira id']);
-        const nameIndex = getColumnIndex(['user name', 'username', 'name']);
-        const emailIndex = getColumnIndex(['email']);
-        const statusIndex = getColumnIndex(['user status', 'userstatus', 'status']);
+        // Expected CSV format: jiraId, name, email, status
+        const jiraIdIndex = getColumnIndex(['jiraid', 'jira_id', 'jira id', 'user id', 'userid']);
+        const nameIndex = getColumnIndex(['name', 'user name', 'username']);
+        const emailIndex = getColumnIndex(['email', 'email address']);
+        const statusIndex = getColumnIndex(['status', 'user status', 'userstatus']);
+
+        // Validate required columns
+        if (emailIndex === -1) {
+          this.toastr.error('CSV must contain an "email" column', 'Invalid CSV Format', {
+            timeOut: 5000,
+            progressBar: true,
+            closeButton: true,
+          });
+          return;
+        }
+
+        if (nameIndex === -1) {
+          this.toastr.error('CSV must contain a "name" column', 'Invalid CSV Format', {
+            timeOut: 5000,
+            progressBar: true,
+            closeButton: true,
+          });
+          return;
+        }
 
         // Parse data rows
         const users: CreateUserDto[] = [];
@@ -1077,17 +1136,24 @@ projects: Project[] = [
           const user: CreateUserDto = {
             email: emailIndex !== -1 ? values[emailIndex] : '',
             name: nameIndex !== -1 ? values[nameIndex] : '',
-            jiraId: jiraIdIndex !== -1 ? values[jiraIdIndex] : undefined,
-            status: statusIndex !== -1 ? values[statusIndex] : undefined,
-            createdBy: 1 // Current user ID
+            jiraId: jiraIdIndex !== -1 && values[jiraIdIndex] ? values[jiraIdIndex] : undefined,
+            status: statusIndex !== -1 && values[statusIndex] ? values[statusIndex] : undefined
           };
 
-          // Skip rows with missing required fields
-          if (user.email && user.name) {
-            users.push(user);
-          } else {
-            console.warn(`Skipping row ${i + 1}: missing required fields`, values);
+          // Basic validation for required fields
+          if (!user.email || !user.name) {
+            console.warn(`Skipping row ${i + 1}: missing required fields (email or name)`, values);
+            continue;
           }
+
+          // Basic email format validation
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(user.email)) {
+            console.warn(`Skipping row ${i + 1}: invalid email format: ${user.email}`);
+            continue;
+          }
+
+          users.push(user);
         }
 
         if (users.length === 0) {
@@ -1101,13 +1167,9 @@ projects: Project[] = [
 
         console.log('Parsed users from CSV:', users);
 
-        // Close modal and show loading
-        this.closeImportModal();
-        this.isLoading = true;
-
         // Show info notification that import is in progress
         this.toastr.info(
-          `Importing ${users.length} user(s) from "${this.selectedFileName}"...`,
+          `Importing ${users.length} user(s) from "${fileName}"...`,
           'Import Started',
           {
             timeOut: 5000,
@@ -1116,53 +1178,123 @@ projects: Project[] = [
           }
         );
 
-        // Call API to import users
-        this.usersApi.importCSV(users).subscribe({
+        // Call the new bulk import API
+        this.usersApi.bulkImportUsers(users, 1).subscribe({
           next: (response) => {
-            console.log('CSV import successful:', response);
+            console.log('Bulk import response:', response);
             
             setTimeout(() => {
               this.isLoading = false;
 
-              // Show success toaster notification
-              this.toastr.success(
-                `Successfully imported ${response.data?.length || users.length} user(s) from "${this.selectedFileName}"`,
-                'Import Successful',
-                {
-                  timeOut: 3000,
-                  progressBar: true,
-                  closeButton: true,
-                }
-              );
+              const data = response.data;
 
-              // Add notification to notification service
-              this.notificationService.addNotification(
-                'success',
-                `Successfully imported ${response.data?.length || users.length} user(s) from "${this.selectedFileName}"`,
-                'File Imported'
-              );
+              // Show success notification if any users were created
+              if (data.successCount > 0) {
+                this.toastr.success(
+                  `Successfully imported ${data.successCount} user(s)`,
+                  'Import Successful',
+                  {
+                    timeOut: 5000,
+                    progressBar: true,
+                    closeButton: true,
+                  }
+                );
 
-              // Refresh the users list
-              this.usersApi.refreshUsers().subscribe({
-                next: (refreshedUsers) => {
-                  this.users = refreshedUsers;
-                  this.isLoading = false;
-                  this.cdr.detectChanges();
-                },
-                error: (error) => {
-                  console.error('Failed to refresh users after import:', error);
-                  this.isLoading = false;
+                this.notificationService.addNotification(
+                  'success',
+                  `Successfully imported ${data.successCount} user(s) from "${fileName}"`,
+                  'Users Imported'
+                );
+              }
+
+              // Show warning for skipped suspended users
+              if (data.skippedCount > 0) {
+                this.toastr.warning(
+                  `Suspended users skipped: ${data.skippedCount}`,
+                  'Users Skipped',
+                  {
+                    timeOut: 7000,
+                    progressBar: true,
+                    closeButton: true,
+                  }
+                );
+
+                // Show details of skipped users (max 3, then count)
+                if (data.skipped.length > 0) {
+                  console.log('Skipped users:', data.skipped);
+                  const skippedMessage = this.formatNotificationMessage(data.skipped, data.skippedCount);
+                  this.notificationService.addNotification(
+                    'warning',
+                    skippedMessage,
+                    'Suspended Users Skipped'
+                  );
                 }
-              });
+              }
+
+              // Show warning for duplicate users
+              if (data.duplicateCount > 0) {
+                this.toastr.warning(
+                  `Duplicates skipped: ${data.duplicateCount}`,
+                  'Duplicate Users',
+                  {
+                    timeOut: 7000,
+                    progressBar: true,
+                    closeButton: true,
+                  }
+                );
+
+                // Show details of duplicate users (max 3, then count)
+                if (data.duplicates.length > 0) {
+                  console.log('Duplicate users:', data.duplicates);
+                  const duplicatesMessage = this.formatNotificationMessage(data.duplicates, data.duplicateCount);
+                  this.notificationService.addNotification(
+                    'warning',
+                    duplicatesMessage,
+                    'Duplicate Users Skipped'
+                  );
+                }
+              }
+
+              // Show error notifications
+              if (data.errorCount > 0) {
+                this.toastr.error(
+                  `Errors: ${data.errorCount}`,
+                  'Import Errors',
+                  {
+                    timeOut: 8000,
+                    progressBar: true,
+                    closeButton: true,
+                  }
+                );
+
+                // Show details of errors (max 3, then count)
+                if (data.errors.length > 0) {
+                  console.error('Import errors:', data.errors);
+                  const errorsMessage = this.formatNotificationMessage(data.errors, data.errorCount);
+                  this.notificationService.addNotification(
+                    'error',
+                    errorsMessage,
+                    'Import Errors'
+                  );
+                }
+              }
+
+              // Show summary message
+              console.log('Import summary:', response.message);
+
+              // Refresh the users list if any users were successfully created
+              if (data.successCount > 0) {
+                this.fetchUsers();
+              }
             }, 0);
           },
           error: (error) => {
-            console.error('CSV import failed:', error);
+            console.error('Bulk import failed:', error);
             
             setTimeout(() => {
               this.isLoading = false;
 
-              const errorMessage = error?.message || 'Failed to import users from CSV';
+              const errorMessage = error?.message || 'Failed to import users';
               
               // Show error toaster notification
               this.toastr.error(errorMessage, 'Import Failed', {
@@ -1199,6 +1331,6 @@ projects: Project[] = [
       });
     };
 
-    reader.readAsText(this.selectedFile);
+    reader.readAsText(fileToImport);
   }
 }
