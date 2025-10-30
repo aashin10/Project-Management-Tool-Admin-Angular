@@ -48,6 +48,28 @@ export interface CreateUserResponse {
   message: string;
 }
 
+export interface BulkImportRequest {
+  users: CreateUserDto[];
+  createdBy?: number;
+}
+
+export interface BulkImportResponse {
+  data: {
+    successCount: number;
+    duplicateCount: number;
+    skippedCount: number;
+    errorCount: number;
+    totalProcessed: number;
+    errors: string[];
+    duplicates: string[];
+    skipped: string[];
+    createdUsers: ApiUser[];
+  };
+  message: string;
+  statusCode: number;
+  succeeded: boolean;
+}
+
 export interface GetAllUsersQuery {
   type?: string | null;
   status?: string | null;
@@ -456,7 +478,54 @@ export class UsersApi {
   }
 
   /**
-   * Import users from CSV
+   * Import users from CSV (Bulk Import)
+   */
+  bulkImportUsers(users: CreateUserDto[], createdBy?: number): Observable<BulkImportResponse> {
+    console.log('UsersApi: Bulk importing users...', users.length);
+    
+    const request: BulkImportRequest = {
+      users: users,
+      createdBy: createdBy
+    };
+    
+    return this.http.post<BulkImportResponse>(`${this.apiUrl}/bulk-import`, request).pipe(
+      timeout(30000), // 30 second timeout for bulk import
+      catchError(error => {
+        console.error('UsersApi: Bulk import failed', error);
+        if (error instanceof HttpErrorResponse) {
+          if (error.status === 0) {
+            return throwError(() => new Error('Network issue. Check your internet connection'));
+          } else {
+            let errorMessage = 'Failed to import users';
+            
+            // Try to extract error message from response
+            if (error.error) {
+              if (typeof error.error === 'string') {
+                try {
+                  const parsed = JSON.parse(error.error);
+                  errorMessage = parsed.message || parsed.Message || parsed.error || error.error;
+                } catch {
+                  errorMessage = error.error;
+                }
+              } else if (error.error.message) {
+                errorMessage = error.error.message;
+              } else if (error.error.Message) {
+                errorMessage = error.error.Message;
+              }
+            }
+            
+            return throwError(() => new Error(errorMessage));
+          }
+        } else {
+          return throwError(() => new Error('Failed to import users'));
+        }
+      })
+    );
+  }
+
+  /**
+   * Import users from CSV (Legacy - deprecated)
+   * @deprecated Use bulkImportUsers instead
    */
   importCSV(users: CreateUserDto[]): Observable<CreateUserResponse> {
     console.log('UsersApi: Importing users from CSV...', users.length);
