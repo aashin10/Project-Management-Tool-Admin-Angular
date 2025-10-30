@@ -237,17 +237,20 @@
 
   <!-- Table -->
   <div *ngIf="!isLoading && !loadingError" class="overflow-x-auto">
-    <app-table
+    <app-paginated-table
       [data]="getTableData()"
       [columns]="tableColumns"
       [showCheckbox]="true"
       [selectAllAcrossPages]="true"
       [rowClickAction]="'select'"
-      [resetPagination]="resetPagination"
+      [pagination]="paginationState"
+      [loading]="isLoading"
       (actionClick)="onActionClick($event)"
       (selectionChange)="onSelectionChange($event)"
+      (pageChange)="onPageChange($event)"
+      (pageSizeChange)="onPageSizeChange($event)"
     >
-    </app-table>
+    </app-paginated-table>
   </div>
 </div>
 
@@ -354,7 +357,8 @@
             <div
               *ngFor="let opt of typeOptions"
               (click)="selectAddUserType(opt.value)"
-              [ngClass]="{'custom-dropdown-item selected': newUser.type === opt.value, 'custom-dropdown-item': newUser.type !== opt.value}"
+              class="custom-dropdown-item"
+              [ngClass]="{'selected': newUser.type === opt.value}"
             >
               {{ opt.label }}
             </div>
@@ -396,7 +400,8 @@
             <div
               *ngFor="let opt of statusOptions"
               (click)="selectAddUserStatus(opt.value)"
-              [ngClass]="{'custom-dropdown-item selected': newUser.status === opt.value, 'custom-dropdown-item': newUser.status !== opt.value}"
+              class="custom-dropdown-item"
+              [ngClass]="{'selected': newUser.status === opt.value}"
             >
               {{ opt.label }}
             </div>

@@ -1,15 +1,16 @@
-import { Component, HostListener, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, HostListener, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
 import { CustomButton } from '../../../shared/custom-button/custom-button';
 import { SearchBar } from '../../../shared/components/search-bar/search-bar';
-import { Table } from '../../../shared/table/table';
+import { PaginatedTable, PaginationState } from '../../../shared/paginated-table/paginated-table';
 import { Modal } from '../../../shared/modal/modal';
-import { UsersApi, User } from '../../services/users-api';
+import { UsersApi, User, CreateUserDto } from '../../services/users-api';
 import { ToastrService } from 'ngx-toastr';
 import { NotificationService } from '../../../shared/services/notification.service';
-import * as bcrypt from 'bcryptjs';
+import { Subscription, interval, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 
 interface Project {
@@ -26,18 +27,30 @@ interface Project {
 
 @Component({
   selector: 'app-userslist',
-  imports: [CommonModule, FormsModule, Sectiontitle, CustomButton, SearchBar, Table, Modal],
+  imports: [CommonModule, FormsModule, Sectiontitle, CustomButton, SearchBar, PaginatedTable, Modal],
   templateUrl: './userslist.html',
   styleUrl: './userslist.css'
 })
-export class Userslist implements OnInit {
+export class Userslist implements OnInit, OnDestroy {
   private usersApi = inject(UsersApi);
   private cdr = inject(ChangeDetectorRef);
   private toastr = inject(ToastrService);
   private notificationService = inject(NotificationService);
+  private retrySubscription?: Subscription;
+  private networkErrorRetryTimer?: any;
+  private searchSubject = new Subject<string>();
   
   isLoading = false;
   loadingError: string | null = null;
+  
+  // Pagination state
+  paginationState: PaginationState = {
+    currentPage: 1,
+    pageSize: 10,
+    totalCount: 0,
+    sortBy: 'name',
+    sortOrder: 'asc'
+  };
   onActionClick(event: { action: string; row: any }) {
     console.log('Action clicked:', event.action, 'Row:', event.row);
     
@@ -72,6 +85,7 @@ export class Userslist implements OnInit {
   filterStatus: string = '';
   searchQuery: string = '';
   selectedFileName: string = '';
+  selectedFile: File | null = null;
   isDragging: boolean = false;
   selectedUsers: any[] = [];
   private _resetPagination: boolean = false;
@@ -145,47 +159,20 @@ export class Userslist implements OnInit {
     if (!this.newUser.email?.trim()) {
       this.validationErrors.push('Email is required');
     }
-    if (!this.newUser.type) {
-      this.validationErrors.push('Type is required');
-    }
-    if (!this.newUser.status) {
-      this.validationErrors.push('Status is required');
-    }
     
     // If there are validation errors, don't submit
     if (this.validationErrors.length > 0) {
       return;
     }
     
-    // Extract first name and last name from full name
-    const nameParts = this.newUser.fullName.trim().split(/\s+/);
-    const firstName = nameParts[0] || '';
-    const lastName = nameParts[1] || '';
-    
-    // Generate avatar URL
-    const avatarUsername = lastName ? `${firstName}+${lastName}` : firstName;
-    const avatarUrl = `https://avatar.iran.liara.run/username?username=${avatarUsername}`;
-    
-    // Generate password hash using bcrypt
-    const passwordText = `${lastName || firstName}@experionglobal.123`;
-    const saltRounds = 10;
-    const passwordHash = bcrypt.hashSync(passwordText, saltRounds);
-    
-    // Map status to is_active boolean (Active = true, Inactive = false)
-    const isActive = this.newUser.status === 'Active';
-    
-    // Prepare user data for API
-    const createUserData = {
-      name: this.newUser.fullName.trim(),
+    // Prepare user data for API (backend handles password, avatar, defaults)
+    const createUserData: CreateUserDto = {
       email: this.newUser.email.trim(),
-      jira_id: this.newUser.jiraId?.trim() || undefined,
-      type: this.newUser.type, // Already capitalized: "Internal" or "External"
-      status: this.newUser.status, // "Active" or "Inactive"
-      is_active: isActive,
-      avatar_url: avatarUrl,
-      is_super_admin: false,
-      password_hash: passwordHash,
-      created_by: 1
+      name: this.newUser.fullName.trim(),
+      jiraId: this.newUser.jiraId?.trim() || undefined,
+      type: this.newUser.type || undefined,
+      status: this.newUser.status || undefined,
+      createdBy: 1 // ID of the user creating this user
     };
     
     console.log('Creating new user:', createUserData);
@@ -200,52 +187,65 @@ export class Userslist implements OnInit {
     this.usersApi.createUser(createUserData).subscribe({
       next: (response) => {
         console.log('User created successfully:', response);
-        this.isLoading = false;
         
-        // Show success toaster notification
-        this.toastr.success('User Added Successfully', '', {
-          timeOut: 3000,
-          progressBar: true,
-          closeButton: true,
-        });
+        // Backend returns array, get first user
+        const createdUser = response.data && response.data.length > 0 ? response.data[0] : null;
         
-        // Add notification to notification service (stored in localStorage)
-        this.notificationService.addNotification(
-          'success',
-          `User "${createUserData.name}" has been added successfully.`,
-          'User Added'
-        );
-        
-        // Clear cache and refresh the users list to show the new user
-        this.usersApi.refreshUsers().subscribe({
-          next: (users) => {
-            this.users = users;
-            this.isLoading = false;
-            this.cdr.detectChanges();
-          },
-          error: (error) => {
-            console.error('Failed to refresh users after creation:', error);
-            this.isLoading = false;
+        // Use setTimeout to avoid ExpressionChangedAfterItHasBeenCheckedError
+        setTimeout(() => {
+          this.isLoading = false;
+          
+          if (createdUser) {
+            // Show success toaster notification
+            this.toastr.success('User Added Successfully', '', {
+              timeOut: 3000,
+              progressBar: true,
+              closeButton: true,
+            });
+            
+            // Add notification to notification service (stored in localStorage)
+            this.notificationService.addNotification(
+              'success',
+              `User "${createdUser.name}" has been added successfully.`,
+              'User Added'
+            );
           }
-        });
+          
+          // Clear cache and refresh the users list to show the new user
+          this.usersApi.refreshUsers().subscribe({
+            next: (users) => {
+              this.users = users;
+              this.isLoading = false;
+              this.cdr.detectChanges();
+            },
+            error: (error) => {
+              console.error('Failed to refresh users after creation:', error);
+              this.isLoading = false;
+            }
+          });
+        }, 0);
       },
       error: (error) => {
         console.error('Failed to create user:', error);
         console.log('Component: Error object:', error);
         console.log('Component: Error.message:', error.message);
         console.log('Component: Error type:', typeof error);
-        this.isLoading = false;
         
-        // Extract the error message
-        const errorMessage = error?.message || 'Failed to create user';
-        console.log('Component: Final error message to display:', errorMessage);
-        
-        // Show error toaster notification
-        this.toastr.error(errorMessage, 'Error', {
-          timeOut: 5000,
-          progressBar: true,
-          closeButton: true,
-        });
+        // Use setTimeout to avoid ExpressionChangedAfterItHasBeenCheckedError
+        setTimeout(() => {
+          this.isLoading = false;
+          
+          // Extract the error message
+          const errorMessage = error?.message || 'Failed to create user';
+          console.log('Component: Final error message to display:', errorMessage);
+          
+          // Show error toaster notification
+          this.toastr.error(errorMessage, 'Error', {
+            timeOut: 5000,
+            progressBar: true,
+            closeButton: true,
+          });
+        }, 0);
       }
     });
   }
@@ -262,8 +262,8 @@ export class Userslist implements OnInit {
     const file = event.target.files[0];
     if (file) {
       this.selectedFileName = file.name;
+      this.selectedFile = file;
       console.log('File selected:', file.name);
-      // Add your CSV import logic here
     }
   }
   
@@ -290,11 +290,16 @@ export class Userslist implements OnInit {
       // Check if it's a CSV file
       if (file.type === 'text/csv' || file.type === 'application/vnd.ms-excel' || file.name.toLowerCase().endsWith('.csv')) {
         this.selectedFileName = file.name;
+        this.selectedFile = file;
         console.log('File dropped:', file.name);
-        // Add your CSV import logic here
       } else {
-        alert('Please upload a CSV file');
+        this.toastr.error('Please upload a CSV file', 'Invalid File Type', {
+          timeOut: 3000,
+          progressBar: true,
+          closeButton: true,
+        });
         this.selectedFileName = '';
+        this.selectedFile = null;
       }
     }
   }
@@ -302,29 +307,40 @@ export class Userslist implements OnInit {
   closeImportModal() {
     this.showImportModal = false;
     this.selectedFileName = '';
+    this.selectedFile = null;
     this.isDragging = false;
   }
 
   onSearchChange(query: string) {
+    console.log('Search input changed:', query);
     this.searchQuery = query;
-    // Reset pagination to first page when search changes
-    this.resetPagination = true;
+    
+    // Immediately show loading state for better UX
+    // This ensures the table shows loading feedback even during debounce
+    if (!this.isLoading) {
+      this.isLoading = true;
+      this.cdr.detectChanges();
+    }
+    
+    // Emit to search subject for debouncing (backend pagination)
+    this.searchSubject.next(query);
+    
     // Update selections to only include users that are still visible after filtering
     this.updateSelectionsForFilteredUsers();
   }
 
   onTypeFilterChange(type: string) {
     this.filterType = type;
-    // Reset pagination to first page when filter changes
-    this.resetPagination = true;
+    // Reset pagination and fetch users with new filter
+    this.onFilterChange();
     // Update selections to only include users that are still visible after filtering
     this.updateSelectionsForFilteredUsers();
   }
 
   onStatusFilterChange(status: string) {
     this.filterStatus = status;
-    // Reset pagination to first page when filter changes
-    this.resetPagination = true;
+    // Reset pagination and fetch users with new filter
+    this.onFilterChange();
     // Update selections to only include users that are still visible after filtering
     this.updateSelectionsForFilteredUsers();
   }
@@ -339,40 +355,87 @@ export class Userslist implements OnInit {
   }
 
   exportToCSV() {
-    // Determine which users to export
-    const usersToExport = this.selectedUsers.length > 0 ? this.selectedUsers : this.filteredUsers;
+    console.log('Starting CSV export...');
     
-    // Prepare CSV headers
-    const headers = ['User', 'Type', 'Status', 'Created On', 'Last Activity'];
+    // Show loading state
+    this.isLoading = true;
+    this.cdr.detectChanges();
     
-    // Prepare CSV rows
-    const rows = usersToExport.map(user => [
-      user.user,
-      user.type,
-      user.status,
-      user.created,
-      user.lastActivity
-    ]);
-    
-    // Combine headers and rows
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.join(','))
-    ].join('\n');
-    
-    // Create blob and download
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    
-    link.setAttribute('href', url);
-    const exportType = this.selectedUsers.length > 0 ? 'selected' : 'all';
-    link.setAttribute('download', `users_export_${exportType}_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Call API to get all users matching current filters
+    this.usersApi.getUsersForExport({
+      type: this.filterType || undefined,
+      status: this.filterStatus || undefined,
+      searchTerm: this.searchQuery?.trim() || undefined
+    }).subscribe({
+      next: (users) => {
+        console.log('Export: Received', users.length, 'users from API');
+        
+        // Determine which users to export (selected or all filtered)
+        const usersToExport = this.selectedUsers.length > 0 
+          ? this.selectedUsers.map(su => {
+              // Find full user data from the exported users by matching email
+              return users.find(u => u.email === su.user?.email) || su.actions;
+            })
+          : users;
+        
+        console.log('Export: Exporting', usersToExport.length, 'users');
+        
+        // Prepare CSV headers
+        const headers = ['Name', 'Email', 'Type', 'Status', 'Created On', 'Last Activity'];
+        
+        // Prepare CSV rows
+        const rows = usersToExport.map(user => [
+          `"${user.user || user.name || ''}"`,
+          `"${user.email || ''}"`,
+          user.type || '',
+          user.status || '',
+          user.created || user.createdAt || '',
+          user.lastActivity || user.lastLogin || '-'
+        ]);
+        
+        // Combine headers and rows
+        const csvContent = [
+          headers.join(','),
+          ...rows.map(row => row.join(','))
+        ].join('\n');
+        
+        // Create blob and download
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        
+        link.setAttribute('href', url);
+        const exportType = this.selectedUsers.length > 0 ? 'selected' : 'filtered';
+        link.setAttribute('download', `users_export_${exportType}_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Hide loading state
+        this.isLoading = false;
+        this.cdr.detectChanges();
+        
+        // Show success message
+        this.toastr.success(
+          `Exported ${usersToExport.length} user${usersToExport.length !== 1 ? 's' : ''} to CSV`,
+          'Export Successful',
+          { timeOut: 3000, progressBar: true, closeButton: true }
+        );
+      },
+      error: (error) => {
+        console.error('Export error:', error);
+        this.isLoading = false;
+        this.cdr.detectChanges();
+        
+        this.toastr.error(
+          error.message || 'Failed to export users',
+          'Export Failed',
+          { timeOut: 5000, progressBar: true, closeButton: true }
+        );
+      }
+    });
   }
 
   onAdvancedFilter() {
@@ -447,45 +510,95 @@ export class Userslist implements OnInit {
 
   ngOnInit() {
     console.log('Userslist component initialized');
+    console.log('Component: ngOnInit - isLoading:', this.isLoading, 'loadingError:', this.loadingError);
+    
+    // Setup search debounce
+    this.searchSubject.pipe(
+      debounceTime(400), // Wait 400ms after user stops typing
+      distinctUntilChanged() // Only emit if value has changed
+    ).subscribe(searchTerm => {
+      console.log('Search term changed:', searchTerm);
+      // Reset to page 1 when search changes
+      this.paginationState.currentPage = 1;
+      this.fetchUsers();
+    });
+    
     this.fetchUsers();
+  }
+
+  ngOnDestroy() {
+    // Clean up retry timer when component is destroyed
+    this.stopNetworkErrorRetry();
+    if (this.retrySubscription) {
+      this.retrySubscription.unsubscribe();
+    }
+    // Complete the search subject
+    this.searchSubject.complete();
+  }
+
+  private stopNetworkErrorRetry() {
+    if (this.networkErrorRetryTimer) {
+      clearInterval(this.networkErrorRetryTimer);
+      this.networkErrorRetryTimer = undefined;
+      console.log('Component: Stopped network error retry timer');
+    }
+  }
+
+  private startNetworkErrorRetry() {
+    // Clear any existing timer first
+    this.stopNetworkErrorRetry();
+    
+    console.log('Component: Starting network error retry - will retry every 5 seconds');
+    this.networkErrorRetryTimer = setInterval(() => {
+      console.log('Component: Auto-retry attempt due to network error');
+      this.fetchUsers();
+    }, 5000); // Retry every 5 seconds
   }
 
   // Method to manually refresh data (can be called from UI)
   refreshData() {
     console.log('Component: Manual refresh requested');
+    console.log('Component: Initial state - isLoading:', this.isLoading, 'loadingError:', this.loadingError);
+    
+    // Reset states explicitly
     this.isLoading = true;
     this.loadingError = null;
-
-    const minLoadingTime = 3000; // 3 seconds minimum loading time
-    const startTime = Date.now();
+    this.cdr.detectChanges(); // Force update to show loading state
     
-    this.usersApi.refreshUsers().subscribe({
+    // Show network error only after 2 seconds if still loading
+    const networkErrorTimeout = setTimeout(() => {
+      if (this.isLoading && !this.loadingError) {
+        console.log('Component: 2 seconds elapsed during refresh, still loading - showing network error message');
+        this.loadingError = 'Network issue. Check your internet connection';
+        this.cdr.detectChanges();
+      }
+    }, 2000);
+    
+    this.retrySubscription = this.usersApi.refreshUsers().subscribe({
       next: (users) => {
-        const elapsed = Date.now() - startTime;
-        const remaining = Math.max(0, minLoadingTime - elapsed);
-        setTimeout(() => {
-          this.users = users;
-          this.isLoading = false;
-          this.loadingError = null; // Clear any previous error
-          console.log('Component: Data refreshed successfully');
-          this.cdr.detectChanges();
-        }, remaining);
+        clearTimeout(networkErrorTimeout); // Clear the timeout if data arrives
+        console.log('Component: Data refreshed successfully, count:', users.length);
+        this.users = users;
+        this.isLoading = false;
+        this.loadingError = null; // Clear any error message immediately
+        this.stopNetworkErrorRetry(); // Stop retry timer on success
+        console.log('Component: After refresh - isLoading:', this.isLoading, 'loadingError:', this.loadingError);
+        this.cdr.detectChanges();
       },
       error: (error) => {
-        const elapsed = Date.now() - startTime;
-        const remaining = Math.max(0, minLoadingTime - elapsed);
-        setTimeout(() => {
-          // This shouldn't happen since refreshUsers handles fallbacks
-          console.error('Component: Unexpected error during refresh:', error);
-          // Only show error for network issues
-          if (error.message && error.message.includes('Network issue')) {
-            this.loadingError = 'Failed to refresh data: ' + error.message;
-          } else {
-            this.loadingError = null;
-          }
-          this.isLoading = false;
-          this.cdr.detectChanges();
-        }, remaining);
+        clearTimeout(networkErrorTimeout); // Clear the timeout on error
+        console.error('Component: Error refreshing users:', error);
+        this.isLoading = false;
+        this.loadingError = error.message || 'Failed to refresh users. Please try again.';
+        
+        // Start auto-retry if it's a network error
+        if (error.message && error.message.includes('Network issue')) {
+          console.log('Component: Network error detected during refresh, starting auto-retry every 5 seconds');
+          this.startNetworkErrorRetry();
+        }
+        
+        console.log('Component: After refresh error - isLoading:', this.isLoading, 'loadingError:', this.loadingError);
+        this.cdr.detectChanges();
       }
     });
   }
@@ -499,42 +612,73 @@ export class Userslist implements OnInit {
   }
 
   fetchUsers() {
+    console.log('Component: Starting to fetch paginated users...');
+    console.log('Component: Pagination state:', this.paginationState);
+    console.log('Component: Filters - Type:', this.filterType, 'Status:', this.filterStatus, 'Search:', this.searchQuery);
+    
+    // Cancel any pending API request to prevent race conditions
+    // This ensures only the latest search result updates the table
+    if (this.retrySubscription) {
+      this.retrySubscription.unsubscribe();
+      console.log('Component: Cancelled previous API request');
+    }
+    
+    // Set loading state
     this.isLoading = true;
     this.loadingError = null;
-    console.log('Component: Starting to fetch users...');
+    this.cdr.detectChanges();
 
-    const minLoadingTime = 3000; // 3 seconds minimum loading time
-    const startTime = Date.now();
+    // Show network error only after 2 seconds if still loading
+    const networkErrorTimeout = setTimeout(() => {
+      if (this.isLoading && !this.loadingError) {
+        console.log('Component: 2 seconds elapsed, still loading - showing network error message');
+        this.loadingError = 'Network issue. Check your internet connection';
+        this.cdr.detectChanges();
+      }
+    }, 2000);
 
-    this.usersApi.getUsers().subscribe({
-      next: (users) => {
-        const elapsed = Date.now() - startTime;
-        const remaining = Math.max(0, minLoadingTime - elapsed);
-        setTimeout(() => {
-          this.users = users;
-          this.isLoading = false;
-          this.loadingError = null; // Clear any previous error
-          console.log('Component: Users loaded successfully, setting isLoading to false');
-          this.cdr.detectChanges();
-        }, remaining);
+    // Call paginated API
+    this.retrySubscription = this.usersApi.getPaginatedUsers({
+      page: this.paginationState.currentPage,
+      pageSize: this.paginationState.pageSize,
+      sortBy: this.paginationState.sortBy || 'name',
+      sortOrder: this.paginationState.sortOrder || 'asc',
+      type: this.filterType || undefined,
+      status: this.filterStatus || undefined,
+      searchTerm: this.searchQuery?.trim() || undefined
+    }).subscribe({
+      next: (response) => {
+        clearTimeout(networkErrorTimeout);
+        console.log('Component: Paginated users loaded successfully');
+        console.log('Component: Total count:', response.totalCount, 'Current page:', response.page);
+        
+        this.users = response.users;
+        this.paginationState.totalCount = response.totalCount;
+        this.paginationState.currentPage = response.page;
+        this.paginationState.pageSize = response.pageSize;
+        
+        this.isLoading = false;
+        this.loadingError = null;
+        this.stopNetworkErrorRetry();
+        
+        console.log('Component: After success - isLoading:', this.isLoading, 'users count:', this.users.length);
+        this.cdr.detectChanges();
       },
       error: (error) => {
-        const elapsed = Date.now() - startTime;
-        const remaining = Math.max(0, minLoadingTime - elapsed);
-        setTimeout(() => {
-          console.error('Component: Error fetching users:', error);
-          // Only show error state for network issues, not server errors
-          if (error.message && error.message.includes('Network issue')) {
-            this.loadingError = error.message;
-          } else {
-            // For server errors, you might want to show a different message or handle differently
-            console.warn('Server error:', error.message);
-            // For now, don't show error state for server errors
-            this.loadingError = null;
-          }
-          this.isLoading = false;
-          this.cdr.detectChanges();
-        }, remaining);
+        clearTimeout(networkErrorTimeout);
+        console.error('Component: Error fetching paginated users:', error);
+        
+        this.isLoading = false;
+        this.loadingError = error.message || 'Failed to load users. Please try again.';
+        
+        // Start auto-retry if it's a network error
+        if (error.message && error.message.includes('Network issue')) {
+          console.log('Component: Network error detected, starting auto-retry every 5 seconds');
+          this.startNetworkErrorRetry();
+        }
+        
+        console.log('Component: After error - isLoading:', this.isLoading, 'loadingError:', this.loadingError);
+        this.cdr.detectChanges();
       }
     });
   }
@@ -628,7 +772,9 @@ projects: Project[] = [
   
   // Data transformation for table
   getTableData() {
-    return this.filteredUsers.map(user => ({
+    // With backend pagination, users array is already filtered by the API
+    // No need to use filteredUsers getter (which does frontend filtering)
+    return this.users.map(user => ({
       user: {
         name: user.user,
         email: user.email,
@@ -676,6 +822,39 @@ projects: Project[] = [
       this.showAddUserTypeDropdown = false;
       this.showAddUserStatusDropdown = false;
     }
+  }
+
+  // Pagination event handlers
+  onPageChange(page: number) {
+    console.log('Page changed to:', page);
+    this.paginationState.currentPage = page;
+    
+    // Clear selected users when changing pages
+    this.selectedUsers = [];
+    
+    this.fetchUsers();
+  }
+
+  onPageSizeChange(pageSize: number) {
+    console.log('Page size changed to:', pageSize);
+    this.paginationState.pageSize = pageSize;
+    this.paginationState.currentPage = 1; // Reset to first page
+    
+    // Clear selected users when changing page size
+    this.selectedUsers = [];
+    
+    this.fetchUsers();
+  }
+
+  onFilterChange() {
+    console.log('Filters changed - Type:', this.filterType, 'Status:', this.filterStatus);
+    // Reset to page 1 when filters change
+    this.paginationState.currentPage = 1;
+    
+    // Clear selected users when filters change
+    this.selectedUsers = [];
+    
+    this.fetchUsers();
   }
 
   // Bulk Actions
@@ -806,35 +985,220 @@ projects: Project[] = [
   }
 
   submitImport() {
-    // Show info notification that import is in progress
-    this.toastr.info(`File "${this.selectedFileName}" is currently being imported.`, '', {
-      timeOut: 5000,
-      progressBar: true,
-      closeButton: true,
-    });
-
-    // Add notification to notification service (stored in localStorage)
-    this.notificationService.addNotification(
-      'info',
-      `File "${this.selectedFileName}" is currently being imported.`,
-      'File Import Started'
-    );
-
-    // Simulate import process with a delay, then show success
-    setTimeout(() => {
-      // Show success toaster notification
-      this.toastr.success(`File "${this.selectedFileName}" imported successfully.`, '', {
+    if (!this.selectedFile) {
+      this.toastr.error('Please select a CSV file to import', 'No File Selected', {
         timeOut: 3000,
         progressBar: true,
         closeButton: true,
       });
+      return;
+    }
 
-      // Add success notification to notification service
-      this.notificationService.addNotification(
-        'success',
-        `File "${this.selectedFileName}" imported successfully.`,
-        'File Imported'
-      );
-    }, 3000); // 3 second delay to simulate import
+    // Read and parse CSV file
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      try {
+        const csvContent = e.target.result;
+        const lines = csvContent.split('\n').filter((line: string) => line.trim() !== '');
+        
+        if (lines.length < 2) {
+          this.toastr.error('CSV file is empty or has no data rows', 'Invalid CSV', {
+            timeOut: 3000,
+            progressBar: true,
+            closeButton: true,
+          });
+          return;
+        }
+
+        // Parse header row (case-insensitive)
+        const headers = lines[0].split(',').map((h: string) => h.trim().toLowerCase());
+        console.log('CSV Headers:', headers);
+
+        // Validation: Check for required columns
+        const hasUserName = headers.some((h: string) => h === 'user name' || h === 'username' || h === 'name');
+        const hasEmail = headers.some((h: string) => h === 'email');
+
+        if (!hasUserName || !hasEmail) {
+          this.toastr.error(
+            "The CSV must contain columns 'User name' and 'email' columns",
+            'Missing Required Columns',
+            {
+              timeOut: 5000,
+              progressBar: true,
+              closeButton: true,
+            }
+          );
+          return;
+        }
+
+        // Warning: Check for Jira ID column
+        const hasJiraId = headers.some((h: string) => 
+          h === 'user id' || 
+          h === 'userid' || 
+          h === 'jiraid' || 
+          h === 'jira_id' || 
+          h === 'jira id'
+        );
+
+        if (!hasJiraId) {
+          this.toastr.warning(
+            "The CSV doesn't contain Jira User Id, add column 'User id' with Jira id's to link users to Jira accounts",
+            'Jira ID Column Missing',
+            {
+              timeOut: 7000,
+              progressBar: true,
+              closeButton: true,
+            }
+          );
+        }
+
+        // Map column names to their indices
+        const getColumnIndex = (possibleNames: string[]): number => {
+          for (const name of possibleNames) {
+            const index = headers.indexOf(name.toLowerCase());
+            if (index !== -1) return index;
+          }
+          return -1;
+        };
+
+        const jiraIdIndex = getColumnIndex(['user id', 'userid', 'jiraid', 'jira_id', 'jira id']);
+        const nameIndex = getColumnIndex(['user name', 'username', 'name']);
+        const emailIndex = getColumnIndex(['email']);
+        const statusIndex = getColumnIndex(['user status', 'userstatus', 'status']);
+
+        // Parse data rows
+        const users: CreateUserDto[] = [];
+        for (let i = 1; i < lines.length; i++) {
+          const values = lines[i].split(',').map((v: string) => v.trim());
+          
+          // Skip empty rows
+          if (values.every((v: string) => !v)) continue;
+
+          const user: CreateUserDto = {
+            email: emailIndex !== -1 ? values[emailIndex] : '',
+            name: nameIndex !== -1 ? values[nameIndex] : '',
+            jiraId: jiraIdIndex !== -1 ? values[jiraIdIndex] : undefined,
+            status: statusIndex !== -1 ? values[statusIndex] : undefined,
+            createdBy: 1 // Current user ID
+          };
+
+          // Skip rows with missing required fields
+          if (user.email && user.name) {
+            users.push(user);
+          } else {
+            console.warn(`Skipping row ${i + 1}: missing required fields`, values);
+          }
+        }
+
+        if (users.length === 0) {
+          this.toastr.error('No valid user data found in CSV file', 'Import Failed', {
+            timeOut: 3000,
+            progressBar: true,
+            closeButton: true,
+          });
+          return;
+        }
+
+        console.log('Parsed users from CSV:', users);
+
+        // Close modal and show loading
+        this.closeImportModal();
+        this.isLoading = true;
+
+        // Show info notification that import is in progress
+        this.toastr.info(
+          `Importing ${users.length} user(s) from "${this.selectedFileName}"...`,
+          'Import Started',
+          {
+            timeOut: 5000,
+            progressBar: true,
+            closeButton: true,
+          }
+        );
+
+        // Call API to import users
+        this.usersApi.importCSV(users).subscribe({
+          next: (response) => {
+            console.log('CSV import successful:', response);
+            
+            setTimeout(() => {
+              this.isLoading = false;
+
+              // Show success toaster notification
+              this.toastr.success(
+                `Successfully imported ${response.data?.length || users.length} user(s) from "${this.selectedFileName}"`,
+                'Import Successful',
+                {
+                  timeOut: 3000,
+                  progressBar: true,
+                  closeButton: true,
+                }
+              );
+
+              // Add notification to notification service
+              this.notificationService.addNotification(
+                'success',
+                `Successfully imported ${response.data?.length || users.length} user(s) from "${this.selectedFileName}"`,
+                'File Imported'
+              );
+
+              // Refresh the users list
+              this.usersApi.refreshUsers().subscribe({
+                next: (refreshedUsers) => {
+                  this.users = refreshedUsers;
+                  this.isLoading = false;
+                  this.cdr.detectChanges();
+                },
+                error: (error) => {
+                  console.error('Failed to refresh users after import:', error);
+                  this.isLoading = false;
+                }
+              });
+            }, 0);
+          },
+          error: (error) => {
+            console.error('CSV import failed:', error);
+            
+            setTimeout(() => {
+              this.isLoading = false;
+
+              const errorMessage = error?.message || 'Failed to import users from CSV';
+              
+              // Show error toaster notification
+              this.toastr.error(errorMessage, 'Import Failed', {
+                timeOut: 5000,
+                progressBar: true,
+                closeButton: true,
+              });
+
+              // Add error notification to notification service
+              this.notificationService.addNotification(
+                'error',
+                errorMessage,
+                'Import Failed'
+              );
+            }, 0);
+          }
+        });
+
+      } catch (error) {
+        console.error('Error parsing CSV:', error);
+        this.toastr.error('Failed to parse CSV file. Please check the file format.', 'Parse Error', {
+          timeOut: 5000,
+          progressBar: true,
+          closeButton: true,
+        });
+      }
+    };
+
+    reader.onerror = () => {
+      this.toastr.error('Failed to read CSV file', 'File Read Error', {
+        timeOut: 3000,
+        progressBar: true,
+        closeButton: true,
+      });
+    };
+
+    reader.readAsText(this.selectedFile);
   }
 }
