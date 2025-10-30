@@ -419,6 +419,234 @@
   </div>
 </app-modal>
 
+<!-- Edit User Modal -->
+<app-modal *ngIf="showEditUserModal" [isOpen]="showEditUserModal" (close)="closeEditUserModal()">
+  <div class="p-6 edit-user-modal">
+    <h2 class="text-xl font-semibold mb-2">Edit User</h2>
+    <p class="text-sm text-gray-600 mb-6">
+      Update user information. Fields marked with an asterisk (*) are required.
+    </p>
+
+    <!-- Loading Spinner -->
+    <div *ngIf="isLoadingUserDetails" class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0052CC]"></div>
+    </div>
+
+    <form *ngIf="!isLoadingUserDetails" class="space-y-4">
+      <!-- Validation Errors -->
+      <div *ngIf="validationErrors.length > 0" class="bg-red-50 border border-red-200 rounded-md p-3 mb-4">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-red-800">Please correct the following errors:</h3>
+            <ul class="mt-2 text-sm text-red-700 list-disc list-inside">
+              <li *ngFor="let error of validationErrors">{{ error }}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Full Name (Disabled) -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Full Name <span class="text-red-500">*</span>
+          <span class="text-xs text-gray-500 ml-1">(Cannot be edited)</span>
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="editUser.name"
+          name="name"
+          disabled
+          class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed"
+          title="Name cannot be edited"
+        />
+      </div>
+
+      <!-- Email (Disabled) -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Email <span class="text-red-500">*</span>
+          <span class="text-xs text-gray-500 ml-1">(Cannot be edited)</span>
+        </label>
+        <input
+          type="email"
+          [(ngModel)]="editUser.email"
+          name="email"
+          disabled
+          class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed"
+          title="Email cannot be edited"
+        />
+      </div>
+
+      <!-- Jira ID -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Jira ID
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="editUser.jiraId"
+          name="jiraId"
+          placeholder="Enter Jira ID if applicable"
+          [maxlength]="maxJiraIdLength"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0052CC] focus:border-[#0052CC]"
+        />
+        <div class="text-xs text-gray-500 mt-1 text-right">
+          {{ editUser.jiraId.length }}/{{ maxJiraIdLength }}
+        </div>
+      </div>
+
+      <!-- Type Dropdown -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Type <span class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+          <button
+            type="button"
+            (click)="showEditUserTypeDropdown = !showEditUserTypeDropdown"
+            class="custom-dropdown-button"
+          >
+            <span [ngClass]="{'text-gray-400': !editUser.type, 'text-gray-900': editUser.type}">
+              {{ getEditUserTypeLabel() }}
+            </span>
+            <svg
+              class="w-4 h-4 text-gray-400 transition-transform"
+              [ngClass]="{'rotate-180': showEditUserTypeDropdown}"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              viewBox="0 0 24 24"
+            >
+              <path d="m6 9 6 6 6-6"></path>
+            </svg>
+          </button>
+          <div
+            *ngIf="showEditUserTypeDropdown"
+            class="custom-dropdown-menu"
+          >
+            <div
+              *ngFor="let opt of typeOptions"
+              (click)="selectEditUserType(opt.value)"
+              class="custom-dropdown-item"
+              [ngClass]="{'selected': editUser.type === opt.value}"
+            >
+              {{ opt.label }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status Dropdown -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Status <span class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+          <button
+            type="button"
+            (click)="showEditUserStatusDropdown = !showEditUserStatusDropdown"
+            class="custom-dropdown-button"
+          >
+            <span [ngClass]="{'text-gray-400': !editUser.status, 'text-gray-900': editUser.status}">
+              {{ getEditUserStatusLabel() }}
+            </span>
+            <svg
+              class="w-4 h-4 text-gray-400 transition-transform"
+              [ngClass]="{'rotate-180': showEditUserStatusDropdown}"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              viewBox="0 0 24 24"
+            >
+              <path d="m6 9 6 6 6-6"></path>
+            </svg>
+          </button>
+          <div
+            *ngIf="showEditUserStatusDropdown"
+            class="custom-dropdown-menu"
+          >
+            <div
+              *ngFor="let opt of statusOptions"
+              (click)="selectEditUserStatus(opt.value)"
+              class="custom-dropdown-item"
+              [ngClass]="{'selected': editUser.status === opt.value}"
+            >
+              {{ opt.label }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex justify-end gap-3 mt-6">
+        <button
+          type="button"
+          (click)="closeEditUserModal()"
+          class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          (click)="onUpdateUserClick()"
+          class="px-4 py-2 bg-[#0052CC] hover:bg-[#0052cce6] text-white rounded-md font-medium transition-colors"
+        >
+          Update User
+        </button>
+      </div>
+    </form>
+  </div>
+</app-modal>
+
+<!-- Confirm Update Modal -->
+<app-modal *ngIf="showConfirmUpdateModal" [isOpen]="showConfirmUpdateModal" (close)="closeConfirmUpdateModal()">
+  <div class="p-6">
+    <h2 class="text-xl font-semibold mb-2">Confirm Changes</h2>
+    <p class="text-sm text-gray-600 mb-4">
+      Are you sure you want to save the following changes?
+    </p>
+    
+    <div class="bg-gray-50 rounded-md p-4 mb-4">
+      <h3 class="text-sm font-medium text-gray-700 mb-2">Changes to be saved:</h3>
+      <ul class="text-sm text-gray-600 space-y-1">
+        <li *ngFor="let change of getChangedFields()" class="flex items-start">
+          <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+          <span>{{ change }}</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="flex justify-end gap-3">
+      <button
+        type="button"
+        (click)="closeConfirmUpdateModal()"
+        class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+      >
+        Cancel
+      </button>
+      <button
+        type="button"
+        (click)="confirmUpdateUser()"
+        class="px-4 py-2 bg-[#0052CC] hover:bg-[#0052cce6] text-white rounded-md font-medium transition-colors"
+      >
+        Confirm Update
+      </button>
+    </div>
+  </div>
+</app-modal>
+
+
 <!-- Import Modal -->
 <app-modal *ngIf="showImportModal" [isOpen]="showImportModal" (close)="closeImportModal()">
   <div class="p-6">
