@@ -63,7 +63,7 @@ export class DashboardMainComponent implements OnInit {
     this.error = null;
     
     // Force change detection to show loading indicator immediately
-    this.cdr.detectChanges();
+    
 
     forkJoin({
       metricCards: this.dashboardService.getMetricCards(),
@@ -71,6 +71,9 @@ export class DashboardMainComponent implements OnInit {
       chartData: this.dashboardService.getChartData()
     }).subscribe({
       next: (result) => {
+        // Clear any existing error state
+        this.error = null;
+        
         // Update data - component will detect changes via ngOnChanges
         this.metricCards = result.metricCards;
         this.projectStatusData = result.projectStatus;
@@ -94,10 +97,11 @@ export class DashboardMainComponent implements OnInit {
         this.error = 'Failed to load dashboard data. Please try again.';
         this.isLoading = false;
         
+        // Set default data on error
+        this.setDefaultData();
+        
         // Force change detection on error
         this.cdr.detectChanges();
-        
-        // Keep default data on error
       }
     });
   }
