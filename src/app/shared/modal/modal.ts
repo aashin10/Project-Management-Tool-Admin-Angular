@@ -1,11 +1,11 @@
 import { Component, Input, Output, EventEmitter, HostListener, ElementRef, OnInit, OnDestroy, AfterViewChecked, Renderer2, Inject, PLATFORM_ID } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
 import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-modal',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NgIf],
   templateUrl: './modal.html',
   styleUrl: './modal.css',
   host: {
