@@ -40,6 +40,12 @@ export class Importfromjira implements OnInit {
       this.importNavigationService.next$.subscribe(() => this.nextStep());
       this.importNavigationService.previous$.subscribe(() => this.previousStep());
 
+      if (sessionStorage.getItem('isImporting') === 'true') {
+        this.toStep(2);
+        this.cdr.detectChanges();
+        return;
+      }
+
       this.route.queryParams.subscribe(async (params) => {
         if (params['code']) {
           const authorization_code = params['code'];

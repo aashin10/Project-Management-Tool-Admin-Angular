@@ -26,6 +26,7 @@ export class SelectProjectsSection implements OnInit {
     private navigationService: ImportNavigationService
   ) {}
 
+  isImporting = false;
   projects: any[] = [];
   allProjects: any[] = [];
   loadingProjects: boolean = false;
@@ -52,6 +53,10 @@ export class SelectProjectsSection implements OnInit {
   }
 
   async ngOnInit() {
+    if (sessionStorage.getItem('isImporting') === 'true') {
+      this.isImporting = true;
+      return;
+    }
     this.loadingProjects = true;
     const token = sessionStorage.getItem('jira_access_token');
     if (token) {
@@ -64,7 +69,8 @@ export class SelectProjectsSection implements OnInit {
       if (ids && ids.length > 0) {
         await this.fetchProjectsByCloudId(ids[0].id); // Load default cloudId
       }
-      this.projects = this.allProjects.filter((project) => project.style === 'next-gen');
+      this.allProjects = this.allProjects.filter((project) => project.style === 'next-gen');
+      this.projects = [...this.allProjects];
       console.log('sdfsfd' + this.projects);
       this.loadingProjects = false;
       this.cdr.detectChanges();
@@ -92,8 +98,9 @@ export class SelectProjectsSection implements OnInit {
         style: project.style,
       }));
 
-      this.projects = this.allProjects.filter((project) => project.style === 'next-gen');
-      console.log('sdfsfd' + this.projects);
+      this.allProjects = this.allProjects.filter((project) => project.style === 'next-gen');
+      console.log('sdfsfd' + this.allProjects);
+      this.projects = [...this.allProjects];
       this.loadingProjects = false;
       this.cdr.detectChanges();
     } else {
@@ -136,7 +143,9 @@ export class SelectProjectsSection implements OnInit {
       return;
     }
     alert(this.selectedCloudId);
-    this.navigationService.onNext();
+    //this.navigationService.onNext();
+    this.isImporting = true;
+    sessionStorage.setItem('isImporting', 'true');
     //this.toastr.info('Import functionality is not yet implemented.', 'Import Projects');
     this.jiraApi
       .importProjectsFromJira(
@@ -146,12 +155,19 @@ export class SelectProjectsSection implements OnInit {
       )
       .subscribe({
         next: (response) => {
-          this.navigationService.onNext();
+          console.log('Import Response:', response);
+          sessionStorage.setItem('users_missing', JSON.stringify(response.data));
+          this.isImporting = false;
+          sessionStorage.setItem('isImporting', 'false');
           this.cdr.detectChanges();
-          //this.toastr.success('Projects imported successfully!', 'Import Successful');
+          this.toastr.success('Projects imported successfully!', 'Import Successful');
+          this.navigationService.onNext();
         },
         error: (error) => {
+          this.isImporting = false;
+          sessionStorage.setItem('isImporting', 'false');
           this.toastr.error('Failed to import projects.', 'Import Failed');
+          this.cdr.detectChanges();
         },
       });
   }

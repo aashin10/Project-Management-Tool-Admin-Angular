@@ -1,3 +1,21 @@
+<app-modal
+  [isOpen]="openMissingUserModal"
+  [title]="'Import Users from JIRA'"
+  (close)="closeMissingUserModal()"
+>
+  <div *ngIf="missingUsers.length > 0" class="p-4">
+    <h3 class="text-lg font-semibold text-red-600 mb-2">Missing Users</h3>
+    <p class="text-sm text-gray-700 mb-4">
+      Please upload the CSV file to add these users to the system.
+    </p>
+    <ul class="list-disc list-inside space-y-1 text-gray-800">
+      <li *ngFor="let user of missingUsers">
+        {{ user.name }}
+      </li>
+    </ul>
+  </div>
+</app-modal>
+
 <ng-container class="w-50">
   <label
     for="dropzone-file"
@@ -67,8 +85,8 @@
       bgClass="bg-blue-white border border-gray-300 hover:bg-gray-50 md:w-48 w-24"
     ></app-custom-button>
     <app-custom-button
-      label="Continue"
-      shortLabel="Continue"
+      label="Finish"
+      shortLabel="Finish"
       bgClass="bg-[#0052cc] border border-gray-300 md:w-48 w-24"
       [hoverClass]="'hover:bg-[#0052cce6]'"
       (action)="onContinue()"
