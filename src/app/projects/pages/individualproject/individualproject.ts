@@ -1,10 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SharedModule } from '../../../shared/shared-module';
 import { ProjectTeams } from './project-teams/project-teams';
 import { NotificationService } from '../../../shared/services/notification.service';
-import { ProjectsService, Project } from '../../../shared/services/projects.service';
+import { ProjectsService, Project } from '../../services/projects.service';
 
 @Component({
   selector: 'app-individualproject',
@@ -13,7 +13,7 @@ import { ProjectsService, Project } from '../../../shared/services/projects.serv
   templateUrl: './individualproject.html',
   styleUrl: './individualproject.css'
 })
-export class IndividualprojectComponent implements OnInit {
+export class IndividualprojectComponent implements OnInit, OnDestroy {
   projectId: string = '';
   
   // Project data - now loaded from service
@@ -21,7 +21,7 @@ export class IndividualprojectComponent implements OnInit {
 
   // Loading / error states
   isLoading: boolean = false;
-  loadingError: string | null = null;
+  private loadTimeout: any;
   // Delete modal state
   showDeleteModal: boolean = false;
 
@@ -29,7 +29,8 @@ export class IndividualprojectComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private notificationService: NotificationService,
-    private projectsService: ProjectsService
+    private projectsService: ProjectsService,
+    private cdr: ChangeDetectorRef
   ) {
     // Get project ID from route params
     const id = this.route.snapshot.paramMap.get('id');
@@ -37,8 +38,18 @@ export class IndividualprojectComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    console.log('IndividualProjectComponent initialized with projectId:', this.projectId);
+    
     // Load project data when component initializes
     this.fetchProject();
+  }
+
+  ngOnDestroy(): void {
+    // Clear any pending timeout
+    if (this.loadTimeout) {
+      clearTimeout(this.loadTimeout);
+      this.loadTimeout = null;
+    }
   }
 
   /**
@@ -61,32 +72,95 @@ export class IndividualprojectComponent implements OnInit {
    * Fetch the project detail from service.
    */
   fetchProject(): void {
-    // If project data is already present, skip showing spinner
-    if (this.project) {
+    console.log('fetchProject called for projectId:', this.projectId);
+    
+    // Prevent multiple concurrent requests
+    if (this.isLoading) {
+      console.log('Already loading, skipping duplicate request');
+      return;
+    }
+    
+    if (!this.projectId || this.projectId.trim() === '') {
+      console.error('Invalid projectId:', this.projectId);
+      this.notificationService.addNotification('error', 'Invalid project ID', 'Load Failed');
       this.isLoading = false;
-      this.loadingError = null;
       return;
     }
 
     this.isLoading = true;
-    this.loadingError = null;
 
-    try {
-      // Load project from service
-      const projectData = this.projectsService.getProjectById(this.projectId);
-      
-      if (projectData) {
-        this.project = projectData;
+    // Set timeout to show "project not found" after 10 seconds
+    this.loadTimeout = setTimeout(() => {
+      if (this.isLoading) {
+        console.log('Load timeout reached, showing project not found');
         this.isLoading = false;
-      } else {
-        // Project not found
-        this.isLoading = false;
-        this.loadingError = 'Project not found';
+        this.project = null; // This will show the "project not found" message
+        this.cdr.detectChanges();
       }
-    } catch (err: any) {
-      this.isLoading = false;
-      this.loadingError = err?.message || 'Failed to load project details.';
-    }
+    }, 10000);
+
+    console.log('Making API call to get project by ID');
+    
+    this.projectsService.getProjectById(this.projectId).subscribe({
+      next: (response) => {
+        // Clear the timeout since we got a response
+        if (this.loadTimeout) {
+          clearTimeout(this.loadTimeout);
+          this.loadTimeout = null;
+        }
+
+        console.log('API response received:', response);
+        
+        if (response && response.status === 200 && response.data) {
+          console.log('Mapping project data:', response.data);
+          this.project = this.mapProjectDTOToProject(response.data);
+          console.log('Project mapped successfully:', this.project);
+        } else {
+          console.warn('Invalid response or status:', response);
+          this.notificationService.addNotification('error', response?.message || 'Failed to load project', 'Load Failed');
+        }
+        this.isLoading = false;
+        console.log('Loading completed, isLoading set to false');
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        // Clear the timeout since we got an error
+        if (this.loadTimeout) {
+          clearTimeout(this.loadTimeout);
+          this.loadTimeout = null;
+        }
+
+        console.error('API call failed:', err);
+        this.isLoading = false;
+        this.notificationService.addNotification('error', err?.error?.message || err?.message || 'Failed to load project details.', 'Load Failed');
+        console.log('Error state set');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private mapProjectDTOToProject(dto: any): Project {
+    return {
+      id: dto.id,
+      name: dto.name || '',
+      projectCode: dto.key || '',
+      status: dto.statusName as 'Active' | 'Inactive' | 'Completed' || 'Active',
+      deliveryUnit: dto.deliveryUnitCode || '',
+      projectManager: dto.projectManagerName || '',
+      teamSize: dto.teamSize,
+      template: 'Scrum', // Default
+      description: dto.description,
+      organisationName: dto.customerOrgName,
+      organisationDescription: dto.customerDescription,
+      organisationWebsite: dto.customerDomainUrl,
+      pocEmail: dto.pocEmail,
+      pocPhone: dto.pocPhone,
+      additionalInformation: dto.additionalInformation || [],
+      teams: dto.teams || [],
+      teamMembers: dto.teamMembers || [],
+      isImportedFromJira: dto.isImportedFromJira,
+      selected: false
+    };
   }
 
   retryFetchProject(): void {

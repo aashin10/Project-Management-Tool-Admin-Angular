@@ -7,7 +7,7 @@ import { BasicInformationComponent } from '../../../pages/createproject/basicinf
 import { TeamOrganizationComponent } from '../../../pages/createproject/teaminfo/teaminfo';
 import { Additionalinfo } from '../../../pages/createproject/additionalinfo/additionalinfo';
 import { CustomButton } from '../../../../shared/custom-button/custom-button';
-import { ProjectsService, Project } from '../../../../shared/services/projects.service';
+import { ProjectsService, Project } from '../../../services/projects.service';
 import { ToastrService } from 'ngx-toastr';
 
 @Component({
@@ -67,18 +67,25 @@ export class Editproject implements OnInit {
   }
 
   loadProjectData() {
-    const project = this.projectsService.getProjectById(this.projectId);
-    if (project) {
-      this.projectName = project.name;
-      this.projectKey = project.projectCode;
-      this.description = project.additionalInformation?.find(info => info.name === 'Description')?.value || '';
-      this.organisationName = project.organisationName || '';
-      this.pocEmail = project.pocEmail || '';
-      this.phoneNumber = project.pocPhone || '';
-      this.manager = project.projectManager;
-      this.deliveryUnit = project.deliveryUnit;
-      this.additionalFields = project.additionalInformation || [];
-    }
+    this.projectsService.getProjectById(this.projectId).subscribe({
+      next: (response) => {
+        if (response.status === 200) {
+          const project = response.data;
+          this.projectName = project.name || '';
+          this.projectKey = project.key || '';
+          this.description = project.description || '';
+          this.organisationName = project.customerOrgName || '';
+          this.pocEmail = project.pocEmail || '';
+          this.phoneNumber = project.pocPhone || '';
+          this.manager = project.projectManagerName || '';
+          this.deliveryUnit = project.deliveryUnitCode || '';
+          this.additionalFields = project.additionalInformation || [];
+        }
+      },
+      error: (err) => {
+        console.error('Failed to load project for editing:', err);
+      }
+    });
   }
 
   // Event handlers for form changes

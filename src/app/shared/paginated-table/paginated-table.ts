@@ -301,8 +301,8 @@ export class PaginatedTable implements OnChanges, AfterViewChecked {
     const totalPages = this.totalPages;
     const pages: number[] = [];
     
-    // Show max 7 page numbers at a time
-    const maxVisible = 7;
+    // Show max 5 page numbers at a time (current + 2 on each side)
+    const maxVisible = 5;
     
     if (totalPages <= maxVisible) {
       // Show all pages
@@ -313,9 +313,9 @@ export class PaginatedTable implements OnChanges, AfterViewChecked {
       // Always show first page
       pages.push(1);
       
-      // Calculate range around current page
-      let start = Math.max(2, currentPage - 2);
-      let end = Math.min(totalPages - 1, currentPage + 2);
+      // Calculate range around current page (1 page on each side)
+      let start = Math.max(2, currentPage - 1);
+      let end = Math.min(totalPages - 1, currentPage + 1);
       
       // Add ellipsis after first page if needed
       if (start > 2) {

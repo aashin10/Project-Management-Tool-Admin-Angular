@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 
 export interface ProjectStatus {
+  id: number;
   code: string;
   name: string;
   description?: string;
@@ -11,9 +12,9 @@ export interface ProjectStatus {
 })
 export class ProjectStatusService {
   private statuses: ProjectStatus[] = [
-    { code: 'Active', name: 'Active', description: 'Project is currently in progress' },
-    { code: 'Inactive', name: 'Inactive', description: 'Project is temporarily paused' },
-    { code: 'Completed', name: 'Completed', description: 'Project has been finished' }
+    { id: 1, code: 'Active', name: 'Active', description: 'Project is currently in progress' },
+    { id: 2, code: 'Inactive', name: 'Inactive', description: 'Project is temporarily paused' },
+    { id: 3, code: 'Completed', name: 'Completed', description: 'Project has been finished' }
   ];
 
   getStatuses(): ProjectStatus[] {
@@ -28,7 +29,11 @@ export class ProjectStatusService {
     return this.statuses.map(status => status.code);
   }
 
-  getStatusNames(): string[] {
-    return this.statuses.map(status => status.name);
+  getStatusIds(): number[] {
+    return this.statuses.map(status => status.id);
+  }
+
+  getStatusById(id: number): ProjectStatus | undefined {
+    return this.statuses.find(status => status.id === id);
   }
 }

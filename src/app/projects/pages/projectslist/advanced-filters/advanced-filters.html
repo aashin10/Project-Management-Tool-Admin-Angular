@@ -14,11 +14,11 @@
         >
           <input
             type="checkbox"
-            [checked]="isStatusSelected(status)"
-            (change)="toggleStatusFilter(status)"
+            [checked]="isStatusSelected(status.code)"
+            (change)="toggleStatusFilter(status.code)"
             class="w-3 h-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
           />
-          <span class="text-xs text-gray-700">{{ status }}</span>
+          <span class="text-xs text-gray-700">{{ status.code }}</span>
         </label>
       </div>
     </div>
@@ -35,11 +35,11 @@
         >
           <input
             type="checkbox"
-            [checked]="isDeliveryUnitSelected(deliveryUnit)"
-            (change)="toggleDeliveryUnitFilter(deliveryUnit)"
+            [checked]="isDeliveryUnitSelected(deliveryUnit.code)"
+            (change)="toggleDeliveryUnitFilter(deliveryUnit.code)"
             class="w-3 h-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
           />
-          <span class="text-xs text-gray-700" style="font-size: 12px;">{{ deliveryUnit }}</span>
+          <span class="text-xs text-gray-700" style="font-size: 12px;">{{ deliveryUnit.code }}</span>
         </label>
       </div>
     </div>
@@ -80,11 +80,11 @@
         >
           <input
             type="checkbox"
-            [checked]="isManagerSelected(manager)"
-            (change)="toggleManagerFilter(manager)"
+            [checked]="isManagerSelected(manager.id)"
+            (change)="toggleManagerFilter(manager.id)"
             class="w-3 h-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
           />
-          <span class="text-xs text-gray-700">{{ manager }}</span>
+          <span class="text-xs text-gray-700">{{ manager.name }}</span>
         </label>
 
         <button
@@ -122,12 +122,12 @@
     <div class="flex flex-wrap gap-2">
       <!-- Status filters -->
       <span
-        *ngFor="let status of selectedStatuses"
+        *ngFor="let status of selectedStatusObjects"
         class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-sm font-medium"
       >
-        <span>{{ status }}</span>
+        <span>{{ status.code }}</span>
         <button
-          (click)="removeStatusFilter(status)"
+          (click)="removeStatusFilter(status.code)"
           class="hover:bg-blue-100 rounded-full p-0.5 transition-colors cursor-pointer"
         >
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -143,12 +143,12 @@
 
       <!-- Delivery Unit filters -->
       <span
-        *ngFor="let deliveryUnit of selectedDeliveryUnits"
+        *ngFor="let deliveryUnit of selectedDeliveryUnitObjects"
         class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-full text-sm font-medium"
       >
-        <span>{{ deliveryUnit }}</span>
+        <span>{{ deliveryUnit.code }}</span>
         <button
-          (click)="removeDeliveryUnitFilter(deliveryUnit)"
+          (click)="removeDeliveryUnitFilter(deliveryUnit.code)"
           class="hover:bg-purple-100 rounded-full p-0.5 transition-colors cursor-pointer"
         >
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -164,12 +164,12 @@
 
       <!-- Manager filters -->
       <span
-        *ngFor="let manager of selectedManagers"
+        *ngFor="let manager of selectedManagerObjects"
         class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 border border-green-200 rounded-full text-sm font-medium"
       >
-        <span>{{ manager }}</span>
+        <span>{{ manager.name }}</span>
         <button
-          (click)="removeManagerFilter(manager)"
+          (click)="removeManagerFilter(manager.id)"
           class="hover:bg-green-100 rounded-full p-0.5 transition-colors cursor-pointer"
         >
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
