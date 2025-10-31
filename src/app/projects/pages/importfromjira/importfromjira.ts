@@ -55,6 +55,7 @@ export class Importfromjira implements OnInit {
             const response = await this.jiraService.exchangeToken(authorization_code);
             console.log('Token Exchange Response:', response);
             sessionStorage.setItem('jira_access_token', response.access_token);
+            sessionStorage.setItem('jira_refresh_token', response.refresh_token);
             this.toStep(2);
             this.cdr.detectChanges();
             //Remove url params

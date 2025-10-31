@@ -58,7 +58,23 @@ export class SelectProjectsSection implements OnInit {
       return;
     }
     this.loadingProjects = true;
-    const token = sessionStorage.getItem('jira_access_token');
+    let token = sessionStorage.getItem('jira_access_token');
+    if (token && this.jiraService.isJwtExpired(token)) {
+      const refreshToken = sessionStorage.getItem('jira_refresh_token');
+      if (refreshToken) {
+        try {
+          const response = await this.jiraService.refreshAccessToken(refreshToken);
+          sessionStorage.setItem('jira_access_token', response.access_token);
+          token = response.access_token;
+          if (response.refresh_token) {
+            sessionStorage.setItem('jira_refresh_token', response.refresh_token);
+          }
+        } catch (error) {
+          console.error('Error refreshing access token', error);
+        }
+      }
+    }
+
     if (token) {
       const ids = await this.jiraService.getAccessibleResources(token);
       if (!ids) {
@@ -71,7 +87,6 @@ export class SelectProjectsSection implements OnInit {
       }
       this.allProjects = this.allProjects.filter((project) => project.style === 'next-gen');
       this.projects = [...this.allProjects];
-      console.log('sdfsfd' + this.projects);
       this.loadingProjects = false;
       this.cdr.detectChanges();
     } else {
@@ -80,7 +95,24 @@ export class SelectProjectsSection implements OnInit {
   }
 
   async fetchProjectsByCloudId(cloudId: string): Promise<void> {
-    const token = sessionStorage.getItem('jira_access_token');
+    let token = sessionStorage.getItem('jira_access_token');
+
+    if (token && this.jiraService.isJwtExpired(token)) {
+      const refreshToken = sessionStorage.getItem('jira_refresh_token');
+      if (refreshToken) {
+        try {
+          const response = await this.jiraService.refreshAccessToken(refreshToken);
+          sessionStorage.setItem('jira_access_token', response.access_token);
+          token = response.access_token;
+          if (response.refresh_token) {
+            sessionStorage.setItem('jira_refresh_token', response.refresh_token);
+          }
+        } catch (error) {
+          console.error('Error refreshing access token', error);
+        }
+      }
+    }
+
     if (token) {
       this.loadingProjects = true;
       this.allProjects = [];
@@ -136,13 +168,32 @@ export class SelectProjectsSection implements OnInit {
     this.cdr.detectChanges();
   }
 
-  importProjects(): void {
+  async importProjects(): Promise<void> {
     const selectedProjects = this.allProjects.filter((project) => project.selected);
     if (selectedProjects.length === 0) {
       this.toastr.warning('Please select at least one project to import.', 'No Projects Selected');
       return;
     }
     alert(this.selectedCloudId);
+
+    let token = sessionStorage.getItem('jira_access_token');
+
+    if (token) {
+      const refreshToken = sessionStorage.getItem('jira_refresh_token');
+      if (refreshToken) {
+        try {
+          const response = await this.jiraService.refreshAccessToken(refreshToken);
+          sessionStorage.setItem('jira_access_token', response.access_token);
+          if (response.refresh_token) {
+            sessionStorage.setItem('jira_refresh_token', response.refresh_token);
+            token = response.access_token;
+          }
+        } catch (error) {
+          console.error('Error refreshing access token', error);
+        }
+      }
+    }
+
     //this.navigationService.onNext();
     this.isImporting = true;
     sessionStorage.setItem('isImporting', 'true');
@@ -150,7 +201,7 @@ export class SelectProjectsSection implements OnInit {
     this.jiraApi
       .importProjectsFromJira(
         this.selectedCloudId,
-        sessionStorage.getItem('jira_access_token')!,
+        token || '',
         selectedProjects.map((project) => project.id)
       )
       .subscribe({

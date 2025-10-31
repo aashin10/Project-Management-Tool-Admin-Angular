@@ -1,3 +1,5 @@
+import { JiraApi } from '../app/projects/pages/importfromjira/services/jira-api';
+
 export const environment = {
   production: true,
   jiraTokenExchangeUrl: 'https://auth.atlassian.com/oauth/token',
@@ -5,4 +7,5 @@ export const environment = {
   jiraClientSecret: 'ATOAtHqkou0PXZwlWeOCJXNq9oWDhAvZqY2aai98hLSFoWfWkBeJerdfHT95OCyRUh4P19C29ADE',
   jiraGetAccessibleResourcesUrl: 'https://api.atlassian.com/oauth/token/accessible-resources',
   jiraRedirectUri: 'https://project-management-tool-admin-angul.vercel.app/projects/importfromjira',
+  jiraTokenRefreshUrl: 'https://auth.atlassian.com/oauth/token',
 };
