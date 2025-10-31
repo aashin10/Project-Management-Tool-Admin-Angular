@@ -1,21 +1,42 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import * as Papa from 'papaparse';
 import { ParseResult } from 'papaparse';
 import { CustomButton } from '../../../../shared/custom-button/custom-button';
 import { ImportNavigationService } from '../services/import-navigation-service';
+import { Modal } from '../../../../shared/modal/modal';
 
 @Component({
   selector: 'app-import-users-section',
-  imports: [CustomButton, CommonModule],
+  imports: [CustomButton, CommonModule, Modal],
   templateUrl: './import-users-section.html',
   styleUrl: './import-users-section.css',
 })
-export class ImportUsersSection {
+export class ImportUsersSection implements OnInit {
   public constructor(private importNavigationService: ImportNavigationService) {}
 
   uploadSuccess: boolean = false;
   parsedData: any[] = [];
+  missingUsers: any[] = [];
+  openMissingUserModal = false;
+
+  closeMissingUserModal() {
+    this.openMissingUserModal = false;
+  }
+
+  ngOnInit() {
+    console.log('ImportUsersSection initialized');
+    const users = sessionStorage.getItem('users_missing');
+    if (users) {
+      console.log('Found missing users in sessionStorage:', users);
+      const userArray = JSON.parse(users);
+      if (userArray.length > 0) {
+        this.openMissingUserModal = true;
+        this.missingUsers = userArray;
+        console.log('Missing users loaded:', this.missingUsers);
+      }
+    }
+  }
 
   onFileUpload(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -41,6 +62,5 @@ export class ImportUsersSection {
 
   onContinue() {
     console.log('Importing users...');
-    this.importNavigationService.onNext();
   }
 }

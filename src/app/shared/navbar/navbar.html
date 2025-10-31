@@ -29,10 +29,7 @@
 
 <!-- Notification Dropdown -->
 <div class="relative">
-  <div
-    *ngIf="isNotificationDropdownVisible"
-    class="absolute right-1 mt-1 z-50"
-  >
+  <div *ngIf="isNotificationDropdownVisible" class="absolute right-1 mt-1 z-50">
     <app-notification-dropdown></app-notification-dropdown>
   </div>
 </div>
@@ -40,12 +37,13 @@
 <div class="relative">
   <div
     *ngIf="
+      isSearchBarVisible &&
       searchResults &&
       (searchResults.projects?.length ||
         searchResults.users?.length ||
         searchResults.reports?.length)
     "
-    class="absolute z-10 w-full lg:max-w-2xl bg-white p-4 space-y-6"
+    class="absolute z-10 w-full lg:max-w-2xl bg-white p-4 space-y-6 border border-gray-300 shadow-lg border-l-0"
   >
     <!-- Projects -->
     <div *ngIf="searchResults.projects?.length">

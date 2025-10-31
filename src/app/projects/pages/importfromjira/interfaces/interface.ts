@@ -9,4 +9,5 @@ interface ImportProjectMinimal {
   key: string;
   id: string;
   selected: boolean;
+  style: string;
 }

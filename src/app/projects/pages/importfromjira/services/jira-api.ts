@@ -11,13 +11,14 @@ export class JiraApi {
   constructor(private http: HttpClient) {}
 
   importProjectsFromJira(jiraUrl: string, apiToken: string, projectIds: string[]): Observable<any> {
-    const encodedUrl = encodeURIComponent('https://api.atlassian.com/ex/jira/' + jiraUrl);
-    const query = projectIds.map((id) => `projectIds=${encodeURIComponent(id)}`).join('&');
+    const encodedUrl = encodeURIComponent(`https://api.atlassian.com/ex/jira/${jiraUrl}`);
+    const query = `projectIds=${projectIds.join(',')}`; // 👈 Comma-separated
 
     const headers = {
       'Jira-Access-Token': apiToken,
     };
 
-    return this.http.get<any>(`${this.apiUrl}/import/${encodedUrl}?${query}`, { headers });
+    const fullUrl = `${this.apiUrl}/import/${encodedUrl}?${query}`;
+    return this.http.get<any>(fullUrl, { headers });
   }
 }
