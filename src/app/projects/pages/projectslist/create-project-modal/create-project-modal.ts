@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Modal } from '../../../../shared/modal/modal';
 import { CustomButton } from '../../../../shared/custom-button/custom-button';
-import { ProjectsService, Project } from '../../../../shared/services/projects.service';
+import { ProjectsService, Project } from '../../../services/projects.service';
 
 @Component({
   selector: 'app-create-project-modal',
@@ -35,8 +35,32 @@ export class CreateProjectModal implements OnInit {
   constructor(private projectsService: ProjectsService) {}
 
   ngOnInit(): void {
-    this.projects = this.projectsService.getProjects();
-    this.filteredProjects = this.projects;
+    this.projectsService.getProjects(1, 1000).subscribe({
+      next: (response) => {
+        if (response.status === 200) {
+          this.projects = response.data.items.map(item => this.mapProjectTableDTOToProject(item));
+          this.filteredProjects = this.projects;
+        }
+      },
+      error: (err) => {
+        console.error('Failed to load projects for modal:', err);
+      }
+    });
+  }
+
+  private mapProjectTableDTOToProject(dto: any): Project {
+    return {
+      id: dto.id,
+      name: dto.name || '',
+      projectCode: dto.key || '',
+      status: dto.status?.name as 'Active' | 'Inactive' | 'Completed' || 'Active',
+      deliveryUnit: dto.deliveryUnit?.code || '',
+      projectManager: dto.projectManager?.name || '',
+      teamSize: dto.teamSize,
+      template: 'Scrum',
+      organisationName: '',
+      selected: false
+    };
   }
 
   onProjectNameChange(): void {

@@ -55,21 +55,21 @@
           *ngIf="hasActiveFilters"
           class="ml-1 px-2 py-0.5 bg-blue-600 text-white rounded-full text-xs"
         >
-          {{ selectedStatuses.length + selectedDeliveryUnits.length + selectedManagers.length }}
+          {{ selectedStatusIds.length + selectedDeliveryUnitIds.length + selectedManagerIds.length }}
         </span>
       </button>
 
     </div>
 
-    <!-- Advanced Filters Panel - UPDATED with initial filter inputs -->
     <app-advanced-filters
       [showFilters]="showFilters"
       [projects]="projects"
       [statusOptions]="statusOptions"
       [deliveryUnitOptions]="deliveryUnitOptions"
-      [initialSelectedStatuses]="selectedStatuses"
-      [initialSelectedDeliveryUnits]="selectedDeliveryUnits"
-      [initialSelectedManagers]="selectedManagers"
+      [managerOptions]="managerOptions"
+      [initialSelectedStatusIds]="selectedStatusIds"
+      [initialSelectedDeliveryUnitIds]="selectedDeliveryUnitIds"
+      [initialSelectedManagerIds]="selectedManagerIds"
       (filtersChanged)="onFiltersChanged($event)">
     </app-advanced-filters>
     
@@ -84,19 +84,20 @@
         </div>
       </div>
 
-      <!-- Error (same centered area as loading) -->
-      <div *ngIf="!isLoading && loadingError" class="flex items-center justify-center py-12">
-        <div class="text-center max-w-xl w-full px-6">
-          <div class="inline-block bg-red-50 border border-red-200 rounded-md p-6">
-            <svg class="mx-auto h-12 w-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-            </svg>
-            <h3 class="mt-4 text-sm font-medium text-red-900">{{ loadingError }}</h3>
-            <div class="mt-4 flex justify-center gap-3">
-              <app-custom-button label="Retry" (action)="fetchProjects()" bgClass="bg-[#0052CC]" textColor="text-white"></app-custom-button>
-              <app-custom-button label="Show Sample" (action)="loadSampleDataManually()" bgClass="bg-gray-500" textColor="text-white"></app-custom-button>
-            </div>
-          </div>
+      <!-- Error State -->
+      <div *ngIf="!isLoading && loadingError" class="bg-red-50 border border-red-200 rounded-md p-6 text-center">
+        <svg class="mx-auto h-12 w-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+        </svg>
+        <h3 class="mt-4 text-sm font-medium text-red-900">{{ loadingError }}</h3>
+        <div class="mt-4 flex justify-center gap-3">
+          <app-custom-button
+            label="Retry"
+            (click)="fetchProjects()"
+            bgClass="bg-blue-600"
+            hoverClass="hover:bg-blue-700"
+            textColor="text-white"
+          ></app-custom-button>
         </div>
       </div>
 
@@ -113,13 +114,7 @@
 
         </div>
 
-        <div *ngIf="!loadingError && filteredProjects.length > 0" class="overflow-x-auto">
-          <!-- Project Count (single, always visible) -->
-          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 py-4">
-            <div class="text-sm text-gray-500">
-              Showing all projects • Total: {{ filteredProjects.length }} projects
-            </div>
-          </div>
+        <div *ngIf="filteredProjects.length > 0" class="overflow-x-auto">
 
           <!-- Bulk action toolbar (visible when one or more rows selected) -->
           <div *ngIf="selectedProjects.length > 0" class="mb-4 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
@@ -145,19 +140,23 @@
               </div>
             </div>
           </div>
-          <app-table
+          <app-paginated-table
             [columns]="tableColumns"
             [data]="tableData"
             [showCheckbox]="true"
-            [itemsPerPage]="10"
+            [pagination]="pagination"
+            [loading]="false"
             [selectAllAcrossPages]="true"
             [rowClickAction]="'navigate'"
-            [resetPagination]="resetPagination"
+            [clearSelections]="resetPagination"
             (actionClick)="handleTableAction($event)"
             (selectionChange)="handleSelectionChange($event)"
             (rowClick)="handleRowClick($event)"
+            (pageChange)="onPageChange($event)"
+            (pageSizeChange)="onPageSizeChange($event)"
+            (sortChange)="onSortChange($event)"
           >
-          </app-table>
+          </app-paginated-table>
         </div>
       </div>
     </div>

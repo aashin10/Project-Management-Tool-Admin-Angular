@@ -23,8 +23,10 @@ export interface ApiUser {
   id: number;
   name: string;
   email: string;
+  jiraId?: string;
   type: string;
   status: string;
+  avatarUrl?: string;
   created_At: string;
   last_Login: string | null;
 }
@@ -103,6 +105,29 @@ export interface DeleteUserRequest {
 export interface DeleteUserResponse {
   status: number;
   message: string;
+}
+
+export interface GetUserByIdResponse {
+  status: number;
+  data: ApiUser;
+  message: string;
+  statusCode: number;
+  succeeded: boolean;
+}
+
+export interface UpdateUserDto {
+  jiraId?: string;
+  type?: string;
+  isActive?: boolean;
+  updatedBy?: number;
+}
+
+export interface UpdateUserResponse {
+  status: number;
+  data: ApiUser;
+  message: string;
+  statusCode: number;
+  succeeded: boolean;
 }
 
 @Injectable({
@@ -564,6 +589,63 @@ export class UsersApi {
           }
         } else {
           return throwError(() => new Error('Failed to import users from CSV'));
+        }
+      })
+    );
+  }
+
+  /**
+   * Get user by ID
+   */
+  getUserById(id: number): Observable<GetUserByIdResponse> {
+    console.log('UsersApi: Fetching user by ID...', id);
+    const url = `${this.apiUrl}/${id}`;
+    
+    return this.http.get<GetUserByIdResponse>(url).pipe(
+      timeout(10000), // 10 second timeout
+      catchError(error => {
+        console.error('UsersApi: Get user by ID failed', error);
+        if (error instanceof HttpErrorResponse) {
+          if (error.status === 0) {
+            return throwError(() => new Error('Network issue. Check your internet connection'));
+          } else if (error.status === 404) {
+            return throwError(() => new Error('User not found or has been deleted'));
+          } else {
+            return throwError(() => new Error(`Server error: ${error.status} ${error.statusText}`));
+          }
+        } else {
+          return throwError(() => new Error('Failed to fetch user details'));
+        }
+      })
+    );
+  }
+
+  /**
+   * Update an existing user
+   */
+  updateUser(id: number, dto: UpdateUserDto): Observable<UpdateUserResponse> {
+    console.log('UsersApi: Updating user...', id, dto);
+    const url = `${this.apiUrl}/${id}`;
+    
+    return this.http.put<UpdateUserResponse>(url, dto).pipe(
+      timeout(10000), // 10 second timeout
+      catchError(error => {
+        console.error('UsersApi: Update user failed', error);
+        if (error instanceof HttpErrorResponse) {
+          if (error.status === 0) {
+            return throwError(() => new Error('Network issue. Check your internet connection'));
+          } else if (error.status === 400) {
+            const errorMessage = error.error?.message || 'Validation failed. Please check your inputs.';
+            return throwError(() => new Error(errorMessage));
+          } else if (error.status === 404) {
+            return throwError(() => new Error('User not found or has been deleted'));
+          } else if (error.status === 409) {
+            return throwError(() => new Error('Jira ID already exists for another user'));
+          } else {
+            return throwError(() => new Error(`Server error: ${error.status} ${error.statusText}`));
+          }
+        } else {
+          return throwError(() => new Error('Failed to update user'));
         }
       })
     );

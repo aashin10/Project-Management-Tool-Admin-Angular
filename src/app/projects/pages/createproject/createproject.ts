@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { NotificationService } from '../../../shared/services/notification.service';
-import { ProjectsService } from '../../../shared/services/projects.service';
+import { ProjectsService } from '../../services/projects.service';
 import { DeliveryUnitsService } from '../../../shared/services/delivery-units.service';
 import { ProjectStatusService } from '../../../shared/services/project-status.service';
 import { ToastrService } from 'ngx-toastr';
@@ -69,12 +69,19 @@ export class Createproject {
       if (params['selectedProject']) {
         this.selectedProjectToShare = params['selectedProject'];
         // Auto-fill details from selected project
-        const selectedProject = this.projectsService.getProjectById(params['selectedProject']);
-        if (selectedProject) {
-          this.selectedTemplate = selectedProject.template;
-          this.deliveryUnit = selectedProject.deliveryUnit;
-          this.status = selectedProject.status;
-        }
+        this.projectsService.getProjectById(params['selectedProject']).subscribe({
+          next: (response) => {
+            if (response.status === 200) {
+              const selectedProject = response.data;
+              this.selectedTemplate = 'Scrum'; // Default
+              this.deliveryUnit = selectedProject.deliveryUnitCode || '';
+              this.status = selectedProject.statusName || '';
+            }
+          },
+          error: (err) => {
+            console.error('Failed to load project for template:', err);
+          }
+        });
       }
     });
   }
