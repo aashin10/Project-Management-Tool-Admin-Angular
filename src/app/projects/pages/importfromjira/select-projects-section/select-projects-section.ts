@@ -196,6 +196,7 @@ export class SelectProjectsSection implements OnInit {
 
     //this.navigationService.onNext();
     this.isImporting = true;
+    this.cdr.detectChanges();
     sessionStorage.setItem('isImporting', 'true');
     //this.toastr.info('Import functionality is not yet implemented.', 'Import Projects');
     this.jiraApi
