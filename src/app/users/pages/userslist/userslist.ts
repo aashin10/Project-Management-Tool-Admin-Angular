@@ -986,6 +986,13 @@ export class Userslist implements OnInit, OnDestroy {
         this.paginationState.currentPage = response.page;
         this.paginationState.pageSize = response.pageSize;
         
+        // Adjust current page if it exceeds total pages after filtering
+        const totalPages = Math.ceil(this.paginationState.totalCount / this.paginationState.pageSize);
+        if (this.paginationState.currentPage > totalPages && totalPages > 0) {
+          this.paginationState.currentPage = totalPages;
+          // Optionally refetch with corrected page, but backend should handle this
+        }
+        
         this.isLoading = false;
         this.loadingError = null;
         this.stopNetworkErrorRetry();

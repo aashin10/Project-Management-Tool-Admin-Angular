@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 
 export interface DeliveryUnit {
+  id: number;
   code: string;
   name: string;
   description?: string;
@@ -11,14 +12,14 @@ export interface DeliveryUnit {
 })
 export class DeliveryUnitsService {
   private deliveryUnits: DeliveryUnit[] = [
-    { code: 'DU1', name: 'Digital Solutions', description: 'Web and mobile application development' },
-    { code: 'DU2', name: 'Cloud Services', description: 'Cloud infrastructure and DevOps' },
-    { code: 'DU3', name: 'Data Analytics', description: 'Business intelligence and data processing' },
-    { code: 'DU4', name: 'Quality Assurance', description: 'Testing and quality management' },
-    { code: 'DU5', name: 'Product Design', description: 'UI/UX design and user experience' },
-    { code: 'DU6', name: 'Integration Services', description: 'API development and system integration' },
-    { code: 'DU7', name: 'Security Solutions', description: 'Cybersecurity and compliance' },
-    { code: 'DU8', name: 'Innovation Lab', description: 'Research and emerging technologies' }
+    { id: 1, code: 'DU1', name: 'Digital Solutions', description: 'Web and mobile application development' },
+    { id: 2, code: 'DU2', name: 'Cloud Services', description: 'Cloud infrastructure and DevOps' },
+    { id: 3, code: 'DU3', name: 'Data Analytics', description: 'Business intelligence and data processing' },
+    { id: 4, code: 'DU4', name: 'Quality Assurance', description: 'Testing and quality management' },
+    { id: 5, code: 'DU5', name: 'Product Design', description: 'UI/UX design and user experience' },
+    { id: 6, code: 'DU6', name: 'Integration Services', description: 'API development and system integration' },
+    { id: 7, code: 'DU7', name: 'Security Solutions', description: 'Cybersecurity and compliance' },
+    { id: 8, code: 'DU8', name: 'Innovation Lab', description: 'Research and emerging technologies' }
   ];
 
   getDeliveryUnits(): DeliveryUnit[] {
@@ -33,7 +34,11 @@ export class DeliveryUnitsService {
     return this.deliveryUnits.map(du => du.code);
   }
 
-  getDeliveryUnitNames(): string[] {
-    return this.deliveryUnits.map(du => du.name);
+  getDeliveryUnitIds(): number[] {
+    return this.deliveryUnits.map(du => du.id);
+  }
+
+  getDeliveryUnitById(id: number): DeliveryUnit | undefined {
+    return this.deliveryUnits.find(du => du.id === id);
   }
 }
