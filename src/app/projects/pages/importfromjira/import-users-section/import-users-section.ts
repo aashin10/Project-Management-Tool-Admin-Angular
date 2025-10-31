@@ -1,10 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import * as Papa from 'papaparse';
 import { ParseResult } from 'papaparse';
 import { CustomButton } from '../../../../shared/custom-button/custom-button';
 import { ImportNavigationService } from '../services/import-navigation-service';
 import { Modal } from '../../../../shared/modal/modal';
+import { JiraApi } from '../services/jira-api';
+import { NotificationService } from '../../../../shared/services/notification.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-import-users-section',
@@ -13,7 +16,13 @@ import { Modal } from '../../../../shared/modal/modal';
   styleUrl: './import-users-section.css',
 })
 export class ImportUsersSection implements OnInit {
-  public constructor(private importNavigationService: ImportNavigationService) {}
+  public constructor(
+    private importNavigationService: ImportNavigationService,
+    private jiraApi: JiraApi,
+    private toastr: ToastrService,
+    private cdr: ChangeDetectorRef,
+    private notificationService: NotificationService
+  ) {}
 
   uploadSuccess: boolean = false;
   parsedData: any[] = [];
@@ -56,11 +65,32 @@ export class ImportUsersSection implements OnInit {
           this.uploadSuccess = true;
         },
       });
-      this.uploadSuccess = true;
     }
+    this.uploadSuccess = true;
+    this.cdr.detectChanges();
   }
 
   onContinue() {
     console.log('Importing users...');
+    let postdata: any[] = [];
+    this.parsedData.forEach((user) => {
+      postdata.push({
+        email: user['email'],
+        name: user['User name'],
+        jiraId: user['User id'],
+        status: user['User status'],
+      });
+    });
+    console.log('Prepared user data for upload:', postdata);
+    this.jiraApi.uploadUsersCsv(postdata).subscribe(
+      (response) => {
+        console.log('Users uploaded successfully:', response);
+        this.toastr.success('Users Upload Successful');
+      },
+      (error) => {
+        console.error('Error uploading users:', error);
+        this.uploadSuccess = false;
+      }
+    );
   }
 }
