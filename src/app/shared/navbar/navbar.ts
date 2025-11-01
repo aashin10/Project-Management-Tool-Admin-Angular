@@ -1,5 +1,12 @@
 // navbar.component.ts
-import { Component, OnInit, OnDestroy, HostListener, ElementRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  HostListener,
+  ElementRef,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { SearchBar } from '../components/search-bar/search-bar';
@@ -7,10 +14,12 @@ import { ActionButtons, ActionType } from '../components/action-buttons/action-b
 import { Usermenu } from '../components/usermenu/usermenu';
 import { NotificationDropdown } from '../components/notification-dropdown/notification-dropdown';
 import { NotificationService } from '../services/notification.service';
+import { RouterModule } from '@angular/router';
+import { NavbarService } from './navbar-service';
 
 @Component({
   selector: 'app-navbar',
-  imports: [CommonModule, SearchBar, ActionButtons, Usermenu, NotificationDropdown],
+  imports: [CommonModule, SearchBar, ActionButtons, Usermenu, NotificationDropdown, RouterModule],
   templateUrl: './navbar.html',
   styles: [
     `
@@ -25,9 +34,15 @@ export class Navbar implements OnInit, OnDestroy {
   isNotificationDropdownVisible = false;
   isSearchBarVisible = false;
   unreadNotificationCount = 0;
+  isSearching = false;
   private subscription!: Subscription;
 
-  constructor(private notificationService: NotificationService, private elementRef: ElementRef) {}
+  constructor(
+    private notificationService: NotificationService,
+    private elementRef: ElementRef,
+    private navbarService: NavbarService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.subscription = this.notificationService.notifications$.subscribe(() => {
@@ -68,35 +83,29 @@ export class Navbar implements OnInit, OnDestroy {
     }
   }
 
-  searchResults: {
-    projects: any[];
-    users: any[];
-    reports: any[];
-  } | null = null;
-
+  searchResults: { projects: any[]; users: any[] } = {
+    projects: [],
+    users: [],
+  };
   onSearch(query: string) {
+    this.isSearching = true;
     this.isSearchBarVisible = true;
-    // Replace with actual search logic
-    this.searchResults = {
-      projects: this.searchProjects(query),
-      users: this.searchUsers(query),
-      reports: this.searchReports(query),
-    };
-  }
 
-  searchProjects(query: string) {
-    // Mock search logic for projects
-    return query ? [{ name: 'Project A' }, { name: 'Project B' }] : [];
-  }
+    this.searchResults = { projects: [], users: [] };
 
-  searchUsers(query: string) {
-    // Mock search logic for users
-    return query ? [{ name: 'User A' }, { name: 'User B' }] : [];
-  }
+    this.navbarService.getProjects(1, 5, query).subscribe((data) => {
+      this.searchResults.projects = data.data.items || [];
+      this.cdr.detectChanges(); // Trigger change detection after data is set
+    });
 
-  searchReports(query: string) {
-    // Mock search logic for reports
-    return query ? [{ name: 'Report A' }, { name: 'Report B' }] : [];
+    this.navbarService.getUsers(query).subscribe((data) => {
+      this.searchResults.users = data.users || [];
+      console.log(data.users);
+      this.isSearching = false; // Set after both calls complete
+      this.cdr.detectChanges();
+    });
+
+    console.log(this.searchResults);
   }
 
   onActionClick(action: string): void {
