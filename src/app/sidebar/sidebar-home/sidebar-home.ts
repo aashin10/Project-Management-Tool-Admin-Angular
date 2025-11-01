@@ -54,7 +54,7 @@ export class SidebarHome implements OnDestroy {
       expanded: false,
       children: [
         { label: 'All Projects', route: '/projects' },
-        { label: 'Create Projects', route: '/projects/create' },
+        // { label: 'Create Projects', route: '/projects/create' },
         { label: 'Import From Jira', route: '/projects/importfromjira' }
       ]
     },
@@ -73,12 +73,12 @@ export class SidebarHome implements OnDestroy {
       icon: this.shieldIcon,
       route: '/roles'
     },
-    {
-      label: 'Reports',
-      icon: this.reportsIcon,
-      route: '/reports',
-      children: []
-    },
+    // {
+    //   label: 'Reports',
+    //   icon: this.reportsIcon,
+    //   route: '/reports',
+    //   children: []
+    // },
     {
       label: 'Settings',
       icon: this.settingsIcon,

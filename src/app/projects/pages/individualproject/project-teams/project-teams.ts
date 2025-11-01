@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ProjectsService, Team, TeamMember } from '../../../../shared/services/projects.service';
+import { ProjectsService, Project, Team, TeamMember } from '../../../services/projects.service';
 
 @Component({
   selector: 'app-project-teams',
@@ -21,14 +21,27 @@ export class ProjectTeams implements OnInit {
   constructor(private projectsService: ProjectsService) {}
 
   ngOnInit(): void {
-    const project = this.projectsService.getProjectById(this.projectId);
-    if (project) {
-      this.teams = project.teams || [];
-      this.allMembers = project.teamMembers || [];
-      if (this.teams.length > 0) {
-        this.selectedTeam = this.teams[0].id;
+    this.projectsService.getProjectById(this.projectId).subscribe({
+      next: (response) => {
+        if (response.status === 200) {
+          const project = response.data;
+          this.teams = (project.teams || []).map(t => ({ id: t.id.toString(), name: t.name }));
+          this.allMembers = (project.teamMembers || []).map(m => ({
+            id: m.id.toString(),
+            name: m.name,
+            role: m.role,
+            email: m.email,
+            team: m.teamId.toString()
+          }));
+          if (this.teams.length > 0) {
+            this.selectedTeam = this.teams[0].id;
+          }
+        }
+      },
+      error: (err) => {
+        console.error('Failed to load project teams:', err);
       }
-    }
+    });
   }
 
 
