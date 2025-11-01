@@ -168,6 +168,22 @@ export class ProjectStatusComponent implements OnInit, OnChanges {
     const centerY = 100;
     const radius = 85;
 
+    // Special case: if this is a full circle (360 degrees or close to it)
+    const angleSize = segment.endAngle - segment.startAngle;
+    if (angleSize >= 359.9) {
+      // Draw a full circle using two 180-degree arcs
+      const top = this.polarToCartesian(centerX, centerY, radius, 0);
+      const bottom = this.polarToCartesian(centerX, centerY, radius, 180);
+      
+      return [
+        `M ${centerX} ${centerY}`,
+        `L ${top.x} ${top.y}`,
+        `A ${radius} ${radius} 0 0 1 ${bottom.x} ${bottom.y}`,
+        `A ${radius} ${radius} 0 0 1 ${top.x} ${top.y}`,
+        'Z'
+      ].join(' ');
+    }
+
     const start = this.polarToCartesian(centerX, centerY, radius, segment.endAngle);
     const end = this.polarToCartesian(centerX, centerY, radius, segment.startAngle);
     const largeArcFlag = segment.endAngle - segment.startAngle <= 180 ? '0' : '1';

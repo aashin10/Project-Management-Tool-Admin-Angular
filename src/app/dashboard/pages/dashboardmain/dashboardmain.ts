@@ -46,8 +46,7 @@ export interface ChartData {
     DashboardMetricCards,
     ProjectActivityTimelineComponent,
     ProjectStatusComponent,
-    Sectiontitle,
-    LoadingIndicator
+    Sectiontitle
   ],
   templateUrl: './dashboardmain.html',
   styleUrls: ['./dashboardmain.css']
@@ -99,7 +98,8 @@ export class DashboardMainComponent implements OnInit {
         this.isLoading = false;
         // this.cdr.detectChanges();
         // setTimeout(() => this.cdr.detectChanges(), 0);
-        this.cdr.markForCheck();
+        // this.cdr.markForCheck();
+        this.cdr.detectChanges();
 
         // Success notifications
         this.toastr.success('Dashboard loaded successfully', 'Success', {
@@ -134,8 +134,8 @@ export class DashboardMainComponent implements OnInit {
         
         this.initializeDefaultData();
         this.isLoading = false;
-        // this.cdr.detectChanges();
-        this.cdr.markForCheck();
+        this.cdr.detectChanges();
+        // this.cdr.markForCheck();
       }
     });
   }
