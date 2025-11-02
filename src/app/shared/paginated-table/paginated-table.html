@@ -102,63 +102,88 @@
                 <img [src]="column.icon" class="w-4 h-4" alt="" />
               </ng-container>
 
-              {{ row[column.field] }}
+              <span *ngIf="row[column.field]; else emptyField">{{ row[column.field] }}</span>
+              <ng-template #emptyField>
+                <span class="text-gray-400 italic">—</span>
+              </ng-template>
             </div>
 
             <!-- Badge type -->
             <div *ngIf="column.type === 'badge'" class="flex flex-wrap gap-1">
               <!-- Single badge (string) -->
               <ng-container *ngIf="!isArray(row[column.field])">
-                <span [class]="getBadgeClass(row[column.field], column)">
+                <span *ngIf="row[column.field]; else emptyBadge" [class]="getBadgeClass(row[column.field], column)">
                   {{ row[column.field] }}
                 </span>
+                <ng-template #emptyBadge>
+                  <span class="text-gray-400 italic">—</span>
+                </ng-template>
               </ng-container>
               <!-- Multiple badges (array) -->
               <ng-container *ngIf="isArray(row[column.field])">
-                <span
-                  *ngFor="let badge of row[column.field]"
-                  [class]="getBadgeClass(badge, column)"
-                >
-                  {{ badge }}
-                </span>
+                <ng-container *ngIf="row[column.field]?.length > 0; else emptyArray">
+                  <span
+                    *ngFor="let badge of row[column.field]"
+                    [class]="getBadgeClass(badge, column)"
+                  >
+                    {{ badge }}
+                  </span>
+                </ng-container>
+                <ng-template #emptyArray>
+                  <span class="text-gray-400 italic">—</span>
+                </ng-template>
               </ng-container>
             </div>
 
             <!-- Avatar type -->
-            <div *ngIf="column.type === 'avatar'" class="flex items-center gap-3">
-              <div class="relative">
-                <div
-                  [class]="
-                    row[column.field].bgColor +
-                    ' w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm'
-                  "
+            <div *ngIf="column.type === 'avatar'">
+              <ng-container *ngIf="row[column.field]; else emptyAvatar">
+                <div class="flex items-center gap-3">
+                  <div class="relative">
+                    <div
+                      [class]="
+                        row[column.field].bgColor +
+                        ' w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm'
+                      "
                     >
                       {{ row[column.field].initials }}
                     </div>
 
-                <!-- Overlay badge on the avatar so layout doesn't shift -->
+                    <!-- Overlay badge on the avatar so layout doesn't shift -->
                     <span *ngIf="row[column.field].isImportedFromJira" class="absolute -top-2 -right-2 w-5 h-5 bg-white border border-blue-100 rounded-full flex items-center justify-center shadow-sm" title="Imported from Jira">
                       <img src="/images/import.svg" alt="Imported" class="w-3 h-3 object-contain" />
                     </span>
-              </div>
+                  </div>
 
-              <div>
-                <div class="text-sm font-medium text-gray-900">{{ row[column.field].name }}</div>
-                <div class="text-sm text-gray-500">{{ row[column.field].subtitle }}</div>
-              </div>
+                  <div>
+                    <div class="text-sm font-medium text-gray-900">{{ row[column.field].name }}</div>
+                    <div class="text-sm text-gray-500">{{ row[column.field].subtitle }}</div>
+                  </div>
+                </div>
+              </ng-container>
+              <ng-template #emptyAvatar>
+                <span class="text-gray-400 italic">—</span>
+              </ng-template>
             </div>
 
             <!-- User type (with avatar and details) -->
-            <div *ngIf="column.type === 'user'" class="flex items-center gap-3">
-              <div
-                class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-semibold"
-              >
-                {{ row[column.field].avatar }}
-              </div>
-              <div>
-                <div class="text-sm font-medium text-gray-900">{{ row[column.field].name }}</div>
-                <div class="text-xs text-gray-500">{{ row[column.field].email }}</div>
-              </div>
+            <div *ngIf="column.type === 'user'">
+              <ng-container *ngIf="row[column.field]?.name && row[column.field]?.avatar; else emptyUser">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-semibold"
+                  >
+                    {{ row[column.field].avatar }}
+                  </div>
+                  <div>
+                    <div class="text-sm font-medium text-gray-900">{{ row[column.field].name }}</div>
+                    <div class="text-xs text-gray-500">{{ row[column.field].email }}</div>
+                  </div>
+                </div>
+              </ng-container>
+              <ng-template #emptyUser>
+                <span class="text-gray-400 italic">—</span>
+              </ng-template>
             </div>
 
             <!-- Actions type - Direct Buttons -->
