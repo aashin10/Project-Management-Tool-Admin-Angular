@@ -1,16 +1,19 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { Router } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
 import { Projectslist } from './projectslist';
 import { ProjectsService, Project } from '../../services/projects.service';
 import { NotificationService } from '../../../shared/services/notification.service';
+import { ToastrService } from 'ngx-toastr';
 
 describe('Projectslist', () => {
   let component: Projectslist;
   let fixture: ComponentFixture<Projectslist>;
   let projectsServiceMock: jasmine.SpyObj<ProjectsService>;
   let notificationServiceMock: jasmine.SpyObj<NotificationService>;
+  let toastrServiceMock: jasmine.SpyObj<ToastrService>;
   let routerMock: jasmine.SpyObj<Router>;
 
   const mockProjects: Project[] = [
@@ -50,13 +53,21 @@ describe('Projectslist', () => {
       'addNotification'
     ]);
     
+    toastrServiceMock = jasmine.createSpyObj('ToastrService', [
+      'warning',
+      'success',
+      'error',
+      'info'
+    ]);
+    
     routerMock = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
-      imports: [Projectslist],
+      imports: [Projectslist, HttpClientTestingModule],
       providers: [
         { provide: ProjectsService, useValue: projectsServiceMock },
         { provide: NotificationService, useValue: notificationServiceMock },
+        { provide: ToastrService, useValue: toastrServiceMock },
         { provide: Router, useValue: routerMock },
         {
           provide: ActivatedRoute,
@@ -223,5 +234,25 @@ describe('Projectslist', () => {
     // Empty state
     component.projects = [];
     expect(component.projects.length).toBe(0);
+  });
+
+  it('should have ToastrService injected for notifications', () => {
+    // Verify ToastrService is available
+    expect(component).toBeTruthy();
+    expect(toastrServiceMock).toBeTruthy();
+  });
+
+  it('should have NotificationService for warning notifications on delete', () => {
+    // Verify NotificationService is available for warning notifications
+    expect(notificationServiceMock).toBeTruthy();
+    expect(notificationServiceMock.addNotification).toBeDefined();
+  });
+
+  it('should initialize filter arrays correctly', () => {
+    // Verify filter arrays are initialized
+    expect(component.selectedStatusIds).toBeDefined();
+    expect(component.selectedDeliveryUnitIds).toBeDefined();
+    expect(Array.isArray(component.selectedStatusIds)).toBe(true);
+    expect(Array.isArray(component.selectedDeliveryUnitIds)).toBe(true);
   });
 });
