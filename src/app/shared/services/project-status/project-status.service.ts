@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable, map, catchError, of, shareReplay } from 'rxjs';
 
 export interface ProjectStatus {
   id: number;
@@ -19,20 +19,31 @@ interface ProjectStatusApiResponse {
   providedIn: 'root'
 })
 export class ProjectStatusService {
-  private apiUrl = 'api/status/project-statuses';
+  // Use the same backend base URL as other services (e.g., ProjectsService)
+  private apiUrl = 'http://localhost:5291/api/status/project-statuses';
+  private cachedStatuses$?: Observable<ProjectStatus[]>;
 
   constructor(private http: HttpClient) {}
 
   getStatuses(): Observable<ProjectStatus[]> {
-    return this.http.get<{ status: number; data: ProjectStatusApiResponse[]; message: string }>(this.apiUrl)
-      .pipe(
-        map(response => response.data.map(status => ({
-          id: status.id,
-          code: status.name,  // Map backend 'name' to frontend 'code'
-          name: status.name,  // Map backend 'name' to frontend 'name'
-          description: status.description
-        })))
-      );
+    if (!this.cachedStatuses$) {
+      this.cachedStatuses$ = this.http
+        .get<{ status: number; data: ProjectStatusApiResponse[]; message: string }>(this.apiUrl)
+        .pipe(
+          map(response => (response?.data || []).map(status => ({
+            id: status.id,
+            code: status.name,  // Map backend 'name' to frontend 'code'
+            name: status.name,  // Map backend 'name' to frontend 'name'
+            description: status.description
+          }))),
+          catchError(err => {
+            console.error('[ProjectStatusService] Failed to fetch statuses:', err);
+            return of<ProjectStatus[]>([]);
+          }),
+          shareReplay(1)
+        );
+    }
+    return this.cachedStatuses$;
   }
 
   getStatusByCode(code: string): Observable<ProjectStatus | undefined> {
