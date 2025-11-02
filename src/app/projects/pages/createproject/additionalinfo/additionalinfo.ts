@@ -15,14 +15,14 @@ export class Additionalinfo {
   modalOpen: boolean = false;
   newFieldName: string = '';
   newFieldValue: string = '';
-  @Output() addedFieldsChange = new EventEmitter<Array<{name: string, value: string}>>();
-  @Input() addedFields: Array<{ name: string; value: string }> = [];
+  @Output() addedFieldsChange = new EventEmitter<Array<{id?: string, name: string, value: string}>>();
+  @Input() addedFields: Array<{ id?: string; name: string; value: string }> = [];
 
   onAddInfo() {
     this.modalOpen = true;
   }
 
-  handleAdd(info: {name: string, value: string}) {
+  handleAdd(info: {id?: string, name: string, value: string}) {
     console.log('Received additional info', info);
     this.addedFields.push(info);
     this.modalOpen = false;
@@ -37,7 +37,11 @@ export class Additionalinfo {
     
     if (!trimmedName || !trimmedValue) return;
     
-    const info = { name: this.toTitleCase(trimmedName), value: this.toTitleCase(trimmedValue) };
+    const info = { 
+      id: undefined, // New field, will be assigned by backend
+      name: this.toTitleCase(trimmedName), 
+      value: this.toTitleCase(trimmedValue) 
+    };
     this.addedFields.push(info);
     this.newFieldName = '';
     this.newFieldValue = '';

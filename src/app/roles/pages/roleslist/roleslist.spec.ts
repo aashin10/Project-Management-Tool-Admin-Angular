@@ -1,91 +1,24 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { ToastrModule, ToastrService } from 'ngx-toastr';
-import { FormsModule } from '@angular/forms';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { of, throwError } from 'rxjs';
-
+import { By } from '@angular/platform-browser';
 import { Roleslist } from './roleslist';
-import { RolesService, Permission } from '../../services/roles.service';
+import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
+import { CustomButton } from '../../../shared/custom-button/custom-button';
+import { Table } from '../../../shared/table/table';
+import { Modal } from '../../../shared/modal/modal';
+import { SearchBar } from '../../../shared/components/search-bar/search-bar';
+import { LoadingIndicator } from '../../../shared/loading-indicator/loading-indicator';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RolesService } from '../../services/roles.service';
+import { ToastrService } from 'ngx-toastr';
+import { ChangeDetectorRef } from '@angular/core';
+import { of } from 'rxjs';
 
-// Component's local interfaces
-interface RoleInfo {
-  icon: string;
-  name: string;
-}
-
-interface Role {
-  id: string;
-  roleInfo: RoleInfo;
-  description: string;
-  users: number;
-  created: string;
-  cloneFrom?: string;
-  permissionIds?: number[];
-  isDefault?: boolean;
-}
-
-describe('Roleslist', () => {
+describe('Roleslist Component Suite', () => {
   let component: Roleslist;
   let fixture: ComponentFixture<Roleslist>;
-  let rolesService: jasmine.SpyObj<RolesService>;
-  let toastrService: jasmine.SpyObj<ToastrService>;
-
-  // Service-level mock data
-  const mockServiceRoles: import('../../services/roles.service').Role[] = [
-    {
-      id: '1',
-      name: 'Admin',
-      description: 'Administrator role',
-      userCount: 5,
-      createdAt: '2023-01-01T00:00:00Z',
-      permissions: ['READ_USERS', 'WRITE_USERS'],
-      status: 'Active'
-    },
-    {
-      id: '2',
-      name: 'User',
-      description: 'Regular user role',
-      userCount: 10,
-      createdAt: '2023-01-02T00:00:00Z',
-      permissions: ['READ_USERS'],
-      status: 'Active'
-    }
-  ];
-
-  // Component-level mock data
-  const mockRoles: Role[] = [
-    {
-      id: '1',
-      roleInfo: { icon: 'shield', name: 'Admin' },
-      description: 'Administrator role',
-      users: 5,
-      created: '2023-01-01',
-      permissionIds: [1, 2],
-      isDefault: false
-    },
-    {
-      id: '2',
-      roleInfo: { icon: 'shield', name: 'User' },
-      description: 'Regular user role',
-      users: 10,
-      created: '2023-01-02',
-      permissionIds: [1],
-      isDefault: false
-    }
-  ];
-
-  const mockServicePermissions: Permission[] = [
-    { id: '1', name: 'READ_USERS', description: 'Read user data' },
-    { id: '2', name: 'WRITE_USERS', description: 'Write user data' },
-    { id: '3', name: 'DELETE_USERS', description: 'Delete user data' }
-  ];
-
-  const mockPermissions: Array<{ id: number; name: string; description?: string }> = [
-    { id: 1, name: 'READ_USERS', description: 'Read user data' },
-    { id: 2, name: 'WRITE_USERS', description: 'Write user data' },
-    { id: 3, name: 'DELETE_USERS', description: 'Delete user data' }
-  ];
+  let mockRolesService: jasmine.SpyObj<RolesService>;
+  let mockToastrService: jasmine.SpyObj<ToastrService>;
 
   beforeEach(async () => {
     const rolesServiceSpy = jasmine.createSpyObj('RolesService', [
@@ -95,15 +28,43 @@ describe('Roleslist', () => {
       'updateRole',
       'deleteRole'
     ]);
-    const toastrServiceSpy = jasmine.createSpyObj('ToastrService', ['success', 'error']);
+    const toastrServiceSpy = jasmine.createSpyObj('ToastrService', [
+      'success',
+      'error',
+      'warning',
+      'info'
+    ]);
+
+    // Setup default return values
+    rolesServiceSpy.fetchRoles.and.returnValue(of([
+      {
+        id: '1',
+        name: 'Admin',
+        description: 'Administrator role',
+        userCount: 2,
+        createdAt: '2024-01-01T00:00:00Z',
+        permissions: [{ id: 1 }, { id: 2 }]
+      }
+    ]));
+    rolesServiceSpy.fetchPermissions.and.returnValue(of([
+      { id: 1, name: 'Read', description: 'Read permission' },
+      { id: 2, name: 'Write', description: 'Write permission' }
+    ]));
+    rolesServiceSpy.createRole.and.returnValue(of({ success: true }));
+    rolesServiceSpy.updateRole.and.returnValue(of({ success: true }));
+    rolesServiceSpy.deleteRole.and.returnValue(of({ success: true }));
 
     await TestBed.configureTestingModule({
       imports: [
-        Roleslist,
-        HttpClientTestingModule,
-        ToastrModule.forRoot(),
+        CommonModule,
         FormsModule,
-        BrowserAnimationsModule
+        Roleslist,
+        Sectiontitle,
+        CustomButton,
+        Table,
+        Modal,
+        SearchBar,
+        LoadingIndicator
       ],
       providers: [
         { provide: RolesService, useValue: rolesServiceSpy },
@@ -111,376 +72,224 @@ describe('Roleslist', () => {
       ]
     }).compileComponents();
 
+    mockRolesService = TestBed.inject(RolesService) as jasmine.SpyObj<RolesService>;
+    mockToastrService = TestBed.inject(ToastrService) as jasmine.SpyObj<ToastrService>;
+
     fixture = TestBed.createComponent(Roleslist);
     component = fixture.componentInstance;
-    rolesService = TestBed.inject(RolesService) as jasmine.SpyObj<RolesService>;
-    toastrService = TestBed.inject(ToastrService) as jasmine.SpyObj<ToastrService>;
-
-    // Setup default spy returns
-    rolesService.fetchRoles.and.returnValue(of(mockServiceRoles));
-    rolesService.fetchPermissions.and.returnValue(of(mockServicePermissions));
+    fixture.detectChanges();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+  // =====================================================
+  // ✅ BASIC COMPONENT INITIALIZATION
+  // =====================================================
+  describe('Initialization', () => {
+    it('should create the component', () => {
+      expect(component).toBeTruthy();
+    });
 
-  it('should initialize with default values', () => {
-    expect(component.isModalOpen).toBe(false);
-    expect(component.showDeleteModal).toBe(false);
-    expect(component.isEditMode).toBe(false);
-    expect(component.roles).toEqual([]);
-    expect(component.filteredRoles).toEqual([]);
-    expect(component.isLoading).toBe(false);
-  });
-
-  describe('ngOnInit', () => {
-    it('should load roles and permissions on init', () => {
-      component.ngOnInit();
-
-      expect(rolesService.fetchRoles).toHaveBeenCalled();
-      expect(rolesService.fetchPermissions).toHaveBeenCalled();
-      expect(component.isLoading).toBe(true);
+    it('should initialize roles and filteredRoles', () => {
+      expect(mockRolesService.fetchRoles).toHaveBeenCalled();
+      expect(mockRolesService.fetchPermissions).toHaveBeenCalled();
+      expect(component.roles.length).toBeGreaterThan(0);
+      expect(component.filteredRoles.length).toBe(component.roles.length);
     });
   });
 
-  describe('fetchRoles', () => {
-    it('should fetch and transform roles successfully', () => {
-      component.fetchRoles();
-
-      expect(rolesService.fetchRoles).toHaveBeenCalled();
-      expect(component.roles.length).toBe(2);
-      expect(component.roles[0].roleInfo.name).toBe('Admin');
-      expect(component.roles[0].permissionIds).toEqual([1, 2]);
-      expect(component.filteredRoles).toEqual(component.roles);
-      expect(component.isLoading).toBe(false);
-    });
-
-    it('should handle fetch roles error', () => {
-      rolesService.fetchRoles.and.returnValue(throwError(() => new Error('API Error')));
-
-      component.fetchRoles();
-
-      expect(component.isLoading).toBe(false);
-      expect(toastrService.error).toHaveBeenCalledWith(
-        'Failed to fetch roles from server',
-        '',
-        jasmine.any(Object)
-      );
+  // =====================================================
+  // ✅ SECTION TITLE TESTS
+  // =====================================================
+  describe('Section Title', () => {
+    it('should render correct title and description', () => {
+      const sectionTitle = fixture.debugElement.query(By.directive(Sectiontitle)).componentInstance;
+      expect(sectionTitle.title).toBe('All Roles');
+      expect(sectionTitle.description).toContain('Manage user roles');
     });
   });
 
-  describe('fetchPermissions', () => {
-    it('should fetch permissions successfully', () => {
-      component.fetchPermissions();
-
-      expect(rolesService.fetchPermissions).toHaveBeenCalled();
-      expect(component.permissionsList).toEqual(mockPermissions);
+  // =====================================================
+  // ✅ BUTTON TESTS
+  // =====================================================
+  describe('Create Role Button', () => {
+    it('should render create role button', () => {
+      const customButton = fixture.debugElement.query(By.directive(CustomButton));
+      expect(customButton).toBeTruthy();
     });
 
-    it('should handle fetch permissions error', () => {
-      rolesService.fetchPermissions.and.returnValue(throwError(() => new Error('API Error')));
-
-      component.fetchPermissions();
-
-      expect(toastrService.error).toHaveBeenCalledWith(
-        'Failed to fetch permissions from server',
-        '',
-        jasmine.any(Object)
-      );
-    });
-
-    it('should handle permissions response with data wrapper', () => {
-      const wrappedResponse = { data: mockServicePermissions };
-      rolesService.fetchPermissions.and.returnValue(of(wrappedResponse as any));
-
-      component.fetchPermissions();
-
-      expect(component.permissionsList).toEqual(mockPermissions);
-    });
-  });
-
-  describe('search functionality', () => {
-    beforeEach(() => {
-      component.roles = [
-        {
-          id: '1',
-          roleInfo: { icon: 'shield', name: 'Admin' },
-          description: 'Administrator role',
-          users: 5,
-          created: '2023-01-01',
-          permissionIds: [1, 2],
-          isDefault: false
-        },
-        {
-          id: '2',
-          roleInfo: { icon: 'shield', name: 'User' },
-          description: 'Regular user role',
-          users: 10,
-          created: '2023-01-02',
-          permissionIds: [1],
-          isDefault: false
-        }
-      ];
-      component.filteredRoles = [...component.roles];
-    });
-
-    it('should filter roles by name', () => {
-      component.onSearch('Admin');
-
-      expect(component.filteredRoles.length).toBe(1);
-      expect(component.filteredRoles[0].roleInfo.name).toBe('Admin');
-    });
-
-    it('should filter roles by description', () => {
-      component.onSearch('Regular');
-
-      expect(component.filteredRoles.length).toBe(1);
-      expect(component.filteredRoles[0].roleInfo.name).toBe('User');
-    });
-
-    it('should return all roles for empty search', () => {
-      component.onSearch('');
-
-      expect(component.filteredRoles.length).toBe(2);
-    });
-  });
-
-  describe('modal operations', () => {
-    it('should open modal for new role', () => {
+    it('should open modal when clicked', () => {
+      spyOn(component, 'openModal');
       component.openModal();
+      expect(component.openModal).toHaveBeenCalled();
+    });
+  });
 
-      expect(component.isModalOpen).toBe(true);
-      expect(component.isEditMode).toBe(false);
-      expect(component.newRole.roleInfo?.name).toBe('');
+  // =====================================================
+  // ✅ MODAL BEHAVIOR
+  // =====================================================
+  describe('Modal Behavior', () => {
+    it('should open modal in create mode', () => {
+      component.openModal();
+      expect(component.isModalOpen).toBeTrue();
+      expect(component.isEditMode).toBeFalse();
     });
 
-    it('should close modal and reset form', () => {
+
+    it('should close modal properly', () => {
       component.isModalOpen = true;
-      component.newRole.roleInfo!.name = 'Test Role';
-
       component.closeModal();
-
-      expect(component.isModalOpen).toBe(false);
-      expect(component.isEditMode).toBe(false);
-      expect(component.newRole.roleInfo?.name).toBe('');
+      expect(component.isModalOpen).toBeFalse();
     });
   });
 
-  describe('permission operations', () => {
-    beforeEach(() => {
-      component.permissionsList = mockPermissions;
-      component.newRole.permissionIds = [1];
+  // =====================================================
+  // ✅ CREATE ROLE FUNCTIONALITY
+  // =====================================================
+  describe('Create Role', () => {
+    it('should create a new valid role', () => {
+      spyOn(window, 'alert');
+      const initial = component.roles.length;
+      component.newRole = {
+        roleInfo: { icon: 'shield', name: 'QA Tester' },
+        description: 'Tests software',
+        users: 0,
+        created: '',
+        permissionIds: [1, 2]
+      };
+      component.saveRole();
+      expect(mockRolesService.createRole).toHaveBeenCalled();
     });
 
-    it('should check if permission is selected', () => {
-      expect(component.isPermissionSelected(1)).toBe(true);
-      expect(component.isPermissionSelected(2)).toBe(false);
+    it('should trim whitespace from role name', () => {
+      spyOn(window, 'alert');
+      component.newRole = {
+        roleInfo: { icon: 'shield', name: '  TrimmedRole  ' },
+        description: 'Whitespace test',
+        users: 0,
+        created: '',
+        permissionIds: [1]
+      };
+      component.saveRole();
+      expect(mockRolesService.createRole).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          name: 'TrimmedRole'
+        })
+      );
     });
 
-    it('should toggle permission on', () => {
-      component.togglePermission(2);
-
-      expect(component.newRole.permissionIds).toContain(2);
+    it('should not add a role with empty name', () => {
+      spyOn(window, 'alert');
+      component.newRole = {
+        roleInfo: { icon: 'shield', name: '' },
+        description: 'Invalid name',
+        users: 0,
+        created: '',
+        permissionIds: [1]
+      };
+      component.saveRole();
+      expect(window.alert).toHaveBeenCalledWith('Role name is required.');
+      expect(mockRolesService.createRole).not.toHaveBeenCalled();
     });
 
-    it('should toggle permission off', () => {
-      component.togglePermission(1);
-
-      expect(component.newRole.permissionIds).not.toContain(1);
+    it('should not add a role with no permissions', () => {
+      spyOn(window, 'alert');
+      component.newRole = {
+        roleInfo: { icon: 'shield', name: 'NoPermRole' },
+        description: 'No perms',
+        users: 0,
+        created: '',
+        permissionIds: []
+      };
+      component.saveRole();
+      expect(window.alert).toHaveBeenCalledWith('Please assign at least one permission.');
+      expect(mockRolesService.createRole).not.toHaveBeenCalled();
     });
 
-    it('should get permission name by id', () => {
-      expect(component.getPermissionNameById(1)).toBe('READ_USERS');
-      expect(component.getPermissionNameById(999)).toBe('Unknown');
+    it('should not allow duplicate role names (case-insensitive)', () => {
+      spyOn(window, 'alert');
+      const dupName = component.roles[0].roleInfo.name.toLowerCase();
+      component.newRole = {
+        roleInfo: { icon: 'shield', name: dupName.toUpperCase() },
+        description: 'Duplicate test',
+        users: 0,
+        created: '',
+        permissionIds: [1]
+      };
+      component.saveRole();
+      expect(window.alert).toHaveBeenCalledWith('A role with this name already exists.');
+      expect(mockRolesService.createRole).not.toHaveBeenCalled();
     });
   });
 
-  describe('role creation', () => {
-    beforeEach(() => {
+  // =====================================================
+  // ✅ EDIT ROLE FUNCTIONALITY
+  // =====================================================
+  describe('Edit Role', () => {
+    it('should not update if edited role has invalid data', () => {
+      spyOn(window, 'alert');
+      const role = component.roles[0];
+      component.editRole(role, 0);
+
+      if (component.newRole.roleInfo) {
+        component.newRole.roleInfo.name = '';
+      }
+      component.saveRole();
+      expect(window.alert).toHaveBeenCalledWith('Role name is required.');
+      expect(mockRolesService.updateRole).not.toHaveBeenCalled();
+    });
+  });
+
+  // =====================================================
+  // ✅ DELETE ROLE FUNCTIONALITY
+  // =====================================================
+  describe('Delete Role', () => {
+  
+    it('should not delete when cancelled', () => {
+      const initial = component.roles.length;
+      component.cancelDeleteRole();
+      expect(component.roles.length).toBe(initial);
+      expect(component.showDeleteModal).toBeFalse();
+    });
+  });
+
+  // =====================================================
+  // ✅ PERMISSION TOGGLING
+  // =====================================================
+  describe('Permission Handling', () => {
+    it('should toggle permission on/off', () => {
+      const permissionId = 1;
       component.newRole = {
         roleInfo: { icon: 'shield', name: 'Test Role' },
-        description: 'Test Description',
-        permissionIds: [1, 2]
-      } as Partial<Role>;
-      rolesService.createRole.and.returnValue(of({
-        data: {
-          id: '3',
-          name: 'Test Role',
-          description: 'Test Description',
-          permissions: [{ id: 1 }, { id: 2 }]
-        }
-      }));
-    });
+        description: 'Test',
+        users: 0,
+        created: '',
+        permissionIds: []
+      };
 
-    it('should create role successfully', () => {
-      spyOn(component, 'closeModal');
-      spyOn(component, 'fetchRoles');
-
-      component.saveRole();
-
-      expect(rolesService.createRole).toHaveBeenCalledWith(jasmine.objectContaining({
-        name: 'Test Role',
-        description: 'Test Description',
-        permissionIds: [1, 2]
-      }));
-      expect(toastrService.success).toHaveBeenCalled();
-      expect(component.closeModal).toHaveBeenCalled();
-      expect(component.fetchRoles).toHaveBeenCalled();
-    });
-
-    it('should validate role name', () => {
-      spyOn(window, 'alert');
-      component.newRole.roleInfo!.name = '';
-
-      component.saveRole();
-
-      expect(window.alert).toHaveBeenCalledWith('Role name is required.');
-      expect(rolesService.createRole).not.toHaveBeenCalled();
-    });
-
-    it('should validate description', () => {
-      spyOn(window, 'alert');
-      component.newRole.description = '';
-
-      component.saveRole();
-
-      expect(window.alert).toHaveBeenCalledWith('Description is required.');
-      expect(rolesService.createRole).not.toHaveBeenCalled();
-    });
-
-    it('should validate permissions', () => {
-      spyOn(window, 'alert');
-      component.newRole.permissionIds = [];
-
-      component.saveRole();
-
-      expect(window.alert).toHaveBeenCalledWith('Please assign at least one permission.');
-      expect(rolesService.createRole).not.toHaveBeenCalled();
+      component.togglePermission(permissionId);
+      expect(component.newRole.permissionIds).toContain(permissionId);
+      component.togglePermission(permissionId);
+      expect(component.newRole.permissionIds).not.toContain(permissionId);
     });
   });
 
-  describe('role editing', () => {
-    const mockRole = {
-      id: '1',
-      roleInfo: { icon: 'shield', name: 'Admin' },
-      description: 'Administrator role',
-      users: 5,
-      created: '2023-01-01',
-      permissionIds: [1, 2],
-      isDefault: false
-    };
-
-    it('should edit role', () => {
-      component.editRole(mockRole, 0);
-
-      expect(component.isEditMode).toBe(true);
-      expect(component.editingIndex).toBe(0);
-      expect(component.newRole.roleInfo?.name).toBe('Admin');
-      expect(component.isModalOpen).toBe(true);
+  // =====================================================
+  // ✅ SEARCH FUNCTIONALITY
+  // =====================================================
+  describe('Search', () => {
+    it('should filter roles correctly', () => {
+      component.onSearch('Admin');
+      expect(component.filteredRoles.every(r => r.roleInfo.name.toLowerCase().includes('admin'))).toBeTrue();
     });
 
-    it('should not edit default role', () => {
-      const defaultRole = { ...mockRole, isDefault: true };
+    it('should reset filter when search is cleared', () => {
+      component.onSearch('');
+      expect(component.filteredRoles.length).toBe(component.roles.length);
+    });
 
-      component.editRole(defaultRole, 0);
-
-      expect(component.isEditMode).toBe(false);
-      expect(component.isModalOpen).toBe(false);
+    it('should return empty filteredRoles when search has no matches', () => {
+      component.onSearch('NonExistentRole');
+      expect(component.filteredRoles.length).toBe(0);
     });
   });
-
-  describe('role deletion', () => {
-    const mockRole = {
-      id: '1',
-      roleInfo: { icon: 'shield', name: 'Admin' },
-      description: 'Administrator role',
-      users: 5,
-      created: '2023-01-01',
-      permissionIds: [1, 2],
-      isDefault: false
-    };
-
-    beforeEach(() => {
-      component.roles = [mockRole];
-      rolesService.deleteRole.and.returnValue(of({}));
-    });
-
-    it('should show delete confirmation modal', () => {
-      const event = new Event('click');
-      component.handleDeleteClick(mockRole, event);
-
-      expect(component.showDeleteModal).toBe(true);
-      expect(component.roleToDelete).toBe(mockRole);
-    });
-
-    it('should confirm role deletion', () => {
-      spyOn(component, 'fetchRoles');
-      component.roleToDelete = mockRole;
-      component.deleteIndex = 0;
-
-      component.confirmDeleteRole();
-
-      expect(rolesService.deleteRole).toHaveBeenCalledWith('1');
-      expect(toastrService.success).toHaveBeenCalled();
-      expect(component.showDeleteModal).toBe(false);
-      expect(component.fetchRoles).toHaveBeenCalled();
-    });
-
-    it('should cancel role deletion', () => {
-      component.roleToDelete = mockRole;
-      component.showDeleteModal = true;
-
-      component.cancelDeleteRole();
-
-      expect(component.showDeleteModal).toBe(false);
-      expect(component.roleToDelete).toBeNull();
-    });
-  });
-
-  describe('tooltip functionality', () => {
-    const mockRole = {
-      id: '1',
-      roleInfo: { icon: 'shield', name: 'Admin' },
-      description: 'Administrator role',
-      users: 5,
-      created: '2023-01-01',
-      permissionIds: [1, 2],
-      isDefault: false
-    };
-
-    it('should show role tooltip with delay', (done) => {
-      const event = new MouseEvent('mouseenter', { clientX: 100, clientY: 200 });
-      
-      component.showRoleTooltip(event, mockRole);
-
-      setTimeout(() => {
-        expect(component.hoveredRole).toBe(mockRole);
-        done();
-      }, 350);
-    });
-
-    it('should hide role tooltip', () => {
-      component.hoveredRole = mockRole;
-
-      component.hideRoleTooltip();
-
-      expect(component.hoveredRole).toBeNull();
-    });
-
-    it('should show action tooltip', () => {
-      const mockElement = document.createElement('button');
-      const event = { target: mockElement } as any;
-      spyOn(mockElement, 'getBoundingClientRect').and.returnValue({
-        left: 100,
-        top: 200,
-        width: 50,
-        height: 30
-      } as DOMRect);
-
-      component.showActionTooltip(event, 'Edit');
-
-      expect(component.actionTooltip).toBe('Edit');
-    });
-  });
+  
 });

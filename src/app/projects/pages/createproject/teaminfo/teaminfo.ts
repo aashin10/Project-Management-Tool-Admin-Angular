@@ -26,6 +26,7 @@ export class TeamOrganizationComponent implements OnInit, OnChanges {
   @Output() managerChange = new EventEmitter<string>();
   @Output() deliveryUnitChange = new EventEmitter<string>();
   @Output() managerSearch = new EventEmitter<string>();
+  @Output() managerSelect = new EventEmitter<UserFilterResponse>();
 
   constructor(private cdr: ChangeDetectorRef) {}
 
@@ -62,7 +63,8 @@ export class TeamOrganizationComponent implements OnInit, OnChanges {
 
   onManagerInput(value: string) {
     this.managerSearch.emit(value);
-    this.showManagerSuggestions = !!value && value.length > 1;
+    // Show suggestions for 1+ characters if there are results
+    this.showManagerSuggestions = !!value && value.length > 0 && this.filteredUsers.length > 0;
   }
 
   selectManager(u: UserFilterResponse) {
@@ -71,6 +73,7 @@ export class TeamOrganizationComponent implements OnInit, OnChanges {
     }
     this.manager = u.name;
     this.managerChange.emit(this.manager);
+    this.managerSelect.emit(u); // Emit the full user object
     this.showManagerSuggestions = false;
   }
 
