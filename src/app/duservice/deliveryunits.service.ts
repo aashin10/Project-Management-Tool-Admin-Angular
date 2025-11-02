@@ -30,7 +30,7 @@ export interface DeliveryUnitCreate {
   providedIn: 'root'
 })
 export class DeliveryUnitService {
-  private apiUrl = 'https://localhost:7072/api/DeliveryUnit';
+  private apiUrl = '/api/DeliveryUnit';
   
   constructor(private http: HttpClient) {}
 

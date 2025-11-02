@@ -1,15 +1,10 @@
 <div class="w-full">
-  <!-- Loading Overlay - Professional design -->
+  <!-- Loading Overlay -->
   <div *ngIf="loading" class="relative">
-    <div class="absolute inset-0 bg-white bg-opacity-80 flex items-center justify-center z-50 rounded-lg backdrop-blur-sm">
-      <div class="flex flex-col items-center gap-4">
-        <div class="inline-flex items-center justify-center">
-          <div class="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-600"></div>
-        </div>
-        <div class="text-center">
-          <p class="text-sm font-medium text-gray-900">Loading projects...</p>
-          <p class="text-xs text-gray-500 mt-1">Please wait while we fetch your data</p>
-        </div>
+    <div class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10 rounded-lg">
+      <div class="flex flex-col items-center gap-3">
+        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+        <p class="text-sm text-gray-600">Loading...</p>
       </div>
     </div>
   </div>
@@ -24,6 +19,7 @@
             <input
               #selectAllCheckbox
               type="checkbox"
+              aria-label="Select All Rows"
               class="rounded border-gray-300 accent-blue-600 cursor-pointer"
               (change)="toggleAll()"
               [disabled]="loading"
@@ -59,6 +55,7 @@
           <td *ngIf="showCheckbox" class="w-12 px-6 py-4" (click)="$event.stopPropagation()">
             <input
               type="checkbox"
+              aria-label="Select Row {{ i + 1 }}"
               class="rounded border-gray-300 accent-blue-600 cursor-pointer"
               [checked]="isRowSelected(i)"
               [disabled]="loading"
@@ -172,6 +169,7 @@
             >
               <button
                 *ngFor="let actionItem of column.actions"
+                title="{{ actionItem.label }}"
                 (click)="handleAction(actionItem.action, row); $event.stopPropagation()"
                 [class]="getActionButtonClass(actionItem.action)"
                 [disabled]="loading"
@@ -219,7 +217,7 @@
   </div>
 
   <!-- Pagination Footer -->
-  <div class="flex flex-col sm:flex-row items-center justify-between px-6 py-4 bg-white border-t border-gray-200 gap-4 sm:gap-0">
+  <div class="flex items-center justify-between px-6 py-4 bg-white border-t border-gray-200">
     <div class="text-sm text-gray-700">
       <ng-container *ngIf="pagination.totalCount > 0">
         Showing {{ startIndex }}-{{ endIndex }} of {{ pagination.totalCount }}
@@ -230,11 +228,12 @@
       </ng-container>
     </div>
 
-    <div class="flex flex-col sm:flex-row items-center gap-4">
+    <div class="flex items-center gap-4">
       <div class="flex items-center gap-2">
         <span class="text-sm text-gray-700">Rows per page</span>
         <select
           [(ngModel)]="pagination.pageSize"
+          title="Select number of rows per page"
           (ngModelChange)="onPageSizeChange()"
           [disabled]="loading"
           class="border border-gray-300 rounded px-2 py-1 text-sm disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"

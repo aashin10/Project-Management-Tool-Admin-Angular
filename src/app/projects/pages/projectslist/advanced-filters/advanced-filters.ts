@@ -72,6 +72,11 @@ export class AdvancedFilters implements OnChanges {
   showAllManagers = false;
   filteredManagers: {id: number, name: string}[] = [];
 
+  // Modal state for showing all managers
+  showManagerModal = false;
+  private _modalSearchQuery = '';
+  modalFilteredManagers: {id: number, name: string}[] = [];
+
   get managerSearchQuery(): string {
     return this._managerSearchQuery;
   }
@@ -79,6 +84,14 @@ export class AdvancedFilters implements OnChanges {
   set managerSearchQuery(value: string) {
     this._managerSearchQuery = value;
     this.updateFilteredManagers();
+  }
+
+  get modalSearchQuery(): string {
+    return this._modalSearchQuery;
+  }
+
+  set modalSearchQuery(value: string) {
+    this._modalSearchQuery = value;
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -113,12 +126,12 @@ export class AdvancedFilters implements OnChanges {
   // Update filtered managers when options or search changes
   private updateFilteredManagers(): void {
     if (!this._managerSearchQuery) {
-      this.filteredManagers = this.showAllManagers ? [...this._managerOptions] : this._managerOptions.slice(0, 4);
+      this.filteredManagers = this.showAllManagers ? [...this._managerOptions] : this._managerOptions.slice(0, 3);
     } else {
       const filtered = this._managerOptions.filter(manager =>
         manager.name && manager.name.toLowerCase().includes(this._managerSearchQuery.toLowerCase())
       );
-      this.filteredManagers = this.showAllManagers ? filtered : filtered.slice(0, 4);
+      this.filteredManagers = this.showAllManagers ? filtered : filtered.slice(0, 3);
     }
   }
 
@@ -221,6 +234,27 @@ export class AdvancedFilters implements OnChanges {
   toggleShowAllManagers(): void {
     this.showAllManagers = !this.showAllManagers;
     this.updateFilteredManagers();
+  }
+
+  openManagerModal(): void {
+    this.showManagerModal = true;
+    this._modalSearchQuery = '';
+    this.updateModalManagersList();
+  }
+
+  closeManagerModal(): void {
+    this.showManagerModal = false;
+    this._modalSearchQuery = '';
+  }
+
+  updateModalManagersList(): void {
+    if (!this._modalSearchQuery) {
+      this.modalFilteredManagers = [...this._managerOptions];
+    } else {
+      this.modalFilteredManagers = this._managerOptions.filter(manager =>
+        manager.name && manager.name.toLowerCase().includes(this._modalSearchQuery.toLowerCase())
+      );
+    }
   }
 
   private emitFiltersChanged(): void {

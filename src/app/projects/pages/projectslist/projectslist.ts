@@ -11,8 +11,8 @@ import { ProjectTemplateModal } from './project-template-modal/project-template-
 import { CreateProjectModal } from './create-project-modal/create-project-modal';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { ProjectsService, Project, ProjectTableDTO } from '../../../projects/services/projects.service';
-import { DeliveryUnitsService } from '../../../shared/services/delivery-units.service';
-import { ProjectStatusService } from '../../../shared/services/project-status.service';
+import { DeliveryUnitService } from '../../../duservice/deliveryunits.service';
+import { ProjectStatusService } from '../../../shared/services/project-status/project-status.service';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil, switchMap, finalize } from 'rxjs';
 
 interface TableHeader {
@@ -39,6 +39,7 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
   showCreateProjectModal = false;
   selectedTemplate: string = '';
   loadingError: string | null = null;
+  deliveryUnits: any[] = [];
 
   get searchQuery(): string {
     return this._searchQuery;
@@ -99,13 +100,16 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private notificationService: NotificationService,
     private projectsService: ProjectsService,
-    private deliveryUnitsService: DeliveryUnitsService,
+    private deliveryUnitsService: DeliveryUnitService,
     private projectStatusService: ProjectStatusService
   ) {}
 
   ngOnInit(): void {
-    // Load manager options first, then fetch projects
-    this.loadManagerOptions().then(() => {
+    // Load delivery units and manager options first, then fetch projects
+    Promise.all([
+      this.loadDeliveryUnits(),
+      this.loadManagerOptions()
+    ]).then(() => {
       // Set up debounced search with switchMap to cancel previous requests
       this.searchSubscription = this.searchSubject.pipe(
         debounceTime(300),
@@ -159,7 +163,9 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
       });
 
       // Subscribe to query parameters
-      this.queryParamsSubscription = this.route.queryParams.subscribe(params => {
+      this.queryParamsSubscription = this.route.queryParams
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(params => {
         if (params['status']) {
           this.selectedStatusIds = [parseInt(params['status'])];
           this.showFilters = true;
@@ -184,19 +190,40 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
    */
   loadManagerOptions(): Promise<void> {
     return new Promise((resolve) => {
-      this.projectsService.getUniqueProjectManagers().subscribe({
-        next: (response) => {
-          if (response.status === 200) {
-            this.managerOptions = response.data.map(manager => ({
-              id: manager.id,
-              name: manager.name || 'Unknown'
-            }));
+      this.projectsService.getUniqueProjectManagers()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response) => {
+            if (response.status === 200) {
+              this.managerOptions = response.data.map(manager => ({
+                id: manager.id,
+                name: manager.name || 'Unknown'
+              }));
+            }
+            resolve();
+          },
+          error: (err) => {
+            console.error('Failed to load project managers:', err);
+            this.managerOptions = [];
+            resolve();
           }
+        });
+    });
+  }
+
+  /**
+   * Load delivery units from API
+   */
+  loadDeliveryUnits(): Promise<void> {
+    return new Promise((resolve) => {
+      this.deliveryUnitsService.getAllDeliveryUnits().subscribe({
+        next: (deliveryUnits) => {
+          this.deliveryUnits = deliveryUnits;
           resolve();
         },
         error: (err) => {
-          console.error('Failed to load project managers:', err);
-          this.managerOptions = [];
+          console.error('Failed to load delivery units:', err);
+          this.deliveryUnits = [];
           resolve();
         }
       });
@@ -267,6 +294,26 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
     this.searchSubject.next({query: this.searchQuery, isSearch: false});
   }
 
+  /**
+   * Retry fetching projects - bypasses debounce for immediate retry
+   */
+  retryFetchProjects(): void {
+    this.isLoading = true;
+    this.loadingError = null;
+    this.cdr.markForCheck();
+    
+    this.fetchProjectsObservable()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.handleFetchResponse(response);
+        },
+        error: (err) => {
+          this.handleFetchError(err);
+        }
+      });
+  }
+
   private mapProjectTableDTOToProject(dto: ProjectTableDTO): Project {
     return {
       id: dto.id,
@@ -298,7 +345,10 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
   }
 
   get deliveryUnitOptions(): {id: number, code: string}[] {
-    return this.deliveryUnitsService.getDeliveryUnits().map(du => ({ id: du.id, code: du.code }));
+    // Return cached delivery units or empty array if not loaded yet
+    const options = this.deliveryUnits?.map(du => ({ id: du.id, code: du.code })) || [];
+    console.log('Delivery unit options:', options);
+    return options;
   }
 
   // Table columns configuration - now using services for colors
@@ -438,7 +488,7 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
       'bg-red-100 text-red-800',
       'bg-teal-100 text-teal-800'
     ];
-    this.deliveryUnitsService.getDeliveryUnits().forEach((du, index) => {
+    this.deliveryUnits.forEach((du, index) => {
       colors[du.code] = duColors[index % duColors.length];
     });
     return colors;
@@ -592,19 +642,74 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
   }
 
   exportAll(): void {
-    this.exportToCSV();
+    // Show loading state
+    this.notificationService.addNotification('info', 'Preparing export...', 'Export');
+    this.isLoading = true;
+    this.cdr.markForCheck();
+
+    // Get filters but NO search query (as requested)
+    const statusIds = this.selectedStatusIds.length > 0 ? this.selectedStatusIds : undefined;
+    const deliveryUnitIds = this.selectedDeliveryUnitIds.length > 0 ? this.selectedDeliveryUnitIds : undefined;
+    const projectManagerIds = this.selectedManagerIds.length > 0 ? this.selectedManagerIds : undefined;
+
+    // Fetch all projects with current filters but set pageSize to total count to get all data
+    // First, we need to get the total count, then fetch all records
+    this.projectsService.getProjects(
+      1,
+      10000, // Request a large page size to get all records
+      undefined, // No search query
+      statusIds,
+      deliveryUnitIds,
+      projectManagerIds
+    ).subscribe({
+      next: (response) => {
+        try {
+          if (response.status === 200 && response.data.items) {
+            const allProjects = response.data.items.map((item: any) => this.mapProjectTableDTOToProject(item));
+            this.exportToCSV(allProjects);
+            this.notificationService.addNotification('success', `Exported ${allProjects.length} projects`, 'Export Success');
+          } else {
+            this.notificationService.addNotification('error', 'Failed to fetch projects for export', 'Export Failed');
+          }
+        } finally {
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        }
+      },
+      error: (err) => {
+        console.error('Export failed:', err);
+        this.notificationService.addNotification('error', 'Failed to export projects', 'Export Error');
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      }
+    });
   }
 
-  exportToCSV(): void {
-    const projectsToExport = this.selectedProjects.length > 0 ? this.selectedProjects : this.filteredProjects;
+  exportToCSV(projectsToExport?: Project[]): void {
+    // If no projects provided, use current filtered/selected projects
+    if (!projectsToExport) {
+      projectsToExport = this.selectedProjects.length > 0 ? this.selectedProjects : this.filteredProjects;
+    }
+
+    // CSV headers
     const headers = ['Project Name', 'Project Code', 'Status', 'Delivery Unit', 'Project Manager', 'Team Size'];
+    
+    // Escape CSV values to handle commas and quotes
+    const escapeCsvValue = (value: string | number): string => {
+      const stringValue = String(value);
+      if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+      return stringValue;
+    };
+
     const rows = projectsToExport.map(project => [
-      project.name,
-      project.projectCode,
-      project.status,
-      project.deliveryUnit,
-      project.projectManager,
-      project.teamSize.toString()
+      escapeCsvValue(project.name),
+      escapeCsvValue(project.projectCode),
+      escapeCsvValue(project.status),
+      escapeCsvValue(project.deliveryUnit),
+      escapeCsvValue(project.projectManager),
+      escapeCsvValue(project.teamSize.toString())
     ]);
 
     const csvContent = [
@@ -617,14 +722,17 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
     const url = URL.createObjectURL(blob);
 
     link.setAttribute('href', url);
-    const exportType = this.selectedProjects.length > 0 ? 'selected' : 'filtered';
     const filterInfo = this.hasActiveFilters ? '_filtered' : '_all';
-    link.setAttribute('download', `projects_export_${exportType}${filterInfo}_${new Date().toISOString().split('T')[0]}.csv`);
+    const timestamp = new Date().toISOString().split('T')[0];
+    link.setAttribute('download', `projects_export${filterInfo}_${projectsToExport.length}_${timestamp}.csv`);
     link.style.visibility = 'hidden';
 
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
+    // Clean up
+    setTimeout(() => URL.revokeObjectURL(url), 100);
   }
 
   importFromJira(): void {
@@ -688,52 +796,98 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
       const deletedName = this.projectToDelete.name;
       const deletedId = this.projectToDelete.id;
       
-      const deleted = this.projectsService.deleteProject(deletedId);
-      
-      if (deleted) {
-        // Remove from local array as well
-        this.projects = this.projects.filter(project => project.id !== deletedId);
-        this.notificationService.addNotification('error', `Project "${deletedName}" was deleted successfully.`, 'Project Deleted');
-      } else {
-        this.notificationService.addNotification('error', `Failed to delete project "${deletedName}".`, 'Delete Failed');
-      }
-      
-      this.projectToDelete = null;
-    } else {
-      // Bulk deletion of selected projects
-      const count = this.selectedProjects.length;
-      let successCount = 0;
-      
-      this.selectedProjects.forEach(project => {
-        const deleted = this.projectsService.deleteProject(project.id);
-        if (deleted) {
-          successCount++;
+      this.isLoading = true;
+      this.cdr.markForCheck();
+
+      this.projectsService.deleteProject(deletedId).subscribe({
+        next: (response) => {
+          try {
+            if (response.status === 200) {
+              // Remove from local array
+              this.projects = this.projects.filter(project => project.id !== deletedId);
+              this.notificationService.addNotification('success', `Project "${deletedName}" was deleted successfully.`, 'Project Deleted');
+              // Refresh the projects list
+              this.fetchProjects();
+            } else {
+              this.notificationService.addNotification('error', response.message || `Failed to delete project "${deletedName}".`, 'Delete Failed');
+            }
+          } finally {
+            this.showDeleteModal = false;
+            this.projectToDelete = null;
+            this.isLoading = false;
+            this.cdr.markForCheck();
+          }
+        },
+        error: (err) => {
+          console.error('Delete failed:', err);
+          this.notificationService.addNotification('error', `Failed to delete project "${deletedName}".`, 'Delete Failed');
+          this.showDeleteModal = false;
+          this.projectToDelete = null;
+          this.isLoading = false;
+          this.cdr.markForCheck();
         }
       });
-      
-      if (successCount > 0) {
-        // Remove deleted projects from local array
-        this.projects = this.projects.filter(project => 
-          !this.selectedProjects.some(selected => selected.id === project.id)
-        );
-        this.notificationService.addNotification(
-          'error', 
-          `${successCount} project${successCount > 1 ? 's' : ''} ${successCount > 1 ? 'were' : 'was'} deleted successfully.`, 
-          'Projects Deleted'
-        );
-      }
-      
-      if (successCount < count) {
-        this.notificationService.addNotification(
-          'error', 
-          `${count - successCount} project${count - successCount > 1 ? 's' : ''} could not be deleted.`, 
-          'Partial Deletion'
-        );
-      }
-    }
+    } else {
+      // Bulk deletion of selected projects
+      const projectsToDelete = [...this.selectedProjects];
+      const count = projectsToDelete.length;
+      let successCount = 0;
+      let failedCount = 0;
 
-    this.showDeleteModal = false;
-    this.cdr.detectChanges();
+      this.isLoading = true;
+      this.cdr.markForCheck();
+
+      // Delete projects sequentially
+      const deleteNext = (index: number) => {
+        if (index >= projectsToDelete.length) {
+          // All deletions complete
+          if (successCount > 0) {
+            // Remove deleted projects from local array
+            this.projects = this.projects.filter(project => 
+              !projectsToDelete.some(deleted => deleted.id === project.id)
+            );
+            this.notificationService.addNotification(
+              'success', 
+              `${successCount} project${successCount > 1 ? 's' : ''} ${successCount > 1 ? 'were' : 'was'} deleted successfully.`, 
+              'Projects Deleted'
+            );
+            this.fetchProjects();
+          }
+
+          if (failedCount > 0) {
+            this.notificationService.addNotification(
+              'error', 
+              `${failedCount} project${failedCount > 1 ? 's' : ''} could not be deleted.`, 
+              'Partial Deletion'
+            );
+          }
+
+          this.showDeleteModal = false;
+          this.isLoading = false;
+          this.cdr.markForCheck();
+          return;
+        }
+
+        const project = projectsToDelete[index];
+        this.projectsService.deleteProject(project.id).subscribe({
+          next: (response) => {
+            if (response.status === 200) {
+              successCount++;
+            } else {
+              failedCount++;
+            }
+            deleteNext(index + 1);
+          },
+          error: (err) => {
+            console.error(`Failed to delete project ${project.id}:`, err);
+            failedCount++;
+            deleteNext(index + 1);
+          }
+        });
+      };
+
+      deleteNext(0);
+    }
   }
 
   onPageChange(page: number): void {
