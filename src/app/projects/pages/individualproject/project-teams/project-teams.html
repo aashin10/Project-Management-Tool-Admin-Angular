@@ -18,7 +18,7 @@
 
       <div class="flex items-center gap-4">
         <!-- Team Dropdown -->
-        <div class="relative">
+        <div class="relative" *ngIf="teams.length > 0">
           <button 
             (click)="toggleDropdown()"
             class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-sm text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -54,10 +54,46 @@
     </div>
   </div>
 
-  <!-- Members Grid -->
+  <!-- Content -->
   <div class="p-6">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div *ngFor="let member of filteredMembers" 
+    <!-- No Teams Found -->
+    <div *ngIf="teams.length === 0" class="text-center py-12">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+        stroke="#d1d5db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-4 opacity-50">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+        <circle cx="9" cy="7" r="4"></circle>
+      </svg>
+      <p class="text-gray-500 text-base font-medium mb-1">No teams found</p>
+      <p class="text-gray-400 text-sm">This project does not have any teams assigned yet.</p>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading && teams.length > 0" class="text-center py-12">
+      <div class="inline-flex flex-col items-center">
+        <div class="w-8 h-8 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mb-3"></div>
+        <p class="text-gray-500 text-sm">Loading team members...</p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="teams.length > 0 && !isLoading && errorMessage" class="bg-red-50 border border-red-200 rounded-lg p-4">
+      <div class="flex items-start">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+          stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3 mt-0.5 flex-shrink-0">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <div>
+          <p class="text-red-700 text-sm font-semibold mb-1">Error Loading Members</p>
+          <p class="text-red-600 text-sm">{{ errorMessage }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Members Grid -->
+    <div *ngIf="teams.length > 0 && !isLoading && !errorMessage && selectedTeamMembers.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div *ngFor="let member of selectedTeamMembers" 
         class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
         
         <!-- Member Name -->
@@ -112,9 +148,15 @@
       </div>
     </div>
 
-    <!-- Empty State -->
-    <div *ngIf="filteredMembers.length === 0" class="text-center py-8">
-      <p class="text-gray-500 text-sm">No team members found for this team.</p>
+    <!-- Empty State - No Members in Team -->
+    <div *ngIf="teams.length > 0 && !isLoading && selectedTeamMembers.length === 0 && !errorMessage" class="text-center py-8">
+      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none"
+        stroke="#d1d5db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-3 opacity-50">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+        <circle cx="9" cy="7" r="4"></circle>
+      </svg>
+      <p class="text-gray-500 text-sm font-medium">No team members found for this team.</p>
+      <p class="text-gray-400 text-xs mt-1">Try selecting a different team.</p>
     </div>
   </div>
 </div>

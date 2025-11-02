@@ -124,20 +124,28 @@ export class DeliveryUnitService {
     
     let errorMessage = 'Something went wrong; please try again later.';
     
-    if (error.error instanceof ErrorEvent) {
-      // Client-side error
-      errorMessage = `Client Error: ${error.error.message}`;
-    } else {
+    // Check if it's a client-side error (network error, etc)
+    if (error.status === 0) {
+      errorMessage = 'Network error: Unable to connect to the server. Please ensure the backend API is running.';
+      console.error('🚨 Connection Error:', errorMessage);
+    } else if (error.status >= 500) {
       // Server-side error
-      errorMessage = `Server Error (${error.status}): ${error.message}`;
+      errorMessage = `Server Error (${error.status}): ${error.statusText}`;
       
       // Try to extract API error message if available
-      if (error.error && error.error.message) {
+      if (error.error && typeof error.error === 'object' && error.error.message) {
+        errorMessage = error.error.message;
+      }
+    } else if (error.status >= 400) {
+      // Client error (4xx)
+      errorMessage = `Request Error (${error.status}): ${error.statusText}`;
+      
+      if (error.error && typeof error.error === 'object' && error.error.message) {
         errorMessage = error.error.message;
       }
     }
     
-    console.error('Error Message:', errorMessage);
+    console.error('❌ Error Message:', errorMessage);
     return throwError(() => new Error(errorMessage));
   }
 }

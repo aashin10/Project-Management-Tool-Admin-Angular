@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError, timer } from 'rxjs';
+import { map, catchError, timeout, retryWhen, mergeMap } from 'rxjs/operators';
 
 export interface Project {
   id: string;
@@ -164,17 +165,69 @@ export class ProjectsService {
       params = params.set('projectManagerIds', projectManagerIds.join(','));
     }
 
-    return this.http.get<ApiResponse<PaginatedResponse<ProjectTableDTO>>>(this.apiUrl, { params, timeout: 10000 });
+    return this.http.get<ApiResponse<PaginatedResponse<ProjectTableDTO>>>(this.apiUrl, { params }).pipe(
+      timeout(10000), // 10 second timeout
+      retryWhen(errors =>
+        errors.pipe(
+          mergeMap((error, index) => {
+            // Only retry status 0 errors (CORS/network timing issues)
+            if (error instanceof HttpErrorResponse && error.status === 0 && index < 3) {
+              console.log(`ProjectsService: Status 0 detected, retry attempt ${index + 1} after ${index === 0 ? 0 : 500}ms`);
+              // First retry immediately, subsequent retries with delay
+              return timer(index === 0 ? 0 : 500);
+            }
+            // Don't retry other errors
+            return throwError(() => error);
+          })
+        )
+      )
+    );
   }
 
   getProjectById(id: string): Observable<ApiResponse<ProjectDTO>> {
-    return this.http.get<ApiResponse<ProjectDTO>>(`${this.apiUrl}/${id}`, {
-      timeout: 10000 // 10 second timeout
-    });
+    return this.http.get<ApiResponse<ProjectDTO>>(`${this.apiUrl}/${id}`).pipe(
+      timeout(10000), // 10 second timeout
+      retryWhen(errors =>
+        errors.pipe(
+          mergeMap((error, index) => {
+            // Only retry status 0 errors (CORS/network timing issues)
+            if (error instanceof HttpErrorResponse && error.status === 0 && index < 3) {
+              console.log(`ProjectsService: Status 0 detected, retry attempt ${index + 1} after ${index === 0 ? 0 : 500}ms`);
+              // First retry immediately, subsequent retries with delay
+              return timer(index === 0 ? 0 : 500);
+            }
+            // Don't retry other errors
+            return throwError(() => error);
+          })
+        )
+      )
+    );
   }
 
   getUniqueProjectManagers(): Observable<ApiResponse<ProjectManagerOption[]>> {
     return this.http.get<ApiResponse<ProjectManagerOption[]>>(`${this.apiUrl}/managers`);
+  }
+
+  getTeamMembers(projectId: string, teamId: number): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(
+      `${this.apiUrl}/${projectId}/teams/${teamId}/members`
+    ).pipe(
+      timeout(10000), // 10 second timeout
+      retryWhen(errors =>
+        errors.pipe(
+          mergeMap((error, index) => {
+            // Only retry status 0 errors (CORS/network timing issues)
+            if (error instanceof HttpErrorResponse && error.status === 0 && index < 3) {
+              console.log(`ProjectsService: Status 0 detected, retry attempt ${index + 1} after ${index === 0 ? 0 : 500}ms`);
+              // First retry immediately, subsequent retries with delay
+              return timer(index === 0 ? 0 : 500);
+            }
+            // Don't retry other errors
+            return throwError(() => error);
+          })
+        )
+      )
+    );
   }
 
   // Keep the old methods for backward compatibility, but they now call the API
@@ -197,8 +250,9 @@ export class ProjectsService {
     return false;
   }
 
-  deleteProject(id: string): boolean {
-    // TODO: Implement API call
-    return false;
+  deleteProject(id: string): Observable<ApiResponse<any>> {
+    return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/${id}`, {
+      timeout: 10000 // 10 second timeout
+    });
   }
 }

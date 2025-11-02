@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ProjectStatusService } from '../../../../shared/services/project-status.service';
+import { ProjectStatusService } from '../../../../shared/services/project-status/project-status.service';
 
 @Component({
   selector: 'app-basic-information',
