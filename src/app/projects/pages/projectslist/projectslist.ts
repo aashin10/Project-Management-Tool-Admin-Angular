@@ -14,7 +14,7 @@ import { NotificationService } from '../../../shared/services/notification.servi
 import { ProjectsService, Project, ProjectTableDTO } from '../../../projects/services/projects.service';
 import { DeliveryUnitService } from '../../../duservice/deliveryunits.service';
 import { ProjectStatusService } from '../../../shared/services/project-status/project-status.service';
-import { Subject, debounceTime, distinctUntilChanged, takeUntil, switchMap, finalize } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, takeUntil, switchMap, finalize, Observable, map } from 'rxjs';
 
 interface TableHeader {
   field: string | null;
@@ -342,8 +342,10 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
   }
 
   // Available filter options - now using services
-  get statusOptions(): {id: number, code: string}[] {
-    return this.projectStatusService.getStatuses().map(status => ({ id: status.id, code: status.code }));
+  get statusOptions(): Observable<{id: number, code: string}[]> {
+    return this.projectStatusService.getStatuses().pipe(
+      map(statuses => statuses.map(status => ({ id: status.id, code: status.code })))
+    );
   }
 
   get deliveryUnitOptions(): {id: number, code: string}[] {
@@ -460,19 +462,12 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
 
   // Helper methods for badge colors
   private getStatusBadgeColors(): { [key: string]: string } {
-    const colors: { [key: string]: string } = {};
-    this.projectStatusService.getStatuses().forEach(status => {
-      if (status.code === 'Active') {
-        colors[status.code] = 'bg-green-100 text-green-800';
-      } else if (status.code === 'Inactive') {
-        colors[status.code] = 'bg-gray-100 text-gray-800';
-      } else if (status.code === 'Completed') {
-        colors[status.code] = 'bg-blue-100 text-blue-800';
-      } else {
-        colors[status.code] = 'bg-gray-100 text-gray-800';
-      }
-    });
-    return colors;
+    // Default colors - could be updated when status data loads
+    return {
+      'Active': 'bg-green-100 text-green-800',
+      'Inactive': 'bg-gray-100 text-gray-800',
+      'Completed': 'bg-blue-100 text-blue-800'
+    };
   }
 
   private getDeliveryUnitBadgeColors(): { [key: string]: string } {

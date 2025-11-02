@@ -64,7 +64,7 @@
     <app-advanced-filters
       [showFilters]="showFilters"
       [projects]="projects"
-      [statusOptions]="statusOptions"
+      [statusOptions]="(statusOptions | async) || []"
       [deliveryUnitOptions]="deliveryUnitOptions"
       [managerOptions]="managerOptions"
       [initialSelectedStatusIds]="selectedStatusIds"

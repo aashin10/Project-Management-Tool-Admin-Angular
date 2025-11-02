@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Observable, map } from 'rxjs';
 import { ProjectStatusService } from '../../../../shared/services/project-status/project-status.service';
 
 @Component({
@@ -35,12 +36,14 @@ export class BasicInformationComponent {
 
   constructor(private projectStatusService: ProjectStatusService) {}
 
-  get statusOptions() {
-    return this.projectStatusService.getStatuses().map(status => ({
-      value: status.code,
-      label: status.name,
-      color: this.getStatusColor(status.code)
-    }));
+  get statusOptions(): Observable<{value: string, label: string, color: string}[]> {
+    return this.projectStatusService.getStatuses().pipe(
+      map(statuses => statuses.map(status => ({
+        value: status.code,
+        label: status.name,
+        color: this.getStatusColor(status.code)
+      })))
+    );
   }
 
   // Get color for status circle indicator

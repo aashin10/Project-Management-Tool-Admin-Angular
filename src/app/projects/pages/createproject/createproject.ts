@@ -6,6 +6,7 @@ import { DeliveryUnitService } from '../../../duservice/deliveryunits.service';
 import { ProjectStatusService } from '../../../shared/services/project-status/project-status.service';
 import { ToastrService } from 'ngx-toastr';
 import { CommonModule } from '@angular/common';
+import { Observable, map } from 'rxjs';
 import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
 import { BasicInformationComponent } from './basicinfo/basicinfo';
 import { TeamOrganizationComponent } from './teaminfo/teaminfo';
@@ -147,12 +148,14 @@ export class Createproject {
     })) || [];
   }
 
-  get statusOptions() {
-    return this.projectStatusService.getStatuses().map(status => ({
-      value: status.code,
-      label: status.name,
-      description: status.description
-    }));
+  get statusOptions(): Observable<{value: string, label: string, description: string}[]> {
+    return this.projectStatusService.getStatuses().pipe(
+      map(statuses => statuses.map(status => ({
+        value: status.code,
+        label: status.name,
+        description: status.description || ''
+      })))
+    );
   }
 
   onDeliveryUnitChange(unit: string) {
