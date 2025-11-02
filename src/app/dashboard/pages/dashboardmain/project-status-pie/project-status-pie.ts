@@ -38,7 +38,6 @@ export class ProjectStatusComponent implements OnInit, OnChanges {
   totalProjects: number = 0;
   dropdownOpen: boolean = false;
 
-  // Color scheme matching the screenshots
   private readonly colorScheme: Record<StatusType, { base: string; hover: string }> = {
     'Active': { base: '#2563eb', hover: '#1d4ed8' },
     'Completed': { base: '#059669', hover: '#047857' },
@@ -48,9 +47,25 @@ export class ProjectStatusComponent implements OnInit, OnChanges {
   ngOnInit() {
     console.log('🎨 ProjectStatusComponent initialized with data:', this.statusData);
     this.initializeData();
+    
+    // Add click listener to document
+    document.addEventListener('click', this.handleClickOutside.bind(this));
   }
 
-  // CRITICAL FIX: Implement OnChanges to react to data updates from parent
+  ngOnDestroy() {
+    // Clean up the event listener
+    document.removeEventListener('click', this.handleClickOutside.bind(this));
+  }
+
+  private handleClickOutside(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    const dropdownElement = document.querySelector('.dropdown-container');
+    
+    if (dropdownElement && !dropdownElement.contains(target)) {
+      this.dropdownOpen = false;
+    }
+  }
+
   ngOnChanges(changes: SimpleChanges) {
     if (changes['statusData'] && !changes['statusData'].firstChange) {
       console.log('🔄 StatusData changed in child component:', changes['statusData'].currentValue);
@@ -67,12 +82,9 @@ export class ProjectStatusComponent implements OnInit, OnChanges {
       return;
     }
 
-    // Extract delivery units - first item should be "All Delivery Units"
     this.deliveryUnits = this.statusData.map(du => du.deliveryUnit);
-    
     console.log('📋 Available Delivery Units:', this.deliveryUnits);
     
-    // Ensure "All Delivery Units" is selected by default if it exists
     if (this.deliveryUnits.includes('All Delivery Units')) {
       this.selectedDeliveryUnit = 'All Delivery Units';
     } else if (this.deliveryUnits.length > 0) {
@@ -84,10 +96,6 @@ export class ProjectStatusComponent implements OnInit, OnChanges {
 
   toggleDropdown() {
     this.dropdownOpen = !this.dropdownOpen;
-  }
-
-  closeDropdown() {
-    this.dropdownOpen = false;
   }
 
   onDeliveryUnitChange(unit: string) {
@@ -230,6 +238,8 @@ export class ProjectStatusComponent implements OnInit, OnChanges {
     const segment = this.chartSegments.find(s => s.status === this.hoveredSegment);
     return segment ? segment.count : 0;
   }
+
+  
 }
 
 

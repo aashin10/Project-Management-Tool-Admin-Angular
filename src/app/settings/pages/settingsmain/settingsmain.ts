@@ -117,6 +117,23 @@ export class Settingsmain implements OnInit {
     });
   }
 
+    /**
+   * Return the number of active superadmins currently in local array.
+   * We assume the API returns all non-deleted admins (matching backend repo).
+   */
+  private getActiveSuperAdminCount(): number {
+    return this.superAdmins.filter(a => a.isActive).length;
+  }
+
+    /**
+   * Frontend rule: disable delete when deleting `admin` would leave
+   * 0 active superadmins. That is: if admin.isActive && activeCount <= 1 -> disabled.
+   */
+  isDeleteDisabled(admin: SuperAdmin): boolean {
+    const activeCount = this.getActiveSuperAdminCount();
+    return !!(admin.isActive && activeCount <= 1);
+  }
+
   /**
    * Validate email format
    */
@@ -124,6 +141,7 @@ export class Settingsmain implements OnInit {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return emailRegex.test(email);
   }
+
 
   /**
    * Check if email already exists in the system
@@ -136,6 +154,13 @@ export class Settingsmain implements OnInit {
   }
 
   openDeleteModal(admin: SuperAdmin) {
+    // Guard in UI as well
+    if (this.isDeleteDisabled(admin)) {
+      this.toastr.warning('Cannot delete the only active Super Admin. At least one active Super Admin must remain.', 'Action blocked', {
+        timeOut: 4000,
+      });
+      return;
+    }
     this.selectedAdmin = admin;
     this.isDeleteModalOpen = true;
   }
@@ -155,6 +180,9 @@ export class Settingsmain implements OnInit {
           // Remove from local array
           this.superAdmins = this.superAdmins.filter(admin => admin.id !== adminId);
           
+          // Close modal first
+          this.closeDeleteModal();
+          
           // Force change detection
           this.cdr.detectChanges();
           
@@ -171,8 +199,6 @@ export class Settingsmain implements OnInit {
             `Super admin "${adminName}" has been successfully removed from the system.`,
             'Admin Deleted'
           );
-          
-          this.closeDeleteModal();
         },
         error: (error) => {
           console.error('Error deleting super admin:', error);
@@ -240,14 +266,20 @@ export class Settingsmain implements OnInit {
         isActive: this.editAdminStatus
       };
 
+      const selectedAdminName = this.editAdminName.trim();
+      const selectedAdminId = this.selectedAdmin.id;
+
       this.isLoading = true;
-      this.superAdminService.updateSuperAdmin(this.selectedAdmin.id, adminDTO).subscribe({
+      this.superAdminService.updateSuperAdmin(selectedAdminId, adminDTO).subscribe({
         next: (updatedAdmin) => {
           // Update local array
-          const index = this.superAdmins.findIndex(admin => admin.id === this.selectedAdmin!.id);
+          const index = this.superAdmins.findIndex(admin => admin.id === selectedAdminId);
           if (index !== -1) {
             this.superAdmins[index] = this.mapDTOToSuperAdmin(updatedAdmin);
           }
+          
+          // Close modal first
+          this.closeEditModal();
           
           // Force change detection
           this.cdr.detectChanges();
@@ -262,17 +294,17 @@ export class Settingsmain implements OnInit {
           // Add notification to notification service
           this.notificationService.addNotification(
             'success',
-            `Super admin "${this.editAdminName.trim()}" has been successfully updated.`,
+            `Super admin "${selectedAdminName}" has been successfully updated.`,
             'Admin Updated'
           );
           
           this.isLoading = false;
-          this.closeEditModal();
         },
         error: (error) => {
           console.error('Error updating super admin:', error);
           this.toastr.error('Failed to update super admin', 'Error');
           this.isLoading = false;
+          this.closeEditModal();
         }
       });
     }
@@ -300,11 +332,16 @@ export class Settingsmain implements OnInit {
         isActive: this.newAdminStatus
       };
 
+      const newAdminName = this.newAdminName.trim();
+
       this.isLoading = true;
       this.superAdminService.addSuperAdmin(adminDTO).subscribe({
         next: (newAdmin) => {
           // Add to local array
           this.superAdmins.push(this.mapDTOToSuperAdmin(newAdmin));
+          
+          // Close modal first
+          this.closeAddModal();
           
           // Force change detection
           this.cdr.detectChanges();
@@ -319,17 +356,17 @@ export class Settingsmain implements OnInit {
           // Add notification to notification service
           this.notificationService.addNotification(
             'success',
-            `Super admin "${this.newAdminName.trim()}" has been successfully added to the system.`,
+            `Super admin "${newAdminName}" has been successfully added to the system.`,
             'Admin Added'
           );
           
           this.isLoading = false;
-          this.closeAddModal();
         },
         error: (error) => {
           console.error('Error adding super admin:', error);
           this.toastr.error('Failed to add super admin', 'Error');
           this.isLoading = false;
+          this.closeAddModal();
         }
       });
     }
@@ -461,7 +498,6 @@ export class Settingsmain implements OnInit {
     this.currentPage = 1; // Reset to first page when searching
   }
 }
-
 
 
 

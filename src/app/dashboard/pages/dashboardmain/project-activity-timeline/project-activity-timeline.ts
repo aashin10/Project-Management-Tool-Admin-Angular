@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
 import { NgApexchartsModule } from 'ng-apexcharts';
 
 export interface ActivityData {
@@ -22,7 +22,7 @@ export interface ChartData {
   templateUrl: './project-activity-timeline.html',
   styleUrls: ['./project-activity-timeline.css']
 })
-export class ProjectActivityTimelineComponent implements OnInit, OnChanges {
+export class ProjectActivityTimelineComponent implements OnInit, OnChanges, OnDestroy {
   @Input() chartData!: ChartData;
 
   selectedPeriod: string = 'Yearly';
@@ -38,6 +38,23 @@ export class ProjectActivityTimelineComponent implements OnInit, OnChanges {
     // Initialize chart with data if available
     if (this.chartData) {
       this.initializeChart();
+    }
+
+    // Add click listener to document
+    document.addEventListener('click', this.handleClickOutside.bind(this));
+  }
+
+  ngOnDestroy() {
+    // Clean up the event listener
+    document.removeEventListener('click', this.handleClickOutside.bind(this));
+  }
+
+  private handleClickOutside(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    const dropdownElement = document.querySelector('.timeline-dropdown-container');
+    
+    if (dropdownElement && !dropdownElement.contains(target)) {
+      this.showDropdown = false;
     }
   }
 
