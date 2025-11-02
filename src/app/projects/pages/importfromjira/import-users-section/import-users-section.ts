@@ -24,26 +24,42 @@ export class ImportUsersSection implements OnInit {
     private notificationService: NotificationService
   ) {}
 
-  uploadSuccess: boolean = false;
+  uploadSuccess = false;
   parsedData: any[] = [];
   missingUsers: any[] = [];
+  operationResults: any[] = [];
   openMissingUserModal = false;
+  missingUsersAvailable = false;
+  operationResultsAvailable = false;
 
   closeMissingUserModal() {
     this.openMissingUserModal = false;
   }
 
   ngOnInit() {
-    console.log('ImportUsersSection initialized');
-    const users = sessionStorage.getItem('users_missing');
-    if (users) {
-      console.log('Found missing users in sessionStorage:', users);
-      const userArray = JSON.parse(users);
-      if (userArray.length > 0) {
-        this.openMissingUserModal = true;
-        this.missingUsers = userArray;
-        console.log('Missing users loaded:', this.missingUsers);
-      }
+    const raw = sessionStorage.getItem('import_response');
+    if (!raw) return;
+
+    let data: any;
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      return;
+    }
+
+    const users = Array.isArray(data?.users) ? data.users : [];
+    const results = Array.isArray(data?.results) ? data.results : [];
+
+    if (users.length > 0) {
+      this.missingUsersAvailable = true;
+      this.missingUsers = users;
+      this.openMissingUserModal = true;
+    }
+
+    if (results.length > 0) {
+      this.operationResultsAvailable = true;
+      this.operationResults = results;
+      this.openMissingUserModal = true;
     }
   }
 
