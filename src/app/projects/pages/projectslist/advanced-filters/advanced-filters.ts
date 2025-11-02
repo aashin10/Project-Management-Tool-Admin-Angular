@@ -40,9 +40,35 @@ export class AdvancedFilters implements OnChanges {
   private _managerOptions: {id: number, name: string}[] = [];
   
   // NEW: Accept initial filter values from parent
-  @Input() initialSelectedStatusIds: number[] = [];
-  @Input() initialSelectedDeliveryUnitIds: number[] = [];
-  @Input() initialSelectedManagerIds: number[] = [];
+  @Input() 
+  set initialSelectedStatusIds(value: number[]) {
+    this._initialSelectedStatusIds = value || [];
+    this.selectedStatusIds = [...this._initialSelectedStatusIds];
+  }
+  get initialSelectedStatusIds(): number[] {
+    return this._initialSelectedStatusIds;
+  }
+  private _initialSelectedStatusIds: number[] = [];
+
+  @Input()
+  set initialSelectedDeliveryUnitIds(value: number[]) {
+    this._initialSelectedDeliveryUnitIds = value || [];
+    this.selectedDeliveryUnitIds = [...this._initialSelectedDeliveryUnitIds];
+  }
+  get initialSelectedDeliveryUnitIds(): number[] {
+    return this._initialSelectedDeliveryUnitIds;
+  }
+  private _initialSelectedDeliveryUnitIds: number[] = [];
+
+  @Input()
+  set initialSelectedManagerIds(value: number[]) {
+    this._initialSelectedManagerIds = value || [];
+    this.selectedManagerIds = [...this._initialSelectedManagerIds];
+  }
+  get initialSelectedManagerIds(): number[] {
+    return this._initialSelectedManagerIds;
+  }
+  private _initialSelectedManagerIds: number[] = [];
 
   @Output() filtersChanged = new EventEmitter<{
     selectedStatusIds: number[];
@@ -95,16 +121,6 @@ export class AdvancedFilters implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    // Initialize filters from parent component if provided
-    if (changes['initialSelectedStatusIds'] && this.initialSelectedStatusIds.length > 0) {
-      this.selectedStatusIds = [...this.initialSelectedStatusIds];
-    }
-    if (changes['initialSelectedDeliveryUnitIds'] && this.initialSelectedDeliveryUnitIds.length > 0) {
-      this.selectedDeliveryUnitIds = [...this.initialSelectedDeliveryUnitIds];
-    }
-    if (changes['initialSelectedManagerIds'] && this.initialSelectedManagerIds.length > 0) {
-      this.selectedManagerIds = [...this.initialSelectedManagerIds];
-    }
     // Handle manager options changes
     if (changes['managerOptions']) {
       this.updateFilteredManagers();

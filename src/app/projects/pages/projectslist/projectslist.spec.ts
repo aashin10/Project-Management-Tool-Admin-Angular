@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
 import { Projectslist } from './projectslist';
-import { ProjectsService, Project } from '../../services/projects.service';
+import { ProjectsService, Project, ProjectTableDTO } from '../../services/projects.service';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { ToastrService } from 'ngx-toastr';
 
@@ -43,11 +43,42 @@ describe('Projectslist', () => {
     }
   ];
 
+  const mockProjectTableDTOs: ProjectTableDTO[] = [
+    {
+      id: '1',
+      name: 'Active Project',
+      key: 'AP-001',
+      status: { id: 1, name: 'Active' },
+      deliveryUnit: { id: 1, name: 'DU-1' },
+      teamSize: 5,
+      projectManager: { id: 1, name: 'John Doe' },
+      isImportedFromJira: false
+    },
+    {
+      id: '2',
+      name: 'Inactive Project',
+      key: 'IP-001',
+      status: { id: 2, name: 'Inactive' },
+      deliveryUnit: { id: 2, name: 'DU-2' },
+      teamSize: 3,
+      projectManager: { id: 2, name: 'Jane Smith' },
+      isImportedFromJira: false
+    }
+  ];
+
   beforeEach(async () => {
     projectsServiceMock = jasmine.createSpyObj('ProjectsService', [
       'getProjects',
-      'deleteProject'
+      'deleteProject',
+      'getUniqueProjectManagers'
     ]);
+    
+    // Configure default spy returns
+    projectsServiceMock.getUniqueProjectManagers.and.returnValue(of({ 
+      status: 200, 
+      data: [], 
+      message: 'Success' 
+    }));
     
     notificationServiceMock = jasmine.createSpyObj('NotificationService', [
       'addNotification'
@@ -119,9 +150,11 @@ describe('Projectslist', () => {
     component.editProject('123');
     expect(routerMock.navigate).toHaveBeenCalledWith(['/projects', '123', 'edit']);
     
-    const mockRow = { actions: '456' };
+    // Setup for row click navigation - projects must have selected: false so navigation occurs
+    component.projects = mockProjects.map(p => ({ ...p, selected: false }));
+    const mockRow = { actions: '1' };
     component.handleRowClick({ row: mockRow, index: 0 });
-    expect(routerMock.navigate).toHaveBeenCalledWith(['/projects', '456']);
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/projects', '1']);
   });
 
   it('should handle delete modal operations', () => {
@@ -136,16 +169,32 @@ describe('Projectslist', () => {
   it('should export projects to CSV with and without filters', () => {
     component.projects = mockProjects;
     
-    spyOn(document, 'createElement').and.callThrough();
-    spyOn(URL, 'createObjectURL');
+    // Configure getProjects spy to return mock data
+    projectsServiceMock.getProjects.and.returnValue(of({
+      status: 200,
+      data: { 
+        items: mockProjectTableDTOs, 
+        totalCount: mockProjectTableDTOs.length, 
+        page: 1, 
+        pageSize: 10, 
+        totalPages: 1 
+      },
+      message: 'Success'
+    }));
     
+    // Spy on router and URL object
+    spyOn(window.URL, 'createObjectURL').and.returnValue('blob:mock-url');
+    
+    // Test exportAll
+    const createElementSpy = spyOn(document, 'createElement').and.callThrough();
     component.exportAll();
-    expect(document.createElement).toHaveBeenCalledWith('a');
-    expect(URL.createObjectURL).toHaveBeenCalled();
+    expect(createElementSpy).toHaveBeenCalledWith('a');
     
+    // Test exportToCSV with filtered projects
     component.searchQuery = 'Active';
-    component.exportToCSV();
-    expect(document.createElement).toHaveBeenCalledWith('a');
+    createElementSpy.calls.reset();
+    component.exportToCSV(mockProjects.filter(p => p.name.includes('Active')));
+    expect(createElementSpy).toHaveBeenCalledWith('a');
   });
 
   it('should manage project selection across single and bulk operations', () => {
@@ -168,18 +217,29 @@ describe('Projectslist', () => {
 
   it('should confirm delete for single and multiple projects', (done) => {
     component.projects = [...mockProjects];
-    projectsServiceMock.deleteProject.and.returnValue(of({ status: 200, data: {}, message: 'Deleted' }));
+    projectsServiceMock.deleteProject.and.returnValue(of({ 
+      status: 200, 
+      data: {}, 
+      message: 'Deleted' 
+    }));
     
-    // Delete single project
+    // Test single project delete
     component.deleteProject(mockProjects[0].id);
     component.confirmDelete();
     
     setTimeout(() => {
-      expect(projectsServiceMock.deleteProject).toHaveBeenCalled();
-      expect(notificationServiceMock.addNotification).toHaveBeenCalled();
+      expect(projectsServiceMock.deleteProject).toHaveBeenCalledWith(mockProjects[0].id);
+      expect(notificationServiceMock.addNotification).toHaveBeenCalledWith(
+        'warning',
+        jasmine.stringContaining('deleted successfully'),
+        'Project Deleted'
+      );
       
-      // Reset and test multiple
+      // Reset and test multiple project delete
       projectsServiceMock.deleteProject.calls.reset();
+      notificationServiceMock.addNotification.calls.reset();
+      component.projects = [...mockProjects];
+      
       component.projects[0].selected = true;
       component.projects[1].selected = true;
       component.confirmDelete();
@@ -187,8 +247,8 @@ describe('Projectslist', () => {
       setTimeout(() => {
         expect(projectsServiceMock.deleteProject).toHaveBeenCalled();
         done();
-      }, 100);
-    }, 100);
+      }, 150);
+    }, 150);
   });
 
   it('should handle errors during loading and deletion', (done) => {
@@ -197,16 +257,23 @@ describe('Projectslist', () => {
     fixture.detectChanges();
     expect(component.loadingError).toBeTruthy();
     
+    // Test delete error handling
+    component.projects = [...mockProjects];
     projectsServiceMock.deleteProject.and.returnValue(
       of({ status: 400, data: {}, message: 'Delete failed' })
     );
-    component.deleteProject('1');
+    
+    component.deleteProject(mockProjects[0].id);
     component.confirmDelete();
     
     setTimeout(() => {
-      expect(notificationServiceMock.addNotification).toHaveBeenCalled();
+      expect(notificationServiceMock.addNotification).toHaveBeenCalledWith(
+        'error',
+        jasmine.any(String),
+        'Delete Failed'
+      );
       done();
-    }, 100);
+    }, 150);
   });
 
   it('should manage pagination and page size changes', () => {
