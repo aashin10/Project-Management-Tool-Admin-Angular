@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, NgIf } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
 import { SharedModule } from '../../../shared/shared-module';
 import { ProjectTeams } from './project-teams/project-teams';
 import { NotificationService } from '../../../shared/services/notification.service';
@@ -35,7 +36,8 @@ export class IndividualprojectComponent implements OnInit, OnDestroy {
     private router: Router,
     private notificationService: NotificationService,
     private projectsService: ProjectsService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private toastr: ToastrService
   ) {
     // Get project ID from route params
     const id = this.route.snapshot.paramMap.get('id');
@@ -235,10 +237,14 @@ export class IndividualprojectComponent implements OnInit, OnDestroy {
       next: (response) => {
         try {
           if (response.status === 200) {
-            this.notificationService.addNotification('success', `Project "${projectName}" was deleted successfully.`, 'Project Deleted');
+            // Show both toaster and notification with RED color for deletion
+            this.toastr.success(`Project "${projectName}" was deleted successfully.`, 'Project Deleted');
+            this.notificationService.addNotification('warning', `Project "${projectName}" was deleted successfully.`, 'Project Deleted');
             // Navigate back to projects list
             this.router.navigate(['/projects']);
           } else {
+            // Show both toaster and notification for error
+            this.toastr.error(response.message || 'Failed to delete the project. Please try again.', 'Delete Failed');
             this.notificationService.addNotification('error', response.message || 'Failed to delete the project. Please try again.', 'Delete Failed');
             this.isLoading = false;
           }
@@ -247,6 +253,8 @@ export class IndividualprojectComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Delete failed:', err);
+        // Show both toaster and notification for error
+        this.toastr.error('Failed to delete the project. Please try again.', 'Delete Failed');
         this.notificationService.addNotification('error', 'Failed to delete the project. Please try again.', 'Delete Failed');
         this.isLoading = false;
       }

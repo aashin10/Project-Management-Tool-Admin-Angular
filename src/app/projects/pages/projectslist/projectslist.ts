@@ -2,6 +2,7 @@ import { Component, ViewChild, ElementRef, AfterViewChecked, ChangeDetectorRef, 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
 import { CustomButton } from '../../../shared/custom-button/custom-button';
 import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
 import { Modal } from '../../../shared/modal/modal';
@@ -101,7 +102,8 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
     private notificationService: NotificationService,
     private projectsService: ProjectsService,
     private deliveryUnitsService: DeliveryUnitService,
-    private projectStatusService: ProjectStatusService
+    private projectStatusService: ProjectStatusService,
+    private toastr: ToastrService
   ) {}
 
   ngOnInit(): void {
@@ -805,10 +807,14 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
             if (response.status === 200) {
               // Remove from local array
               this.projects = this.projects.filter(project => project.id !== deletedId);
-              this.notificationService.addNotification('success', `Project "${deletedName}" was deleted successfully.`, 'Project Deleted');
+              // Show both toaster and notification with RED color for deletion
+              this.toastr.success(`Project "${deletedName}" was deleted successfully.`, 'Project Deleted');
+              this.notificationService.addNotification('warning', `Project "${deletedName}" was deleted successfully.`, 'Project Deleted');
               // Refresh the projects list
               this.fetchProjects();
             } else {
+              // Show both toaster and notification for error
+              this.toastr.error(response.message || `Failed to delete project "${deletedName}".`, 'Delete Failed');
               this.notificationService.addNotification('error', response.message || `Failed to delete project "${deletedName}".`, 'Delete Failed');
             }
           } finally {
@@ -820,6 +826,8 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Delete failed:', err);
+          // Show both toaster and notification for error
+          this.toastr.error(`Failed to delete project "${deletedName}".`, 'Delete Failed');
           this.notificationService.addNotification('error', `Failed to delete project "${deletedName}".`, 'Delete Failed');
           this.showDeleteModal = false;
           this.projectToDelete = null;
@@ -846,20 +854,18 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
             this.projects = this.projects.filter(project => 
               !projectsToDelete.some(deleted => deleted.id === project.id)
             );
-            this.notificationService.addNotification(
-              'success', 
-              `${successCount} project${successCount > 1 ? 's' : ''} ${successCount > 1 ? 'were' : 'was'} deleted successfully.`, 
-              'Projects Deleted'
-            );
+            const successMsg = `${successCount} project${successCount > 1 ? 's' : ''} ${successCount > 1 ? 'were' : 'was'} deleted successfully.`;
+            // Show both toaster and notification with RED color for deletion
+            this.toastr.success(successMsg, 'Projects Deleted');
+            this.notificationService.addNotification('warning', successMsg, 'Projects Deleted');
             this.fetchProjects();
           }
 
           if (failedCount > 0) {
-            this.notificationService.addNotification(
-              'error', 
-              `${failedCount} project${failedCount > 1 ? 's' : ''} could not be deleted.`, 
-              'Partial Deletion'
-            );
+            const failMsg = `${failedCount} project${failedCount > 1 ? 's' : ''} could not be deleted.`;
+            // Show both toaster and notification for errors
+            this.toastr.error(failMsg, 'Deletion Failed');
+            this.notificationService.addNotification('error', failMsg, 'Deletion Failed');
           }
 
           this.showDeleteModal = false;
