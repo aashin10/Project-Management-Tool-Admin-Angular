@@ -8,9 +8,10 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Subscription } from 'rxjs';
+import { Subscription, Subject, forkJoin } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { SearchBar } from '../components/search-bar/search-bar';
-import { ActionButtons, ActionType } from '../components/action-buttons/action-buttons';
+import { ActionButtons } from '../components/action-buttons/action-buttons';
 import { Usermenu } from '../components/usermenu/usermenu';
 import { NotificationDropdown } from '../components/notification-dropdown/notification-dropdown';
 import { NotificationService } from '../services/notification.service';
@@ -19,6 +20,7 @@ import { NavbarService } from './navbar-service';
 
 @Component({
   selector: 'app-navbar',
+  standalone: true,
   imports: [CommonModule, SearchBar, ActionButtons, Usermenu, NotificationDropdown, RouterModule],
   templateUrl: './navbar.html',
   styles: [
@@ -35,7 +37,14 @@ export class Navbar implements OnInit, OnDestroy {
   isSearchBarVisible = false;
   unreadNotificationCount = 0;
   isSearching = false;
-  private subscription!: Subscription;
+
+  searchResults: { projects: any[]; users: any[] } = {
+    projects: [],
+    users: [],
+  };
+
+  private subscription = new Subscription();
+  private search$ = new Subject<string>();
 
   constructor(
     private notificationService: NotificationService,
@@ -45,20 +54,53 @@ export class Navbar implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.subscription = this.notificationService.notifications$.subscribe(() => {
-      this.unreadNotificationCount = this.notificationService.getUnreadCount();
-    });
+    this.subscription.add(
+      this.notificationService.notifications$.subscribe(() => {
+        this.unreadNotificationCount = this.notificationService.getUnreadCount();
+      })
+    );
+
+    this.subscription.add(
+      this.search$
+        .pipe(
+          debounceTime(300),
+          distinctUntilChanged(),
+          switchMap((query) => {
+            if (!query.trim()) {
+              return forkJoin({
+                projects: [null],
+                users: [null],
+              });
+            }
+            return forkJoin({
+              projects: this.navbarService.getProjects(1, 5, query),
+              users: this.navbarService.getUsers(query),
+            });
+          })
+        )
+        .subscribe((res: any) => {
+          if (!res.projects || !res.users) {
+            this.searchResults = { projects: [], users: [] };
+            this.isSearching = false;
+            return;
+          }
+
+          this.searchResults = {
+            projects: res.projects.data.items || [],
+            users: res.users.data.users || [],
+          };
+          this.isSearching = false;
+          this.cdr.markForCheck();
+        })
+    );
   }
 
   ngOnDestroy(): void {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
+    this.subscription.unsubscribe();
   }
 
   toggleUserMenu() {
     this.isUserMenuVisible = !this.isUserMenuVisible;
-    // Close notification dropdown when opening user menu
     if (this.isUserMenuVisible) {
       this.isNotificationDropdownVisible = false;
       this.isSearchBarVisible = false;
@@ -67,7 +109,6 @@ export class Navbar implements OnInit, OnDestroy {
 
   toggleSearchBar() {
     this.isSearchBarVisible = !this.isSearchBarVisible;
-    // Close user menu and notification dropdown when opening search bar
     if (this.isSearchBarVisible) {
       this.isUserMenuVisible = false;
       this.isNotificationDropdownVisible = false;
@@ -76,36 +117,16 @@ export class Navbar implements OnInit, OnDestroy {
 
   toggleNotificationDropdown() {
     this.isNotificationDropdownVisible = !this.isNotificationDropdownVisible;
-    // Close user menu when opening notification dropdown
     if (this.isNotificationDropdownVisible) {
       this.isUserMenuVisible = false;
       this.isSearchBarVisible = false;
     }
   }
 
-  searchResults: { projects: any[]; users: any[] } = {
-    projects: [],
-    users: [],
-  };
   onSearch(query: string) {
     this.isSearching = true;
     this.isSearchBarVisible = true;
-
-    this.searchResults = { projects: [], users: [] };
-
-    this.navbarService.getProjects(1, 5, query).subscribe((data) => {
-      this.searchResults.projects = data.data.items || [];
-      this.cdr.detectChanges(); // Trigger change detection after data is set
-    });
-
-    this.navbarService.getUsers(query).subscribe((data) => {
-      this.searchResults.users = data.users || [];
-      console.log(data.users);
-      this.isSearching = false; // Set after both calls complete
-      this.cdr.detectChanges();
-    });
-
-    console.log(this.searchResults);
+    this.search$.next(query);
   }
 
   onActionClick(action: string): void {
@@ -127,12 +148,10 @@ export class Navbar implements OnInit, OnDestroy {
     const actionButtons = target.closest('app-action-buttons');
     const searchBar = target.closest('app-search-bar');
 
-    // Close notification dropdown if clicking outside
     if (!notificationDropdown && !actionButtons && this.isNotificationDropdownVisible) {
       this.isNotificationDropdownVisible = false;
     }
 
-    // Close user menu if clicking outside
     if (!userMenu && !actionButtons && this.isUserMenuVisible) {
       this.isUserMenuVisible = false;
     }
