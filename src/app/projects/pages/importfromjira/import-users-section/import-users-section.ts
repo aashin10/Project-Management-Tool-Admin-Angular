@@ -8,6 +8,7 @@ import { Modal } from '../../../../shared/modal/modal';
 import { JiraApi } from '../services/jira-api';
 import { NotificationService } from '../../../../shared/services/notification.service';
 import { ToastrService } from 'ngx-toastr';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-import-users-section',
@@ -21,7 +22,8 @@ export class ImportUsersSection implements OnInit {
     private jiraApi: JiraApi,
     private toastr: ToastrService,
     private cdr: ChangeDetectorRef,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private router: Router
   ) {}
 
   uploadSuccess = false;
@@ -31,6 +33,8 @@ export class ImportUsersSection implements OnInit {
   openMissingUserModal = false;
   missingUsersAvailable = false;
   operationResultsAvailable = false;
+
+  isUploading = false;
 
   closeMissingUserModal() {
     this.openMissingUserModal = false;
@@ -86,6 +90,11 @@ export class ImportUsersSection implements OnInit {
     this.cdr.detectChanges();
   }
 
+  onSkip() {
+    console.log('Skipping user import...');
+    this.router.navigate(['/projects']);
+  }
+
   onContinue() {
     console.log('Importing users...');
     let postdata: any[] = [];
@@ -98,14 +107,19 @@ export class ImportUsersSection implements OnInit {
       });
     });
     console.log('Prepared user data for upload:', postdata);
+    this.isUploading = true;
     this.jiraApi.uploadUsersCsv(postdata).subscribe(
       (response) => {
         console.log('Users uploaded successfully:', response);
+        this.isUploading = false;
         this.toastr.success('Users Upload Successful');
+        this.router.navigate(['/projects']);
       },
       (error) => {
         console.error('Error uploading users:', error);
         this.uploadSuccess = false;
+        this.isUploading = false;
+        this.toastr.error('Error uploading users. Please try again.');
       }
     );
   }
