@@ -158,12 +158,11 @@
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number <span class="text-red-500">*</span></label>
-        <input required name="phoneNumber" type="tel" placeholder="+1 (555) 123-4567" [(ngModel)]="phoneNumber" #phoneRef="ngModel" (ngModelChange)="onPhoneNumberChange()"
+        <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+        <input name="phoneNumber" type="tel" placeholder="+1 (555) 123-4567" [(ngModel)]="phoneNumber" #phoneRef="ngModel" (ngModelChange)="onPhoneNumberChange()"
           pattern="[0-9\-+() ]{7,20}"
           class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 placeholder:text-gray-400">
         <div *ngIf="phoneRef.invalid && phoneRef.touched" class="text-red-600 text-xs mt-1">
-          <div *ngIf="phoneRef.errors?.['required']">Phone Number is required.</div>
           <div *ngIf="phoneRef.errors?.['pattern']">Enter a valid phone number.</div>
         </div>
       </div>

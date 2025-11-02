@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProjectStatusService } from '../../../../shared/services/project-status/project-status.service';
@@ -10,7 +10,7 @@ import { ProjectStatusService } from '../../../../shared/services/project-status
   templateUrl: './basicinfo.html',
   styleUrl: './basicinfo.css'
 })
-export class BasicInformationComponent {
+export class BasicInformationComponent implements OnChanges {
   @Input() projectName: string = '';
   @Input() projectKey: string = '';
   @Input() description: string = '';
@@ -33,7 +33,33 @@ export class BasicInformationComponent {
   @Output() pocEmailChange = new EventEmitter<string>();
   @Output() phoneNumberChange = new EventEmitter<string>();
 
-  constructor(private projectStatusService: ProjectStatusService) {}
+  constructor(private projectStatusService: ProjectStatusService, private cdr: ChangeDetectorRef) {}
+
+  ngOnChanges(changes: SimpleChanges) {
+    console.log('BasicInformationComponent - ngOnChanges triggered:', changes);
+    
+    if (changes['projectName']) {
+      this.projectName = changes['projectName'].currentValue || '';
+    }
+    if (changes['projectKey']) {
+      this.projectKey = changes['projectKey'].currentValue || '';
+    }
+    if (changes['description']) {
+      this.description = changes['description'].currentValue || '';
+    }
+    if (changes['organisationName']) {
+      this.organisationName = changes['organisationName'].currentValue || '';
+    }
+    if (changes['pocEmail']) {
+      this.pocEmail = changes['pocEmail'].currentValue || '';
+    }
+    if (changes['phoneNumber']) {
+      this.phoneNumber = changes['phoneNumber'].currentValue || '';
+    }
+    
+    // Force change detection
+    this.cdr.detectChanges();
+  }
 
   get statusOptions() {
     return this.projectStatusService.getStatuses().map(status => ({
