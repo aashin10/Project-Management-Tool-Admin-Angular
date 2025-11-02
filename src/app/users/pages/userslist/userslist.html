@@ -690,6 +690,7 @@
     >
       <input
         type="file"
+        title="choose csv file"
         accept=".csv"
         (change)="onFileSelected($event)"
         class="hidden"
@@ -732,6 +733,7 @@
         <button
           (click)="selectedFileName = ''; fileInput.value = ''"
           class="ml-2 text-red-500 hover:text-red-700"
+          title="Remove selected file"
         >
           <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path

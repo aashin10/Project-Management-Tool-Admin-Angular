@@ -2,10 +2,11 @@ import { Component } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { ProjectsService } from '../../services/projects.service';
-import { DeliveryUnitsService } from '../../../shared/services/delivery-units.service';
-import { ProjectStatusService } from '../../../shared/services/project-status.service';
+import { DeliveryUnitService } from '../../../duservice/deliveryunits.service';
+import { ProjectStatusService } from '../../../shared/services/project-status/project-status.service';
 import { ToastrService } from 'ngx-toastr';
 import { CommonModule } from '@angular/common';
+import { Observable, map } from 'rxjs';
 import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
 import { BasicInformationComponent } from './basicinfo/basicinfo';
 import { TeamOrganizationComponent } from './teaminfo/teaminfo';
@@ -39,6 +40,7 @@ export class Createproject {
   manager: string = '';
   status: string = 'Active'; // default to 'Active'
   deliveryUnit: string = '';
+  deliveryUnits: any[] = [];
   additionalFields: Array<{name: string, value: string}> = [];
   // Project dates
   startDate: string = '';
@@ -55,7 +57,7 @@ export class Createproject {
     private route: ActivatedRoute,
     private notificationService: NotificationService,
     private projectsService: ProjectsService,
-    private deliveryUnitsService: DeliveryUnitsService,
+    private deliveryUnitsService: DeliveryUnitService,
     private projectStatusService: ProjectStatusService,
     private toastr: ToastrService
   ) {
@@ -83,6 +85,26 @@ export class Createproject {
           }
         });
       }
+    });
+  }
+
+  async ngOnInit() {
+    await this.loadDeliveryUnits();
+  }
+
+  async loadDeliveryUnits(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.deliveryUnitsService.getAllDeliveryUnits().subscribe({
+        next: (deliveryUnits) => {
+          this.deliveryUnits = deliveryUnits;
+          resolve();
+        },
+        error: (err) => {
+          console.error('Failed to load delivery units:', err);
+          this.deliveryUnits = [];
+          resolve(); // Resolve anyway to not block initialization
+        }
+      });
     });
   }
 
@@ -119,19 +141,21 @@ export class Createproject {
   }
 
   get deliveryUnitOptions() {
-    return this.deliveryUnitsService.getDeliveryUnits().map(du => ({
+    return this.deliveryUnits?.map(du => ({
       value: du.code,
       label: du.name,
       description: du.description
-    }));
+    })) || [];
   }
 
-  get statusOptions() {
-    return this.projectStatusService.getStatuses().map(status => ({
-      value: status.code,
-      label: status.name,
-      description: status.description
-    }));
+  get statusOptions(): Observable<{value: string, label: string, description: string}[]> {
+    return this.projectStatusService.getStatuses().pipe(
+      map(statuses => statuses.map(status => ({
+        value: status.code,
+        label: status.name,
+        description: status.description || ''
+      })))
+    );
   }
 
   onDeliveryUnitChange(unit: string) {

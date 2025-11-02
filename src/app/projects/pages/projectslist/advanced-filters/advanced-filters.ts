@@ -40,9 +40,35 @@ export class AdvancedFilters implements OnChanges {
   private _managerOptions: {id: number, name: string}[] = [];
   
   // NEW: Accept initial filter values from parent
-  @Input() initialSelectedStatusIds: number[] = [];
-  @Input() initialSelectedDeliveryUnitIds: number[] = [];
-  @Input() initialSelectedManagerIds: number[] = [];
+  @Input() 
+  set initialSelectedStatusIds(value: number[]) {
+    this._initialSelectedStatusIds = value || [];
+    this.selectedStatusIds = [...this._initialSelectedStatusIds];
+  }
+  get initialSelectedStatusIds(): number[] {
+    return this._initialSelectedStatusIds;
+  }
+  private _initialSelectedStatusIds: number[] = [];
+
+  @Input()
+  set initialSelectedDeliveryUnitIds(value: number[]) {
+    this._initialSelectedDeliveryUnitIds = value || [];
+    this.selectedDeliveryUnitIds = [...this._initialSelectedDeliveryUnitIds];
+  }
+  get initialSelectedDeliveryUnitIds(): number[] {
+    return this._initialSelectedDeliveryUnitIds;
+  }
+  private _initialSelectedDeliveryUnitIds: number[] = [];
+
+  @Input()
+  set initialSelectedManagerIds(value: number[]) {
+    this._initialSelectedManagerIds = value || [];
+    this.selectedManagerIds = [...this._initialSelectedManagerIds];
+  }
+  get initialSelectedManagerIds(): number[] {
+    return this._initialSelectedManagerIds;
+  }
+  private _initialSelectedManagerIds: number[] = [];
 
   @Output() filtersChanged = new EventEmitter<{
     selectedStatusIds: number[];
@@ -72,6 +98,11 @@ export class AdvancedFilters implements OnChanges {
   showAllManagers = false;
   filteredManagers: {id: number, name: string}[] = [];
 
+  // Modal state for showing all managers
+  showManagerModal = false;
+  private _modalSearchQuery = '';
+  modalFilteredManagers: {id: number, name: string}[] = [];
+
   get managerSearchQuery(): string {
     return this._managerSearchQuery;
   }
@@ -81,17 +112,15 @@ export class AdvancedFilters implements OnChanges {
     this.updateFilteredManagers();
   }
 
+  get modalSearchQuery(): string {
+    return this._modalSearchQuery;
+  }
+
+  set modalSearchQuery(value: string) {
+    this._modalSearchQuery = value;
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
-    // Initialize filters from parent component if provided
-    if (changes['initialSelectedStatusIds'] && this.initialSelectedStatusIds.length > 0) {
-      this.selectedStatusIds = [...this.initialSelectedStatusIds];
-    }
-    if (changes['initialSelectedDeliveryUnitIds'] && this.initialSelectedDeliveryUnitIds.length > 0) {
-      this.selectedDeliveryUnitIds = [...this.initialSelectedDeliveryUnitIds];
-    }
-    if (changes['initialSelectedManagerIds'] && this.initialSelectedManagerIds.length > 0) {
-      this.selectedManagerIds = [...this.initialSelectedManagerIds];
-    }
     // Handle manager options changes
     if (changes['managerOptions']) {
       this.updateFilteredManagers();
@@ -113,12 +142,12 @@ export class AdvancedFilters implements OnChanges {
   // Update filtered managers when options or search changes
   private updateFilteredManagers(): void {
     if (!this._managerSearchQuery) {
-      this.filteredManagers = this.showAllManagers ? [...this._managerOptions] : this._managerOptions.slice(0, 4);
+      this.filteredManagers = this.showAllManagers ? [...this._managerOptions] : this._managerOptions.slice(0, 3);
     } else {
       const filtered = this._managerOptions.filter(manager =>
         manager.name && manager.name.toLowerCase().includes(this._managerSearchQuery.toLowerCase())
       );
-      this.filteredManagers = this.showAllManagers ? filtered : filtered.slice(0, 4);
+      this.filteredManagers = this.showAllManagers ? filtered : filtered.slice(0, 3);
     }
   }
 
@@ -221,6 +250,27 @@ export class AdvancedFilters implements OnChanges {
   toggleShowAllManagers(): void {
     this.showAllManagers = !this.showAllManagers;
     this.updateFilteredManagers();
+  }
+
+  openManagerModal(): void {
+    this.showManagerModal = true;
+    this._modalSearchQuery = '';
+    this.updateModalManagersList();
+  }
+
+  closeManagerModal(): void {
+    this.showManagerModal = false;
+    this._modalSearchQuery = '';
+  }
+
+  updateModalManagersList(): void {
+    if (!this._modalSearchQuery) {
+      this.modalFilteredManagers = [...this._managerOptions];
+    } else {
+      this.modalFilteredManagers = this._managerOptions.filter(manager =>
+        manager.name && manager.name.toLowerCase().includes(this._modalSearchQuery.toLowerCase())
+      );
+    }
   }
 
   private emitFiltersChanged(): void {

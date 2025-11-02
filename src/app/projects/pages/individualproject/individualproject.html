@@ -1,6 +1,6 @@
 <!-- Main Container -->
 <div class="min-h-screen transition-all duration-300">
-  <!-- Loading / Error states -->
+  <!-- Loading State - Show while loading -->
   <div *ngIf="isLoading" class="flex items-center justify-center py-12">
     <div class="text-center">
       <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#0052CC]"></div>
@@ -8,16 +8,33 @@
     </div>
   </div>
 
-  <!-- Empty fallback if project missing -->
-  <div *ngIf="!isLoading && !project" class="max-w-3xl mx-auto mt-6 bg-[rgba(220,224,231,0.04)] border border-gray-200 rounded-md p-6 text-center">
-    <h3 class="text-sm font-medium text-gray-900">Project not found</h3>
-    <p class="mt-2 text-sm text-gray-600">The requested project could not be located. It may have been deleted or the ID is invalid.</p>
-    <div class="mt-4">
-      <app-custom-button label="Back to Projects" (action)="goBackToProjects()" bgClass="bg-blue-600" textColor="text-white"></app-custom-button>
+  <!-- Error State - Show when NOT loading AND error exists -->
+  <div *ngIf="!isLoading && loadingError" class="max-w-3xl mx-auto mt-6 bg-red-50 border border-red-200 rounded-md p-6 text-center">
+    <svg class="mx-auto h-12 w-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+    </svg>
+    <h3 class="mt-4 text-sm font-medium text-red-900">{{ loadingError }}</h3>
+    <div class="mt-4 flex justify-center gap-3">
+      <app-custom-button
+        label="Retry"
+        (action)="retryFetchProject()"
+        bgClass="bg-blue-600"
+        hoverClass="hover:bg-blue-700"
+        textColor="text-white"
+      ></app-custom-button>
+      <app-custom-button
+        label="Back to Projects"
+        (action)="goBackToProjects()"
+        bgClass="bg-white"
+        textColor="text-gray-700"
+        borderClass="border border-gray-300"
+        hoverClass="hover:bg-gray-50"
+      ></app-custom-button>
     </div>
   </div>
 
-  <ng-container *ngIf="!isLoading && project">
+  <!-- Content State - Show only when data is loaded -->
+  <ng-container *ngIf="!isLoading && !loadingError && project">
   
   <!-- Back to Projects Button -->
   <div class="bg-white border-b border-gray-200 py-1">
@@ -38,14 +55,14 @@
     </app-custom-button>
   </div>
 
-  <!-- Project Header Section -->
+  <!-- Project Header Section - Combined with Project Details -->
   <div class="py-6">
     <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
       <div class="px-6 py-5">
-        <div class="flex items-start justify-between">
+        <div class="flex items-start justify-between mb-6">
           
           <!-- Left Section - Project Info -->
-          <div class="flex items-start gap-4">
+          <div class="flex items-start gap-4 flex-1">
             <!-- Project Avatar -->
             <div 
               class="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
@@ -53,13 +70,13 @@
             </div>
 
             <!-- Project Details -->
-            <div class="flex flex-col gap-2">
+            <div class="flex flex-col gap-2 flex-1">
               <div class="flex items-center gap-3">
                 <h1 class="text-2xl font-bold text-gray-900">{{ project.name }}</h1>
                 <span class="text-sm text-gray-500 font-medium">{{ project.projectCode }}</span>
               </div>
               
-              <div class="flex items-center">
+              <div class="flex items-center gap-3">
                 <span 
                   [ngClass]="{
                     'bg-green-100 text-green-700 border-green-200': project.status === 'Active',
@@ -69,14 +86,18 @@
                   class="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold border">
                   {{ project.status }}
                 </span>
+                <p class="text-sm text-gray-600">Delivery Unit: <span class="font-semibold text-gray-900">{{ project.deliveryUnit || 'Not specified' }}</span></p>
+                <div>
+                  <p class="text-sm font-semibold text-gray-900"><span class="text-xs font-medium text-gray-500">Project Manager:</span> {{ project.projectManager || 'Not assigned' }}</p>
+                </div>
               </div>
               
-              <p class="text-sm text-gray-600 mt-1">{{ project.description || 'No description available' }}</p>
+              <p class="text-sm text-gray-600 mt-1 leading-relaxed">{{ project.description || 'No description available' }}</p>
             </div>
           </div>
 
           <!-- Right Section - Action Buttons -->
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-3 flex-shrink-0">
             <app-custom-button
               [label]="'Edit Project'"
               [icon]="'/images/edit.svg'"
@@ -104,6 +125,7 @@
             </app-custom-button>
           </div>
         </div>
+          
       </div>
     </div>
   </div>
@@ -129,7 +151,7 @@
       <!-- Team Members Card -->
       <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
         <div class="flex items-start justify-between mb-4">
-          <h3 class="text-sm font-medium text-gray-500">Team Members</h3>
+          <h3 class="text-sm font-medium text-gray-500">Total Team Members</h3>
           <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" 
               stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -146,50 +168,31 @@
     </div>
   </div>
 
-  <!-- Details Section -->
+  <!-- Customer Details Section - Full Width -->
   <div class="pb-6">
-    <div class="grid grid-cols-2 gap-6">
-      
-      <!-- Customer Details Card -->
-      <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
-        <div class="px-6 py-5 border-b border-gray-200">
-          <div class="flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" 
-              stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-              <polyline points="9 22 9 12 15 12 15 22"></polyline>
-            </svg>
-            <h2 class="text-lg font-semibold text-gray-900">Customer Details</h2>
-          </div>
+    <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
+      <div class="px-6 py-5 border-b border-gray-200">
+        <div class="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" 
+            stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+          <h2 class="text-lg font-semibold text-gray-900">Customer Details</h2>
         </div>
-        
-        <div class="px-6 py-5 space-y-5">
+      </div>
+      
+      <div class="px-6 py-5">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <!-- Organisation Name -->
           <div>
-            <p class="text-xs font-medium text-gray-500 mb-1">Organisation Name</p>
+            <p class="text-xs font-medium text-gray-500 mb-2">Organisation Name</p>
             <p class="text-sm font-semibold text-gray-900">{{ project.organisationName || 'Not specified' }}</p>
           </div>
           
+          <!-- Customer POC Email -->
           <div>
-            <p class="text-xs font-medium text-gray-500 mb-1">Description</p>
-            <p class="text-sm text-gray-700 leading-relaxed">{{ project.organisationDescription || 'No description available' }}</p>
-          </div>
-          
-          <div>
-            <p class="text-xs font-medium text-gray-500 mb-1">Website</p>
-            <a *ngIf="project?.organisationWebsite" [href]="project.organisationWebsite" target="_blank" class="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1">
-              {{ project.organisationWebsite }}
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" 
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                <polyline points="15 3 21 3 21 9"></polyline>
-                <line x1="10" y1="14" x2="21" y2="3"></line>
-              </svg>
-            </a>
-            <p *ngIf="!project?.organisationWebsite" class="text-sm text-gray-500">Not specified</p>
-          </div>
-          
-          <div>
-            <p class="text-xs font-medium text-gray-500 mb-1">Customer POC Email</p>
+            <p class="text-xs font-medium text-gray-500 mb-2">POC Email</p>
             <a *ngIf="project?.pocEmail" [href]="'mailto:' + project.pocEmail" class="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1">
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" 
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -201,8 +204,9 @@
             <p *ngIf="!project?.pocEmail" class="text-sm text-gray-500">Not specified</p>
           </div>
           
+          <!-- Customer POC Phone Number -->
           <div>
-            <p class="text-xs font-medium text-gray-500 mb-1">Customer POC Phone Number</p>
+            <p class="text-xs font-medium text-gray-500 mb-2">POC Phone</p>
             <a *ngIf="project?.pocPhone" [href]="'tel:' + project.pocPhone" class="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1">
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" 
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -212,110 +216,29 @@
             </a>
             <p *ngIf="!project?.pocPhone" class="text-sm text-gray-500">Not specified</p>
           </div>
-        </div>
-      </div>
-
-      <!-- Project Details Card -->
-      <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
-        <div class="px-6 py-5 border-b border-gray-200">
-          <div class="flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" 
-              stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-              <line x1="12" y1="18" x2="12" y2="12"></line>
-              <line x1="9" y1="15" x2="15" y2="15"></line>
-            </svg>
-            <h2 class="text-lg font-semibold text-gray-900">Project Details</h2>
+          
+          <!-- Website -->
+          <div>
+            <p class="text-xs font-medium text-gray-500 mb-2">Website</p>
+            <a *ngIf="project?.organisationWebsite" [href]="project.organisationWebsite" target="_blank" class="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1">
+              {{ project.organisationWebsite }}
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" 
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
+            </a>
+            <p *ngIf="!project?.organisationWebsite" class="text-sm text-gray-500">Not specified</p>
           </div>
         </div>
-        
-        <div class="px-6 py-5">
-          <div class="grid grid-cols-2 gap-6">
-            
-            <!-- Project Manager -->
-            <div>
-              <p class="text-xs font-medium text-gray-500 mb-2">Project Manager</p>
-              <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-semibold">
-                  {{ getInitials(project.projectManager || 'Unknown') }}
-                </div>
-                <div>
-                  <p class="text-sm font-semibold text-gray-900">{{ project.projectManager || 'Not assigned' }}</p>
-                  <p class="text-xs text-gray-500">Project Manager</p>
-                </div>
-              </div>
-            </div>
 
-            <!-- Delivery Unit -->
-            <div>
-              <p class="text-xs font-medium text-gray-500 mb-2">Delivery Unit</p>
-              <p class="text-sm font-semibold text-gray-900">{{ project.deliveryUnit || 'Not specified' }}</p>
-            </div>
-
-            <!-- Start Date -->
-            <div *ngIf="project.startDate">
-              <p class="text-xs font-medium text-gray-500 mb-2">Start Date</p>
-              <div class="flex items-center gap-2 text-sm text-gray-900">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
-                  stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="16" y1="2" x2="16" y2="6"></line>
-                  <line x1="8" y1="2" x2="8" y2="6"></line>
-                  <line x1="3" y1="10" x2="21" y2="10"></line>
-                </svg>
-                <span class="font-medium">{{ project.startDate }}</span>
-              </div>
-            </div>
-
-            <!-- End Date -->
-            <div *ngIf="project.endDate">
-              <p class="text-xs font-medium text-gray-500 mb-2">End Date</p>
-              <div class="flex items-center gap-2 text-sm text-gray-900">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
-                  stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="16" y1="2" x2="16" y2="6"></line>
-                  <line x1="8" y1="2" x2="8" y2="6"></line>
-                  <line x1="3" y1="10" x2="21" y2="10"></line>
-                </svg>
-                <span class="font-medium">{{ project.endDate }}</span>
-              </div>
-            </div>
-
-            <!-- Status -->
-            <div>
-              <p class="text-xs font-medium text-gray-500 mb-2">Status</p>
-              <span 
-                [ngClass]="{
-                  'bg-green-100 text-green-700 border-green-200': project.status === 'Active',
-                  'bg-gray-100 text-gray-700 border-gray-200': project.status === 'Inactive',
-                  'bg-blue-100 text-blue-700 border-blue-200': project.status === 'Completed'
-                }"
-                class="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold border">
-                {{ project.status || 'Unknown' }}
-              </span>
-            </div>
-
-            <!-- Team Size -->
-            <div>
-              <p class="text-xs font-medium text-gray-500 mb-2">Team Size</p>
-              <div class="flex items-center gap-2 text-sm font-semibold text-gray-900">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
-                  stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-                <span>{{ project.teamSize || 0 }} members</span>
-              </div>
-            </div>
-
-          </div>
+        <!-- Organisation Description - Full Width Below -->
+        <div class="mt-6 pt-6 border-t border-gray-100">
+          <p class="text-xs font-medium text-gray-500 mb-2">Description</p>
+          <p class="text-sm text-gray-700 leading-relaxed">{{ project.organisationDescription || 'No description available' }}</p>
         </div>
       </div>
-
     </div>
   </div>
 
@@ -348,8 +271,8 @@
   </div>
 
   <!-- Project Teams Section -->
-  <div *ngIf="project.teamMembers && project.teamMembers.length > 0" class="pb-6">
-    <app-project-teams [projectId]="projectId"></app-project-teams>
+  <div *ngIf="project && project.teams" class="pb-6">
+    <app-project-teams [projectId]="projectId" [teams]="project.teams"></app-project-teams>
   </div>
 
   </ng-container>

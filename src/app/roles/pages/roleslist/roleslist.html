@@ -27,8 +27,16 @@
     </app-search-bar>
   </div>
  
+  <!-- Loading Indicator -->
+  <div *ngIf="isLoading" class="flex justify-center items-center py-12">
+    <div class="flex flex-col items-center gap-3">
+      <app-loading-indicator></app-loading-indicator>
+      <p class="text-sm text-gray-500">Loading roles...</p>
+    </div>
+  </div>
+
   <!-- Roles Table with Custom Overlays -->
-  <div class="relative">
+  <div class="relative" *ngIf="!isLoading">
     <app-table
       [columns]="columns"
       [data]="filteredRoles"
@@ -118,15 +126,15 @@
       </div>
       <ul class="space-y-1.5">
         <li 
-          *ngFor="let permission of hoveredRole.permissions" 
+          *ngFor="let permId of hoveredRole.permissionIds" 
           class="flex items-start gap-2">
           <svg class="w-3.5 h-3.5 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
           </svg>
-          <span class="text-gray-700">{{ permission }}</span>
+          <span class="text-gray-700">{{ getPermissionNameById(permId) }}</span>
         </li>
         <li 
-          *ngIf="!hoveredRole.permissions || hoveredRole.permissions.length === 0"
+          *ngIf="!hoveredRole.permissionIds || hoveredRole.permissionIds.length === 0"
           class="text-gray-400 italic">
           No privileges assigned
         </li>
@@ -234,11 +242,12 @@
           >
             <input
               type="checkbox"
-              [checked]="newRole.permissions?.includes(permission)"
-              (change)="togglePermission(permission)"
+              [checked]="isPermissionSelected(permission.id)"
+              (change)="togglePermission(permission.id)"
               class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
             />
-            <span class="text-sm text-gray-700">{{ permission }}</span>
+            <span class="text-sm text-gray-700">{{ permission.name }}</span>
+            <span *ngIf="permission.description" class="text-xs text-gray-400 ml-2">{{ permission.description }}</span>
           </label>
         </div>
       </div>

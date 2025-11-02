@@ -1,7 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DeliveryUnitsService } from '../../../../shared/services/delivery-units.service';
 
 @Component({
   selector: 'app-team-organization',
@@ -13,15 +12,12 @@ import { DeliveryUnitsService } from '../../../../shared/services/delivery-units
 export class TeamOrganizationComponent {
   @Input() manager: string = '';
   @Input() deliveryUnit: string = '';
+  @Input() deliveryUnits: any[] = [];
 
   @Output() managerChange = new EventEmitter<string>();
   @Output() deliveryUnitChange = new EventEmitter<string>();
 
-  constructor(private deliveryUnitsService: DeliveryUnitsService) {}
-
-  get deliveryUnits() {
-    return this.deliveryUnitsService.getDeliveryUnits();
-  }
+  constructor() {}
 
   // Autocomplete data + state
   users = [

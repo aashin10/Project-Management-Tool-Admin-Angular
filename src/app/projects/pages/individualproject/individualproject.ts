@@ -1,15 +1,18 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
 import { SharedModule } from '../../../shared/shared-module';
 import { ProjectTeams } from './project-teams/project-teams';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { ProjectsService, Project } from '../../services/projects.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-individualproject',
   standalone: true,
-  imports: [CommonModule, SharedModule, ProjectTeams],
+  imports: [CommonModule, SharedModule, ProjectTeams,NgIf],
   templateUrl: './individualproject.html',
   styleUrl: './individualproject.css'
 })
@@ -20,17 +23,21 @@ export class IndividualprojectComponent implements OnInit, OnDestroy {
   project: Project | null = null;
 
   // Loading / error states
-  isLoading: boolean = false;
+  isLoading: boolean = true;
+  loadingError: string = '';
   private loadTimeout: any;
   // Delete modal state
   showDeleteModal: boolean = false;
+  
+  private destroy$ = new Subject<void>();
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private notificationService: NotificationService,
     private projectsService: ProjectsService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private toastr: ToastrService
   ) {
     // Get project ID from route params
     const id = this.route.snapshot.paramMap.get('id');
@@ -38,14 +45,31 @@ export class IndividualprojectComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    console.log('IndividualProjectComponent initialized with projectId:', this.projectId);
-    
-    // Load project data when component initializes
-    this.fetchProject();
+    // Subscribe to route parameter changes to handle when component is reused
+    this.route.paramMap
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((params) => {
+        const id = params.get('id');
+        this.projectId = id !== null ? id : '';
+        
+        console.log('IndividualProjectComponent initialized with projectId:', this.projectId);
+        
+        // Initialize project to null to reset state
+        this.project = null;
+        this.isLoading = true;
+        this.loadingError = '';
+        
+        // Load project data when component initializes
+        this.fetchProject();
+      });
   }
 
   ngOnDestroy(): void {
-    // Clear any pending timeout
+    // Complete the destroy subject to unsubscribe from all subscriptions
+    this.destroy$.next();
+    this.destroy$.complete();
+    
+    // Clear any pending timeouts
     if (this.loadTimeout) {
       clearTimeout(this.loadTimeout);
       this.loadTimeout = null;
@@ -74,30 +98,15 @@ export class IndividualprojectComponent implements OnInit, OnDestroy {
   fetchProject(): void {
     console.log('fetchProject called for projectId:', this.projectId);
     
-    // Prevent multiple concurrent requests
-    if (this.isLoading) {
-      console.log('Already loading, skipping duplicate request');
-      return;
-    }
-    
     if (!this.projectId || this.projectId.trim() === '') {
       console.error('Invalid projectId:', this.projectId);
-      this.notificationService.addNotification('error', 'Invalid project ID', 'Load Failed');
       this.isLoading = false;
+      this.loadingError = 'Invalid project ID';
       return;
     }
 
     this.isLoading = true;
-
-    // Set timeout to show "project not found" after 10 seconds
-    this.loadTimeout = setTimeout(() => {
-      if (this.isLoading) {
-        console.log('Load timeout reached, showing project not found');
-        this.isLoading = false;
-        this.project = null; // This will show the "project not found" message
-        this.cdr.detectChanges();
-      }
-    }, 10000);
+    this.loadingError = '';
 
     console.log('Making API call to get project by ID');
     
@@ -111,16 +120,25 @@ export class IndividualprojectComponent implements OnInit, OnDestroy {
 
         console.log('API response received:', response);
         
-        if (response && response.status === 200 && response.data) {
+        // Handle successful response - check for data first
+        if (response && response.data) {
           console.log('Mapping project data:', response.data);
+          console.log('Teams from API:', response.data.teams);
           this.project = this.mapProjectDTOToProject(response.data);
+          this.loadingError = '';
           console.log('Project mapped successfully:', this.project);
+          console.log('Project teams after mapping:', this.project?.teams);
         } else {
-          console.warn('Invalid response or status:', response);
-          this.notificationService.addNotification('error', response?.message || 'Failed to load project', 'Load Failed');
+          console.warn('No data in response:', response);
+          this.project = null;
+          this.loadingError = response?.message || 'Failed to load project';
         }
+        
         this.isLoading = false;
         console.log('Loading completed, isLoading set to false');
+        console.log('Project teams:', this.project?.teams);
+        
+        // Manually trigger change detection to update the view
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -132,8 +150,14 @@ export class IndividualprojectComponent implements OnInit, OnDestroy {
 
         console.error('API call failed:', err);
         this.isLoading = false;
-        this.notificationService.addNotification('error', err?.error?.message || err?.message || 'Failed to load project details.', 'Load Failed');
-        console.log('Error state set');
+        this.project = null;
+
+        // Set error message immediately to avoid empty page
+        const errorMsg = err?.error?.message || err?.message || 'Failed to load project. Please check your connection.';
+        this.loadingError = errorMsg;
+        console.log('Error state set:', this.loadingError);
+
+        // Manually trigger change detection to update the view
         this.cdr.detectChanges();
       }
     });
@@ -148,6 +172,7 @@ export class IndividualprojectComponent implements OnInit, OnDestroy {
       deliveryUnit: dto.deliveryUnitCode || '',
       projectManager: dto.projectManagerName || '',
       teamSize: dto.teamSize,
+      totalSprintCount: dto.sprintCount || 0,
       template: 'Scrum', // Default
       description: dto.description,
       organisationName: dto.customerOrgName,
@@ -202,17 +227,38 @@ export class IndividualprojectComponent implements OnInit, OnDestroy {
   // Confirm deletion from modal
   confirmDelete(): void {
     this.showDeleteModal = false;
-    if (!this.projectId) return;
+    if (!this.projectId || !this.project) return;
     
+    this.isLoading = true;
+    const projectName = this.project.name;
+
     // Call the service to delete the project
-    const deleted = this.projectsService.deleteProject(this.projectId);
-    
-    if (deleted) {
-      this.notificationService.addNotification('error', `Project "${this.project?.name || this.projectId}" was deleted successfully.`, 'Project Deleted');
-      this.router.navigate(['/projects']);
-    } else {
-      this.notificationService.addNotification('error', 'Failed to delete the project. Please try again.', 'Delete Failed');
-    }
+    this.projectsService.deleteProject(this.projectId).subscribe({
+      next: (response) => {
+        try {
+          if (response.status === 200) {
+            // Show both toaster and notification with RED color for deletion
+            this.toastr.success(`Project "${projectName}" was deleted successfully.`, 'Project Deleted');
+            this.notificationService.addNotification('warning', `Project "${projectName}" was deleted successfully.`, 'Project Deleted');
+            // Navigate back to projects list
+            this.router.navigate(['/projects']);
+          } else {
+            // Show both toaster and notification for error
+            this.toastr.error(response.message || 'Failed to delete the project. Please try again.', 'Delete Failed');
+            this.notificationService.addNotification('error', response.message || 'Failed to delete the project. Please try again.', 'Delete Failed');
+            this.isLoading = false;
+          }
+        } finally {
+        }
+      },
+      error: (err) => {
+        console.error('Delete failed:', err);
+        // Show both toaster and notification for error
+        this.toastr.error('Failed to delete the project. Please try again.', 'Delete Failed');
+        this.notificationService.addNotification('error', 'Failed to delete the project. Please try again.', 'Delete Failed');
+        this.isLoading = false;
+      }
+    });
   }
 
   /**
