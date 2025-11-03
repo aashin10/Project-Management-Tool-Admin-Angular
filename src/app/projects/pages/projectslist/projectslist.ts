@@ -2,6 +2,7 @@ import { Component, ViewChild, ElementRef, AfterViewChecked, ChangeDetectorRef, 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ToastrService } from 'ngx-toastr';
 import { CustomButton } from '../../../shared/custom-button/custom-button';
 import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
@@ -62,6 +63,7 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
 
   // Loading / error states for project listing
   isLoading: boolean = true;
+  isInitialLoad: boolean = true;
 
   // Multi-select filter options - now storing IDs instead of codes
   selectedStatusIds: number[] = [];
@@ -267,9 +269,21 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
           this.pagination.currentPage = totalPages;
         }
         this.loadingError = null;
+
+        // Show success toaster only for initial load
+        if (this.isInitialLoad) {
+          this.toastr.success('Projects loaded successfully', 'Success', {
+            timeOut: 3000,
+            progressBar: true
+          });
+          this.isInitialLoad = false;
+        }
       } else {
         this.loadingError = response.message || 'Failed to load projects';
-        this.notificationService.addNotification('error', this.loadingError!, 'Load Failed');
+        this.toastr.error(this.loadingError!, 'Load Failed', {
+          timeOut: 5000,
+          progressBar: true
+        });
       }
     } finally {
       this.isLoading = false;
@@ -282,8 +296,26 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
    */
   private handleFetchError(err: any) {
     console.error('Projects API call failed:', err);
-    this.loadingError = err?.message || 'Failed to load projects. Please try again.';
-    this.notificationService.addNotification('error', this.loadingError!, 'Load Failed');
+    
+    // Provide specific messages for different error types
+    let errorMessage = 'Failed to load projects. Please try again.';
+    if (err?.name === 'TimeoutError' || err?.message?.includes('Timeout')) {
+      errorMessage = 'Loading projects is taking longer than expected. Please wait or try refreshing the page.';
+    } else if (err instanceof HttpErrorResponse) {
+      if (err.status === 0) {
+        errorMessage = 'Unable to connect to the server. Please check your internet connection.';
+      } else if (err.status >= 500) {
+        errorMessage = 'Server error occurred. Please try again later.';
+      } else if (err.status === 404) {
+        errorMessage = 'Projects data not found.';
+      }
+    }
+    
+    this.loadingError = errorMessage;
+    this.toastr.error(this.loadingError, 'Load Failed', {
+      timeOut: 5000,
+      progressBar: true
+    });
     this.isLoading = false;
     this.cdr.markForCheck();
   }
@@ -802,15 +834,13 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
             if (response.status === 200) {
               // Remove from local array
               this.projects = this.projects.filter(project => project.id !== deletedId);
-              // Show both toaster and notification with RED color for deletion
+              // Show toaster for successful deletion
               this.toastr.success(`Project "${deletedName}" was deleted successfully.`, 'Project Deleted');
-              this.notificationService.addNotification('warning', `Project "${deletedName}" was deleted successfully.`, 'Project Deleted');
               // Refresh the projects list
               this.fetchProjects();
             } else {
-              // Show both toaster and notification for error
+              // Show toaster for error
               this.toastr.error(response.message || `Failed to delete project "${deletedName}".`, 'Delete Failed');
-              this.notificationService.addNotification('error', response.message || `Failed to delete project "${deletedName}".`, 'Delete Failed');
             }
           } finally {
             this.showDeleteModal = false;
@@ -821,9 +851,8 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Delete failed:', err);
-          // Show both toaster and notification for error
+          // Show toaster for error
           this.toastr.error(`Failed to delete project "${deletedName}".`, 'Delete Failed');
-          this.notificationService.addNotification('error', `Failed to delete project "${deletedName}".`, 'Delete Failed');
           this.showDeleteModal = false;
           this.projectToDelete = null;
           this.isLoading = false;
@@ -850,17 +879,15 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
               !projectsToDelete.some(deleted => deleted.id === project.id)
             );
             const successMsg = `${successCount} project${successCount > 1 ? 's' : ''} ${successCount > 1 ? 'were' : 'was'} deleted successfully.`;
-            // Show both toaster and notification with RED color for deletion
+            // Show toaster for successful deletions
             this.toastr.success(successMsg, 'Projects Deleted');
-            this.notificationService.addNotification('warning', successMsg, 'Projects Deleted');
             this.fetchProjects();
           }
 
           if (failedCount > 0) {
             const failMsg = `${failedCount} project${failedCount > 1 ? 's' : ''} could not be deleted.`;
-            // Show both toaster and notification for errors
+            // Show toaster for errors
             this.toastr.error(failMsg, 'Deletion Failed');
-            this.notificationService.addNotification('error', failMsg, 'Deletion Failed');
           }
 
           this.showDeleteModal = false;

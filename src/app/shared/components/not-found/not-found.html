@@ -1,0 +1,35 @@
+<div class="min-h-screen flex items-center justify-center bg-gray-50">
+  <div class="max-w-md w-full bg-white shadow-lg rounded-lg p-8 text-center">
+    <div class="mb-8">
+      <div class="text-9xl font-bold text-gray-300 mb-4">404</div>
+      <h1 class="text-3xl font-bold text-gray-900 mb-4">Page Not Found</h1>
+      <p class="text-gray-600 mb-8">
+        Sorry, the page you are looking for doesn't exist or has been moved.
+      </p>
+    </div>
+
+    <div class="flex justify-center gap-4">
+      <app-custom-button
+        label="Go to Dashboard"
+        shortLabel="Dashboard"
+        bgClass="bg-blue-600"
+        textColor="text-white"
+        hoverClass="hover:bg-blue-700"
+        height="h-12"
+        fontSize="text-base"
+        (action)="goHome()">
+      </app-custom-button>
+
+      <app-custom-button
+        label="Go Back"
+        shortLabel="Back"
+        bgClass="bg-gray-200"
+        textColor="text-gray-800"
+        hoverClass="hover:bg-gray-300"
+        height="h-12"
+        fontSize="text-base"
+        (action)="goBack()">
+      </app-custom-button>
+    </div>
+  </div>
+</div>
