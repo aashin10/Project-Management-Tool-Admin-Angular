@@ -25,6 +25,7 @@
               [(ngModel)]="manager"
               #managerRef="ngModel"
               (ngModelChange)="onManagerInput($event)"
+              (focus)="onManagerFocus()"
               autocomplete="off"
               required
               class="w-[220px] h-9 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 placeholder:text-gray-400 font-normal placeholder:font-normal"

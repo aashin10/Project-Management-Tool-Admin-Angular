@@ -55,6 +55,7 @@ export class Createproject {
   
   // Project Manager dropdown data
   filteredUsers: UserFilterResponse[] = [];
+  allUsers: UserFilterResponse[] = []; // Master list of all users
   isLoadingUsers: boolean = false;
 
   constructor(
@@ -103,13 +104,17 @@ export class Createproject {
     this.projectsService.getAllUsers().subscribe({
       next: (response) => {
         if (response.status === 200 && response.data) {
-          this.filteredUsers = response.data.map(u => ({ id: u.id, name: u.name, email: u.email }));
+          // Store the master list and initialize filtered list
+          this.allUsers = response.data.map(u => ({ id: u.id, name: u.name, email: u.email }));
+          this.filteredUsers = [...this.allUsers]; // Copy all users to filtered list initially
         } else {
+          this.allUsers = [];
           this.filteredUsers = [];
         }
         this.isLoadingUsers = false;
       },
       error: (error) => {
+        this.allUsers = [];
         this.filteredUsers = [];
         this.isLoadingUsers = false;
         this.toastr.warning('Could not load user list', 'User Fetch Warning');
@@ -167,14 +172,16 @@ export class Createproject {
     this.managerId = null;
   }
 
-  // No-op: all users are loaded on init, so just filter client-side
   onManagerSearch(searchTerm: string) {
+    // If no search term, show all users
     if (!searchTerm || searchTerm.trim().length === 0) {
-      this.filteredUsers = this.filteredUsers;
+      this.filteredUsers = [...this.allUsers];
       return;
     }
+    
+    // Filter from master list based on search term
     const term = searchTerm.trim().toLowerCase();
-    this.filteredUsers = this.filteredUsers.filter(u =>
+    this.filteredUsers = this.allUsers.filter(u =>
       (u.name && u.name.toLowerCase().includes(term)) ||
       (u.email && u.email.toLowerCase().includes(term))
     );
@@ -211,10 +218,26 @@ export class Createproject {
     this.status = status;
   }
 
+  // Check if core required fields are filled to enable create button
+  get isFormValid(): boolean {
+    return !!(
+      this.projectName?.trim() &&
+      this.projectKey?.trim() &&
+      this.status &&
+      this.managerId &&
+      this.deliveryUnit
+    );
+  }
+
   onCreateProject() {
-    // Validate required fields
-    if (!this.projectName || !this.projectKey || !this.organisationName || !this.pocEmail) {
-      this.toastr.error('Please fill in all required fields', 'Validation Error');
+    // Validate only core required fields: project name, project key, status, project manager, delivery unit
+    if (!this.projectName || !this.projectKey) {
+      this.toastr.error('Please fill in project name and project key', 'Validation Error');
+      return;
+    }
+
+    if (!this.status) {
+      this.toastr.error('Please select a project status', 'Validation Error');
       return;
     }
 
@@ -238,10 +261,10 @@ export class Createproject {
       name: this.projectName,
       key: this.projectKey,
       description: this.description || '',
-      customerOrgName: this.organisationName,
+      customerOrgName: this.organisationName || '', // Optional customer info
       customerDomainUrl: this.organisationWebsite || '',
       customerDescription: this.organisationDescription || '',
-      pocEmail: this.pocEmail,
+      pocEmail: this.pocEmail || '', // Optional customer info
       pocPhone: this.phoneNumber || '',
       projectManagerId: this.managerId,
       projectManagerRoleId: 2, // Default role ID - you might want to make this configurable
