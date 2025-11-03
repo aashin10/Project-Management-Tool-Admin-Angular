@@ -32,10 +32,10 @@ interface Project {
   styleUrl: './userslist.css'
 })
 export class Userslist implements OnInit, OnDestroy {
-  private usersApi = inject(UsersApi);
-  private cdr = inject(ChangeDetectorRef);
-  private toastr = inject(ToastrService);
-  private notificationService = inject(NotificationService);
+  private usersApi: UsersApi = inject(UsersApi);
+  private cdr: ChangeDetectorRef = inject(ChangeDetectorRef);
+  private toastr: ToastrService = inject(ToastrService);
+  private notificationService: NotificationService = inject(NotificationService);
   private retrySubscription?: Subscription;
   private networkErrorRetryTimer?: any;
   private searchSubject = new Subject<string>();
@@ -1345,9 +1345,10 @@ projects: Project[] = [
     this.closeImportModal();
     this.isLoading = true;
 
-    // Read and parse CSV file
-    const reader = new FileReader();
-    reader.onload = (e: any) => {
+  // Read and parse CSV file
+  const reader = new FileReader();
+  const self = this;
+  reader.onload = (e: any) => {
       try {
         const csvContent = e.target.result;
         const lines = csvContent.split('\n').filter((line: string) => line.trim() !== '');
@@ -1600,7 +1601,7 @@ projects: Project[] = [
               }
             }, 0);
           },
-          error: (error) => {
+          error: (error: any) => {
             console.error('Bulk import failed:', error);
             
             setTimeout(() => {
@@ -1625,7 +1626,7 @@ projects: Project[] = [
           }
         });
 
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error parsing CSV:', error);
         this.toastr.error('Failed to parse CSV file. Please check the file format.', 'Parse Error', {
           timeOut: 5000,
@@ -1636,7 +1637,7 @@ projects: Project[] = [
     };
 
     reader.onerror = () => {
-      this.toastr.error('Failed to read CSV file', 'File Read Error', {
+      self.toastr.error('Failed to read CSV file', 'File Read Error', {
         timeOut: 3000,
         progressBar: true,
         closeButton: true,

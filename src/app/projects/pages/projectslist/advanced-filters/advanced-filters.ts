@@ -96,6 +96,8 @@ export class AdvancedFilters implements OnChanges {
   // Manager search
   private _managerSearchQuery = '';
   showAllManagers = false;
+  // Controls whether the manager list is expanded into a scrollable window
+  showManagersExpanded = false;
   filteredManagers: {id: number, name: string}[] = [];
 
   // Modal state for showing all managers
@@ -141,13 +143,13 @@ export class AdvancedFilters implements OnChanges {
 
   // Update filtered managers when options or search changes
   private updateFilteredManagers(): void {
+    // Always show the full filtered list; the container is scrollable to prevent panel expansion
     if (!this._managerSearchQuery) {
-      this.filteredManagers = this.showAllManagers ? [...this._managerOptions] : this._managerOptions.slice(0, 3);
+      this.filteredManagers = [...this._managerOptions];
     } else {
-      const filtered = this._managerOptions.filter(manager =>
+      this.filteredManagers = this._managerOptions.filter(manager =>
         manager.name && manager.name.toLowerCase().includes(this._managerSearchQuery.toLowerCase())
       );
-      this.filteredManagers = this.showAllManagers ? filtered : filtered.slice(0, 3);
     }
   }
 
@@ -248,9 +250,13 @@ export class AdvancedFilters implements OnChanges {
   }
 
   toggleShowAllManagers(): void {
-    this.showAllManagers = !this.showAllManagers;
+    // Toggle the expanded (scrollable) view while keeping the legacy flag in sync
+    this.showManagersExpanded = !this.showManagersExpanded;
+    this.showAllManagers = this.showManagersExpanded;
     this.updateFilteredManagers();
   }
+
+  // (was) scrollManagerList - no longer used. Kept intentionally blank for compatibility.
 
   openManagerModal(): void {
     this.showManagerModal = true;

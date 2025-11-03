@@ -2,6 +2,7 @@ import { Component, ViewChild, ElementRef, AfterViewChecked, ChangeDetectorRef, 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ToastrService } from 'ngx-toastr';
 import { CustomButton } from '../../../shared/custom-button/custom-button';
 import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
@@ -282,7 +283,22 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
    */
   private handleFetchError(err: any) {
     console.error('Projects API call failed:', err);
-    this.loadingError = err?.message || 'Failed to load projects. Please try again.';
+    
+    // Provide specific messages for different error types
+    let errorMessage = 'Failed to load projects. Please try again.';
+    if (err?.name === 'TimeoutError' || err?.message?.includes('Timeout')) {
+      errorMessage = 'Loading projects is taking longer than expected. Please wait or try refreshing the page.';
+    } else if (err instanceof HttpErrorResponse) {
+      if (err.status === 0) {
+        errorMessage = 'Unable to connect to the server. Please check your internet connection.';
+      } else if (err.status >= 500) {
+        errorMessage = 'Server error occurred. Please try again later.';
+      } else if (err.status === 404) {
+        errorMessage = 'Projects data not found.';
+      }
+    }
+    
+    this.loadingError = errorMessage;
     this.notificationService.addNotification('error', this.loadingError!, 'Load Failed');
     this.isLoading = false;
     this.cdr.markForCheck();
