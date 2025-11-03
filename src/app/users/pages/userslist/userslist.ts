@@ -54,11 +54,11 @@ interface Project {
   styleUrl: './userslist.css',
 })
 export class Userslist implements OnInit, OnDestroy {
-  private usersApi = inject(UsersApi);
-  private cdr = inject(ChangeDetectorRef);
-  private toastr = inject(ToastrService);
+  private usersApi: UsersApi = inject(UsersApi);
+  private cdr: ChangeDetectorRef = inject(ChangeDetectorRef);
+  private toastr: ToastrService = inject(ToastrService);
   private route: ActivatedRoute = inject(ActivatedRoute);
-  private notificationService = inject(NotificationService);
+  private notificationService: NotificationService = inject(NotificationService);
   private retrySubscription?: Subscription;
   private networkErrorRetryTimer?: any;
   private searchSubject = new Subject<string>();
@@ -1944,6 +1944,7 @@ export class Userslist implements OnInit, OnDestroy {
 
     // Read and parse CSV file
     const reader = new FileReader();
+    const self = this;
     reader.onload = (e: any) => {
       try {
         const csvContent = e.target.result;
@@ -2201,7 +2202,7 @@ export class Userslist implements OnInit, OnDestroy {
               }
             }, 0);
           },
-          error: (error) => {
+          error: (error: any) => {
             console.error('Bulk import failed:', error);
 
             setTimeout(() => {
@@ -2221,7 +2222,7 @@ export class Userslist implements OnInit, OnDestroy {
             }, 0);
           },
         });
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error parsing CSV:', error);
         this.toastr.error(
           'Failed to parse CSV file. Please check the file format.',
@@ -2236,7 +2237,7 @@ export class Userslist implements OnInit, OnDestroy {
     };
 
     reader.onerror = () => {
-      this.toastr.error('Failed to read CSV file', 'File Read Error', {
+      self.toastr.error('Failed to read CSV file', 'File Read Error', {
         timeOut: 3000,
         progressBar: true,
         closeButton: true,
