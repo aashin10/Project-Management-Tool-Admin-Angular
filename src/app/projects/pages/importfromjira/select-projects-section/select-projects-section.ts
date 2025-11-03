@@ -211,6 +211,7 @@ export class SelectProjectsSection implements OnInit {
           sessionStorage.setItem('import_response', JSON.stringify(response.data));
           this.isImporting = false;
           sessionStorage.setItem('isImporting', 'false');
+          this.toastr.success('Projects imported successfully.', 'Import Successful');
           this.cdr.detectChanges();
           this.navigationService.onNext();
         },
