@@ -63,8 +63,17 @@ export class TeamOrganizationComponent implements OnInit, OnChanges {
 
   onManagerInput(value: string) {
     this.managerSearch.emit(value);
-    // Show suggestions for 1+ characters if there are results
-    this.showManagerSuggestions = !!value && value.length > 0 && this.filteredUsers.length > 0;
+    // Always show dropdown when typing or when we have users loaded
+    this.showManagerSuggestions = true;
+  }
+
+  onManagerFocus() {
+    // Show dropdown when field is focused, even if empty
+    this.showManagerSuggestions = true;
+    // Trigger search to load all users if not already loaded
+    if (this.filteredUsers.length === 0) {
+      this.managerSearch.emit('');
+    }
   }
 
   selectManager(u: UserFilterResponse) {
