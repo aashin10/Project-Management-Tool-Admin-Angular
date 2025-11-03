@@ -82,7 +82,7 @@
 
       <div id="manager-list" class="flex flex-col">
         <!-- Items wrapper: becomes scrollable when expanded; keeps the Show more button visible below -->
-        <div class="space-y-1.5 max-h-32 flex-1 min-h-0" [class.overflow-y-auto]="showManagersExpanded" [class.max-h-40]="showManagersExpanded">
+        <div class="space-y-1.5 max-h-32 flex-1 min-h-0" [class.overflow-y-auto]="showManagersExpanded" [class.max-h-36]="showManagersExpanded">
           <!-- Show Initial 4 Managers, expand to scrollable full list when requested -->
           <label
             *ngFor="let manager of (showManagersExpanded ? filteredManagers : (filteredManagers | slice:0:4))"
