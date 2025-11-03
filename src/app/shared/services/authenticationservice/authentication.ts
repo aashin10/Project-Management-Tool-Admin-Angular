@@ -65,9 +65,9 @@ export class Authentication {
     this.currentUserSubject = new BehaviorSubject<UserInfo | null>(null);
     this.currentUser$ = this.currentUserSubject.asObservable();
 
-    // if (this.hasValidToken()) {
-    //   this.loadCurrentUser();
-    // }
+    if (this.hasValidToken()) {
+      this.loadCurrentUser();
+    }
   }
 
   // =======================
@@ -94,7 +94,8 @@ export class Authentication {
         if (response.status==200 && response.data) {
           this.setTokens(response.data.accessToken, response.data.refreshToken);
           this.isAuthenticatedSubject.next(true);
-          // this.loadCurrentUser();
+          //this.loadCurrentUser();
+          
         }
       }),
       catchError(this.handleError)
@@ -114,13 +115,14 @@ export class Authentication {
     const refreshRequest: RefreshTokenRequest = { refreshToken };
 
     return this.http.post<ApiResponse<LoginResponse>>(
-      `${this.apiUrl}/auth/refresh`,
+      `${this.apiUrl}/Auth/refresh`,
       refreshRequest
     ).pipe(
       tap(response => {
         if (response.status==200 && response.data) {
           this.setTokens(response.data.accessToken, response.data.refreshToken);
           this.isAuthenticatedSubject.next(true);
+          console.log('%c✅ Token successfully refreshed', 'color: green; font-weight: bold;');
         }
       }),
       catchError(error => {
@@ -156,6 +158,7 @@ export class Authentication {
       tap(response => {
         if (response.status==200 && response.data) {
           this.currentUserSubject.next(response.data);
+          console.log('Current user loaded:', response.data);          
         }
       }),
       catchError(this.handleError)
@@ -165,19 +168,19 @@ export class Authentication {
   // =======================
   // 🧠 Load Current User
   // =======================
-  // private loadCurrentUser(): void {
-  //   this.getCurrentUser().subscribe({
-  //     next: (response) => {
-  //       if (response.status==200) {
-  //         this.currentUserSubject.next(response.data);
-  //       }
-  //     },
-  //     error: (error) => {
-  //       console.error('Failed to load user info:', error);
-  //       this.clearAuthData();
-  //     }
-  //   });
-  // }
+  private loadCurrentUser(): void {
+    this.getCurrentUser().subscribe({
+      next: (response) => {
+        if (response.status==200) {
+          this.currentUserSubject.next(response.data);
+        }
+      },
+      error: (error) => {
+        console.error('Failed to load user info:', error);
+        //this.clearAuthData();
+      }
+    });
+  }
 
   // =======================
   // 💾 Token Management

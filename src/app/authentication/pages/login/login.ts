@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CustomButton } from "../../../shared/custom-button/custom-button";
 import { Authentication } from '../../../shared/services/authenticationservice/authentication';
-import { Toast } from 'ngx-toastr';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-login',
@@ -32,7 +32,8 @@ export class Login {
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private authService: Authentication
+    private authService: Authentication,
+    private toastr: ToastrService
   ) {
     // Get return URL from route parameters or default to '/dashboard'
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
@@ -143,8 +144,10 @@ export class Login {
     if (!this.isFormValid()) {
       if (this.emailError) {
         this.loginError = this.emailError;
+        this.toastr.error(this.emailError, 'Validation Error');
       } else if (this.passwordError) {
         this.loginError = this.passwordError;
+        this.toastr.error(this.passwordError, 'Validation Error');
       }
       return;
     }
@@ -161,25 +164,24 @@ export class Login {
       next: (response) => {
         this.isLoading = false;
         console.log(response);
-        if (response.status===200) {
+        if (response.status === 200) {
           console.log('Login successful');
+          this.toastr.success('Welcome back!', 'Login Successful');
           // Navigate to return URL or dashboard
           this.router.navigate([this.returnUrl]);
         } else {
-          
-          this.loginError = response.message || 'Login failed. Please try again.';
+          // Login failed - show error toaster
+          this.loginError = 'Invalid Login Credentials';
+          this.toastr.error('Invalid Login Credentials', 'Login Failed');
         }
       },
       error: (error) => {
         this.isLoading = false;
         console.error('Login error:', error);
         
-        // Handle specific error messages
-        if (error.message) {
-          this.loginError = error.message;
-        } else {
-          this.loginError = 'An error occurred during login. Please try again.';
-        }
+        // Show toaster for invalid credentials or any login error
+        this.toastr.error('Invalid Login Credentials', 'Login Failed');
+        this.loginError = 'Invalid Login Credentials';
       }
     });
   }

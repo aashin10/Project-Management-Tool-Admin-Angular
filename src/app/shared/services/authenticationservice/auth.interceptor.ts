@@ -20,8 +20,8 @@ export class AuthInterceptor implements HttpInterceptor {
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     // Skip auth endpoints to avoid circular calls
     if (request.url.includes('/Auth/login') || 
-        request.url.includes('/auth/refresh') || 
-        request.url.includes('/auth/logout')) {
+        request.url.includes('/Auth/refresh') || 
+        request.url.includes('/Auth/logout')) {
       return next.handle(request);
     }
 
