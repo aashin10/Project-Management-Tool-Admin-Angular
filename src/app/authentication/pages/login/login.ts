@@ -1,8 +1,10 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { CustomButton } from "../../../shared/custom-button/custom-button";
+import { Authentication } from '../../../shared/services/authenticationservice/authentication';
+import { Toast } from 'ngx-toastr';
 
 @Component({
   selector: 'app-login',
@@ -19,8 +21,27 @@ export class Login {
   // Validation states
   emailError: string = '';
   passwordError: string = '';
+  
+  // Loading and error states
+  isLoading: boolean = false;
+  loginError: string = '';
+  
+  // Return URL for redirect after login
+  returnUrl: string = '/dashboard';
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private authService: Authentication
+  ) {
+    // Get return URL from route parameters or default to '/dashboard'
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
+    
+    // Redirect if already authenticated
+    if (this.authService.isAuthenticated()) {
+      this.router.navigate([this.returnUrl]);
+    }
+  }
 
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
@@ -112,25 +133,54 @@ export class Login {
   }
 
   onSubmit(): void {
+    // Clear previous login error
+    this.loginError = '';
+    
     // Validate all fields before submission
     this.validateEmail();
     this.validatePassword();
 
     if (!this.isFormValid()) {
       if (this.emailError) {
-        alert(this.emailError);
+        this.loginError = this.emailError;
       } else if (this.passwordError) {
-        alert(this.passwordError);
+        this.loginError = this.passwordError;
       }
       return;
     }
 
-    console.log('Login attempt:', { 
-      email: this.email, 
-      password: this.password 
+    // Prevent multiple submissions
+    if (this.isLoading) {
+      return;
+    }
+
+    this.isLoading = true;
+
+    // Call authentication service
+    this.authService.login(this.email, this.password).subscribe({
+      next: (response) => {
+        this.isLoading = false;
+        console.log(response);
+        if (response.status===200) {
+          console.log('Login successful');
+          // Navigate to return URL or dashboard
+          this.router.navigate([this.returnUrl]);
+        } else {
+          
+          this.loginError = response.message || 'Login failed. Please try again.';
+        }
+      },
+      error: (error) => {
+        this.isLoading = false;
+        console.error('Login error:', error);
+        
+        // Handle specific error messages
+        if (error.message) {
+          this.loginError = error.message;
+        } else {
+          this.loginError = 'An error occurred during login. Please try again.';
+        }
+      }
     });
-    
-    // Redirect to dashboard
-    this.router.navigate(['/dashboard']);
   }
 }
