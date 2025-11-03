@@ -15,12 +15,14 @@
         [(organisationName)]="organisationName"
         [(pocEmail)]="pocEmail"
         [(phoneNumber)]="phoneNumber"
+        [(status)]="status"
         (projectNameChange)="onProjectNameChange($event)"
         (projectKeyChange)="onProjectKeyChange($event)"
         (descriptionChange)="onDescriptionChange($event)"
         (organisationNameChange)="onOrganisationNameChange($event)"
         (pocEmailChange)="onPocEmailChange($event)"
         (phoneNumberChange)="onPhoneNumberChange($event)"
+        (statusChange)="status = $event"
       ></app-basic-information>
 
       <app-team-organization

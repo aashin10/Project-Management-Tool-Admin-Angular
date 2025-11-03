@@ -120,6 +120,7 @@ export class Editproject implements OnInit {
           this.deliveryUnit = project.deliveryUnitCode || '';
           this.selectedProjectManagerId = project.projectManagerId || 0;
           this.selectedDeliveryUnitId = project.deliveryUnitId || 0;
+          this.status = project.statusName || 'Active';
           this.additionalFields = project.additionalInformation || [];
           
           console.log('Form populated with:', {
