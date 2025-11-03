@@ -135,7 +135,7 @@ export class Authentication {
   // =======================
   logout(): Observable<ApiResponse<any>> {
     return this.http.post<ApiResponse<any>>(
-      `${this.apiUrl}/auth/logout`,
+      `${this.apiUrl}/Auth/logout`,
       {}
     ).pipe(
       tap(() => this.clearAuthData()),

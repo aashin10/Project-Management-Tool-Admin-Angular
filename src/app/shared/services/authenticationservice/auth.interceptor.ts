@@ -18,11 +18,19 @@ export class AuthInterceptor implements HttpInterceptor {
   constructor(private authService: Authentication) {}
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+    // Skip auth endpoints to avoid circular calls
+    if (request.url.includes('/Auth/login') || 
+        request.url.includes('/auth/refresh') || 
+        request.url.includes('/auth/logout')) {
+      return next.handle(request);
+    }
+
     // Add token to request if available
     const token = this.authService.getAccessToken();
     
     if (token) {
       request = this.addTokenToRequest(request, token);
+      console.log('Token added to request:', request.headers.get('Authorization'));
     }
 
     return next.handle(request).pipe(
@@ -55,7 +63,8 @@ export class AuthInterceptor implements HttpInterceptor {
           switchMap((response: any) => {
             this.isRefreshing = false;
             
-            if (response.succeeded && response.data) {
+            // Fixed: Check response.status instead of response.succeeded
+            if (response.status === 200 && response.data) {
               this.refreshTokenSubject.next(response.data.accessToken);
               return next.handle(this.addTokenToRequest(request, response.data.accessToken));
             }
@@ -72,6 +81,7 @@ export class AuthInterceptor implements HttpInterceptor {
         );
       } else {
         // No refresh token, logout
+        this.isRefreshing = false;
         this.authService.logout().subscribe();
         return throwError(() => new Error('No refresh token available'));
       }
