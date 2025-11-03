@@ -32,14 +32,14 @@
 
           <!-- Dropdown Menu -->
           <div *ngIf="showDropdown" 
-            class="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+            class="absolute right-0 mt-2 bg-white border border-gray-200 rounded-sm shadow-lg z-10 min-w-max">
             <div class="py-1">
               <button
                 *ngFor="let team of teams"
                 (click)="selectTeam(team.id)"
                 [class.bg-blue-50]="team.id === selectedTeam"
                 [class.text-blue-600]="team.id === selectedTeam"
-                class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 focus:outline-none">
+                class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 focus:outline-none whitespace-nowrap">
                 {{ team.name }}
               </button>
             </div>
