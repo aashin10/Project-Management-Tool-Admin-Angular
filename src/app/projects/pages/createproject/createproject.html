@@ -39,8 +39,11 @@
         [(manager)]="manager"
         [(deliveryUnit)]="deliveryUnit"
         [deliveryUnits]="deliveryUnits"
+        [filteredUsers]="filteredUsers"
         (managerChange)="onManagerChange($event)"
         (deliveryUnitChange)="onDeliveryUnitChange($event)"
+        (managerSearch)="onManagerSearch($event)"
+        (managerSelect)="onManagerSelect($event)"
       ></app-team-organization>
 
       <app-additionalinfo (addedFieldsChange)="additionalFields = $event"></app-additionalinfo>
@@ -51,6 +54,7 @@
       <app-project-preview
         [projectName]="projectName"
         [projectKey]="projectKey"
+        [status]="status"
         [organisationName]="organisationName"
         [pocEmail]="pocEmail"
         [phoneNumber]="phoneNumber"

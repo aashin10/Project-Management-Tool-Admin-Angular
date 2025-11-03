@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { NotificationService } from '../../../shared/services/notification.service';
-import { ProjectsService } from '../../services/projects.service';
+import { ProjectsService, UserFilterResponse } from '../../services/projects.service';
 import { DeliveryUnitService } from '../../../duservice/deliveryunits.service';
 import { ProjectStatusService } from '../../../shared/services/project-status/project-status.service';
 import { ToastrService } from 'ngx-toastr';
@@ -38,6 +38,7 @@ export class Createproject {
   pocEmail: string = '';
   phoneNumber: string = '';
   manager: string = '';
+  managerId: number | null = null; // Store the selected manager ID
   status: string = 'Active'; // default to 'Active'
   deliveryUnit: string = '';
   deliveryUnits: any[] = [];
@@ -51,6 +52,11 @@ export class Createproject {
   shareWithExisting: boolean = false;
   selectedProjectToShare: string = '';
   showSuccess: boolean = false;
+  
+  // Project Manager dropdown data
+  filteredUsers: UserFilterResponse[] = [];
+  allUsers: UserFilterResponse[] = []; // Master list of all users
+  isLoadingUsers: boolean = false;
 
   constructor(
     private router: Router,
@@ -90,6 +96,30 @@ export class Createproject {
 
   async ngOnInit() {
     await this.loadDeliveryUnits();
+    this.loadAllUsers();
+  }
+
+  loadAllUsers() {
+    this.isLoadingUsers = true;
+    this.projectsService.getAllUsers().subscribe({
+      next: (response) => {
+        if (response.status === 200 && response.data) {
+          // Store the master list and initialize filtered list
+          this.allUsers = response.data.map(u => ({ id: u.id, name: u.name, email: u.email }));
+          this.filteredUsers = [...this.allUsers]; // Copy all users to filtered list initially
+        } else {
+          this.allUsers = [];
+          this.filteredUsers = [];
+        }
+        this.isLoadingUsers = false;
+      },
+      error: (error) => {
+        this.allUsers = [];
+        this.filteredUsers = [];
+        this.isLoadingUsers = false;
+        this.toastr.warning('Could not load user list', 'User Fetch Warning');
+      }
+    });
   }
 
   async loadDeliveryUnits(): Promise<void> {
@@ -138,6 +168,28 @@ export class Createproject {
 
   onManagerChange(manager: string) {
     this.manager = manager;
+    // Clear managerId when text changes (user is typing, not selecting)
+    this.managerId = null;
+  }
+
+  onManagerSearch(searchTerm: string) {
+    // If no search term, show all users
+    if (!searchTerm || searchTerm.trim().length === 0) {
+      this.filteredUsers = [...this.allUsers];
+      return;
+    }
+    
+    // Filter from master list based on search term
+    const term = searchTerm.trim().toLowerCase();
+    this.filteredUsers = this.allUsers.filter(u =>
+      (u.name && u.name.toLowerCase().includes(term)) ||
+      (u.email && u.email.toLowerCase().includes(term))
+    );
+  }
+
+  onManagerSelect(user: UserFilterResponse) {
+    this.manager = user.name;
+    this.managerId = user.id;
   }
 
   get deliveryUnitOptions() {
@@ -166,62 +218,107 @@ export class Createproject {
     this.status = status;
   }
 
+  // Check if core required fields are filled to enable create button
+  get isFormValid(): boolean {
+    return !!(
+      this.projectName?.trim() &&
+      this.projectKey?.trim() &&
+      this.status &&
+      this.managerId &&
+      this.deliveryUnit
+    );
+  }
+
   onCreateProject() {
-    // Generate avatar from project name initials
-    const generateAvatar = (name: string) => {
-      return name.split(' ').map(word => word.charAt(0).toUpperCase()).join('').substring(0, 2);
-    };
+    // Validate only core required fields: project name, project key, status, project manager, delivery unit
+    if (!this.projectName || !this.projectKey) {
+      this.toastr.error('Please fill in project name and project key', 'Validation Error');
+      return;
+    }
 
-    // Create new project object
-    const newProject = {
-      id: Date.now().toString(), // Simple ID generation for demo
+    if (!this.status) {
+      this.toastr.error('Please select a project status', 'Validation Error');
+      return;
+    }
+
+    if (!this.managerId) {
+      this.toastr.error('Please select a project manager from the dropdown', 'Validation Error');
+      return;
+    }
+
+    // Find delivery unit ID by code/name
+    const selectedDeliveryUnit = this.deliveryUnits.find(du => 
+      du.code === this.deliveryUnit || du.name === this.deliveryUnit
+    );
+
+    if (!selectedDeliveryUnit) {
+      this.toastr.error('Please select a valid delivery unit', 'Validation Error');
+      return;
+    }
+
+    // Create project request object matching API structure
+    const createProjectRequest = {
       name: this.projectName,
-      projectCode: this.projectKey,
-      status: this.status as 'Active' | 'Inactive' | 'Completed',
-      deliveryUnit: this.deliveryUnit,
-      projectManager: this.manager,
-      teamSize: 0, // Default team size
-      template: this.selectedTemplate as 'Scrum' | 'Kanban',
-      avatar: generateAvatar(this.projectName),
-      organisationName: this.organisationName,
-      organisationDescription: this.organisationDescription,
-      organisationWebsite: this.organisationWebsite,
-      pocEmail: this.pocEmail,
-      pocPhone: this.phoneNumber,
-      startDate: this.startDate,
-      endDate: this.endDate,
-      totalSprintCount: this.totalSprintCount || 0,
-      additionalInformation: this.additionalFields.length > 0 ? [...this.additionalFields] : undefined
+      key: this.projectKey,
+      description: this.description || '',
+      customerOrgName: this.organisationName || '', // Optional customer info
+      customerDomainUrl: this.organisationWebsite || '',
+      customerDescription: this.organisationDescription || '',
+      pocEmail: this.pocEmail || '', // Optional customer info
+      pocPhone: this.phoneNumber || '',
+      projectManagerId: this.managerId,
+      projectManagerRoleId: 2, // Default role ID - you might want to make this configurable
+      statusId: 1, // Active status - you might want to get this dynamically
+      deliveryUnitId: selectedDeliveryUnit.id,
+      isImportedFromJira: false
     };
 
-    // Add project to service
-    this.projectsService.addProject(newProject);
+    console.log('Creating project with data:', createProjectRequest);
 
-    // Show notification using NotificationService
-    this.notificationService.addNotification(
-      'success',
-      `${this.projectName} created successfully`,
-      'Project Created'
-    );
+    // Call the API
+    this.projectsService.createProject(createProjectRequest).subscribe({
+      next: (response) => {
+        console.log('Project created successfully:', response);
+        
+        // Show notification using NotificationService
+        this.notificationService.addNotification(
+          'success',
+          `${this.projectName} created successfully`,
+          'Project Created'
+        );
 
-    // Show Toastr success message
-    this.toastr.success(
-      `${this.projectName} created successfully`,
-      '',
-      {
-        timeOut: 3000,
-        progressBar: true,
-        closeButton: true
+        // Show Toastr success message
+        this.toastr.success(
+          `${this.projectName} created successfully with ID: ${response.data.id}`,
+          'Project Created',
+          {
+            timeOut: 3000,
+            progressBar: true,
+            closeButton: true
+          }
+        );
+
+        // Show success message
+        this.showSuccess = true;
+
+        // Navigate after short delay
+        setTimeout(() => {
+          this.router.navigate(['/projects']);
+        }, 600);
+      },
+      error: (error) => {
+        console.error('Failed to create project:', error);
+        this.toastr.error(
+          error.message || 'Failed to create project. Please try again.',
+          'Creation Failed',
+          {
+            timeOut: 5000,
+            progressBar: true,
+            closeButton: true
+          }
+        );
       }
-    );
-
-    // Show success message
-    this.showSuccess = true;
-
-    // Navigate after short delay
-    setTimeout(() => {
-      this.router.navigate(['/projects']);
-    }, 600);
+    });
   }
   
 
