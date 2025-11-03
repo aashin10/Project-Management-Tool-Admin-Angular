@@ -8,6 +8,7 @@ import { JiraService } from '../services/jira-service';
 import { NotificationService } from '../../../../shared/services/notification.service';
 import { ToastrService } from 'ngx-toastr';
 import { JiraApi } from '../services/jira-api';
+import { ImportNavigationService } from '../services/import-navigation-service';
 
 @Component({
   selector: 'app-select-projects-section',
@@ -21,13 +22,16 @@ export class SelectProjectsSection implements OnInit {
     private jiraApi: JiraApi,
     private cdr: ChangeDetectorRef,
     private toastr: ToastrService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private navigationService: ImportNavigationService
   ) {}
 
+  isImporting = false;
   projects: any[] = [];
   allProjects: any[] = [];
   loadingProjects: boolean = false;
   cloudIds: any[] | undefined = [];
+  selectedCloudId: string = '';
 
   dropdownOpen: boolean = false;
 
@@ -49,17 +53,39 @@ export class SelectProjectsSection implements OnInit {
   }
 
   async ngOnInit() {
+    if (sessionStorage.getItem('isImporting') === 'true') {
+      this.isImporting = true;
+      return;
+    }
     this.loadingProjects = true;
-    const token = sessionStorage.getItem('jira_access_token');
+    let token = sessionStorage.getItem('jira_access_token');
+    if (token && this.jiraService.isJwtExpired(token)) {
+      const refreshToken = sessionStorage.getItem('jira_refresh_token');
+      if (refreshToken) {
+        try {
+          const response = await this.jiraService.refreshAccessToken(refreshToken);
+          sessionStorage.setItem('jira_access_token', response.access_token);
+          token = response.access_token;
+          if (response.refresh_token) {
+            sessionStorage.setItem('jira_refresh_token', response.refresh_token);
+          }
+        } catch (error) {
+          console.error('Error refreshing access token', error);
+        }
+      }
+    }
+
     if (token) {
       const ids = await this.jiraService.getAccessibleResources(token);
       if (!ids) {
         throw new Error('No accessible resources found');
       }
       this.cloudIds = ids;
+      this.selectedCloudId = ids[0].id;
       if (ids && ids.length > 0) {
         await this.fetchProjectsByCloudId(ids[0].id); // Load default cloudId
       }
+      this.allProjects = this.allProjects.filter((project) => project.style === 'next-gen');
       this.projects = [...this.allProjects];
       this.loadingProjects = false;
       this.cdr.detectChanges();
@@ -69,7 +95,24 @@ export class SelectProjectsSection implements OnInit {
   }
 
   async fetchProjectsByCloudId(cloudId: string): Promise<void> {
-    const token = sessionStorage.getItem('jira_access_token');
+    let token = sessionStorage.getItem('jira_access_token');
+
+    if (token && this.jiraService.isJwtExpired(token)) {
+      const refreshToken = sessionStorage.getItem('jira_refresh_token');
+      if (refreshToken) {
+        try {
+          const response = await this.jiraService.refreshAccessToken(refreshToken);
+          sessionStorage.setItem('jira_access_token', response.access_token);
+          token = response.access_token;
+          if (response.refresh_token) {
+            sessionStorage.setItem('jira_refresh_token', response.refresh_token);
+          }
+        } catch (error) {
+          console.error('Error refreshing access token', error);
+        }
+      }
+    }
+
     if (token) {
       this.loadingProjects = true;
       this.allProjects = [];
@@ -84,8 +127,11 @@ export class SelectProjectsSection implements OnInit {
         key: project.key,
         id: project.id,
         selected: false,
+        style: project.style,
       }));
 
+      this.allProjects = this.allProjects.filter((project) => project.style === 'next-gen');
+      console.log('sdfsfd' + this.allProjects);
       this.projects = [...this.allProjects];
       this.loadingProjects = false;
       this.cdr.detectChanges();
@@ -97,6 +143,7 @@ export class SelectProjectsSection implements OnInit {
   onCloudIdChange(event: Event): void {
     const newCloudId = (event.target as HTMLSelectElement).value;
     this.fetchProjectsByCloudId(newCloudId);
+    this.selectedCloudId = newCloudId;
     this.cdr.detectChanges();
   }
 
@@ -121,24 +168,58 @@ export class SelectProjectsSection implements OnInit {
     this.cdr.detectChanges();
   }
 
-  importProjects(): void {
+  async importProjects(): Promise<void> {
     const selectedProjects = this.allProjects.filter((project) => project.selected);
     if (selectedProjects.length === 0) {
       this.toastr.warning('Please select at least one project to import.', 'No Projects Selected');
       return;
     }
+    alert(this.selectedCloudId);
+
+    let token = sessionStorage.getItem('jira_access_token');
+
+    if (token) {
+      const refreshToken = sessionStorage.getItem('jira_refresh_token');
+      if (refreshToken) {
+        try {
+          const response = await this.jiraService.refreshAccessToken(refreshToken);
+          sessionStorage.setItem('jira_access_token', response.access_token);
+          if (response.refresh_token) {
+            sessionStorage.setItem('jira_refresh_token', response.refresh_token);
+            token = response.access_token;
+          }
+        } catch (error) {
+          console.error('Error refreshing access token', error);
+        }
+      }
+    }
+
+    //this.navigationService.onNext();
+    this.isImporting = true;
+    this.cdr.detectChanges();
+    sessionStorage.setItem('isImporting', 'true');
+    //this.toastr.info('Import functionality is not yet implemented.', 'Import Projects');
     this.jiraApi
       .importProjectsFromJira(
-        this.cloudIds![0].id,
-        sessionStorage.getItem('jira_access_token')!,
+        this.selectedCloudId,
+        token || '',
         selectedProjects.map((project) => project.id)
       )
       .subscribe({
         next: (response) => {
+          console.log('Import Response:', response);
+          sessionStorage.setItem('users_missing', JSON.stringify(response.data));
+          this.isImporting = false;
+          sessionStorage.setItem('isImporting', 'false');
+          this.cdr.detectChanges();
           this.toastr.success('Projects imported successfully!', 'Import Successful');
+          this.navigationService.onNext();
         },
         error: (error) => {
+          this.isImporting = false;
+          sessionStorage.setItem('isImporting', 'false');
           this.toastr.error('Failed to import projects.', 'Import Failed');
+          this.cdr.detectChanges();
         },
       });
   }

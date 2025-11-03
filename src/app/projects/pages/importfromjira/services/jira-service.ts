@@ -29,6 +29,27 @@ export class JiraService {
     }
   }
 
+  async refreshAccessToken(refreshToken: string): Promise<any> {
+    const url = environment.jiraTokenRefreshUrl;
+
+    const body = new HttpParams()
+      .set('grant_type', 'refresh_token')
+      .set('client_id', environment.jiraClientId)
+      .set('client_secret', environment.jiraClientSecret)
+      .set('refresh_token', refreshToken);
+
+    try {
+      const response = await this.http
+        .post(url, body.toString(), {
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        })
+        .toPromise();
+      return response;
+    } catch (error) {
+      throw new Error('Token exchange failed');
+    }
+  }
+
   async getAccessibleResources(token: string): Promise<AccessibleResource[]> {
     try {
       const response = await this.http
@@ -60,6 +81,24 @@ export class JiraService {
       return response ?? [];
     } catch (error) {
       throw new Error('Failed to fetch Jira projects');
+    }
+  }
+
+  isJwtExpired(token: string): boolean {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const exp = payload.exp;
+
+      if (!exp) {
+        console.warn('No expiry field in token');
+        return false;
+      }
+
+      const now = Math.floor(Date.now() / 1000);
+      return exp < now;
+    } catch (error) {
+      console.error('Invalid JWT format', error);
+      return true;
     }
   }
 
