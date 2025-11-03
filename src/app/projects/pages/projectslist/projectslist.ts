@@ -270,12 +270,8 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
         }
         this.loadingError = null;
 
-        // Show success toaster only for initial load
+        // Mark initial load as complete (no success toaster)
         if (this.isInitialLoad) {
-          this.toastr.success('Projects loaded successfully', 'Success', {
-            timeOut: 3000,
-            progressBar: true
-          });
           this.isInitialLoad = false;
         }
       } else {
