@@ -55,6 +55,7 @@ export class Createproject {
   
   // Project Manager dropdown data
   filteredUsers: UserFilterResponse[] = [];
+  allUsers: UserFilterResponse[] = []; // Master list of all users
   isLoadingUsers: boolean = false;
 
   constructor(
@@ -103,13 +104,17 @@ export class Createproject {
     this.projectsService.getAllUsers().subscribe({
       next: (response) => {
         if (response.status === 200 && response.data) {
-          this.filteredUsers = response.data.map(u => ({ id: u.id, name: u.name, email: u.email }));
+          // Store the master list and initialize filtered list
+          this.allUsers = response.data.map(u => ({ id: u.id, name: u.name, email: u.email }));
+          this.filteredUsers = [...this.allUsers]; // Copy all users to filtered list initially
         } else {
+          this.allUsers = [];
           this.filteredUsers = [];
         }
         this.isLoadingUsers = false;
       },
       error: (error) => {
+        this.allUsers = [];
         this.filteredUsers = [];
         this.isLoadingUsers = false;
         this.toastr.warning('Could not load user list', 'User Fetch Warning');
@@ -167,14 +172,16 @@ export class Createproject {
     this.managerId = null;
   }
 
-  // No-op: all users are loaded on init, so just filter client-side
   onManagerSearch(searchTerm: string) {
+    // If no search term, show all users
     if (!searchTerm || searchTerm.trim().length === 0) {
-      this.filteredUsers = this.filteredUsers;
+      this.filteredUsers = [...this.allUsers];
       return;
     }
+    
+    // Filter from master list based on search term
     const term = searchTerm.trim().toLowerCase();
-    this.filteredUsers = this.filteredUsers.filter(u =>
+    this.filteredUsers = this.allUsers.filter(u =>
       (u.name && u.name.toLowerCase().includes(term)) ||
       (u.email && u.email.toLowerCase().includes(term))
     );
