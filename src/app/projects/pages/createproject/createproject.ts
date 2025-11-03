@@ -218,10 +218,26 @@ export class Createproject {
     this.status = status;
   }
 
+  // Check if core required fields are filled to enable create button
+  get isFormValid(): boolean {
+    return !!(
+      this.projectName?.trim() &&
+      this.projectKey?.trim() &&
+      this.status &&
+      this.managerId &&
+      this.deliveryUnit
+    );
+  }
+
   onCreateProject() {
-    // Validate required fields
-    if (!this.projectName || !this.projectKey || !this.organisationName || !this.pocEmail) {
-      this.toastr.error('Please fill in all required fields', 'Validation Error');
+    // Validate only core required fields: project name, project key, status, project manager, delivery unit
+    if (!this.projectName || !this.projectKey) {
+      this.toastr.error('Please fill in project name and project key', 'Validation Error');
+      return;
+    }
+
+    if (!this.status) {
+      this.toastr.error('Please select a project status', 'Validation Error');
       return;
     }
 
@@ -245,10 +261,10 @@ export class Createproject {
       name: this.projectName,
       key: this.projectKey,
       description: this.description || '',
-      customerOrgName: this.organisationName,
+      customerOrgName: this.organisationName || '', // Optional customer info
       customerDomainUrl: this.organisationWebsite || '',
       customerDescription: this.organisationDescription || '',
-      pocEmail: this.pocEmail,
+      pocEmail: this.pocEmail || '', // Optional customer info
       pocPhone: this.phoneNumber || '',
       projectManagerId: this.managerId,
       projectManagerRoleId: 2, // Default role ID - you might want to make this configurable
