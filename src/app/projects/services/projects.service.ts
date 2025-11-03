@@ -248,15 +248,17 @@ export class ProjectsService {
     }
 
     return this.http.get<ApiResponse<PaginatedResponse<ProjectTableDTO>>>(this.apiUrl, { params }).pipe(
-      timeout(10000), // 10 second timeout
+      timeout(30000), // Increased timeout to 30 seconds for initial loads
       retryWhen(errors =>
         errors.pipe(
           mergeMap((error, index) => {
-            // Only retry status 0 errors (CORS/network timing issues)
-            if (error instanceof HttpErrorResponse && error.status === 0 && index < 3) {
-              console.log(`ProjectsService: Status 0 detected, retry attempt ${index + 1} after ${index === 0 ? 0 : 500}ms`);
-              // First retry immediately, subsequent retries with delay
-              return timer(index === 0 ? 0 : 500);
+            // Retry network errors (status 0) and timeouts up to 3 times
+            if ((error instanceof HttpErrorResponse && error.status === 0) || error.name === 'TimeoutError') {
+              if (index < 3) {
+                console.log(`ProjectsService: Network/timeout error detected, retry attempt ${index + 1} after ${1000 * (index + 1)}ms`);
+                // Exponential backoff: 1s, 2s, 3s
+                return timer(1000 * (index + 1));
+              }
             }
             // Don't retry other errors
             return throwError(() => error);

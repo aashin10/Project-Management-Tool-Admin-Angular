@@ -3,9 +3,9 @@
   *ngIf="showFilters"
   class="bg-white text-sm border border-gray-300 rounded-[2px] p-3 mb-4 mt-4"
 >
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3 items-start">
     <!-- Status Filter -->
-    <div>
+  <div class="flex flex-col">
       <label class="block font-semibold text-gray-900 mb-2">Status</label>
       <div class="space-y-1.5">
         <label
@@ -20,6 +20,10 @@
           />
           <span class="text-xs text-gray-700">{{ status.code }}</span>
         </label>
+        <!-- Empty state for Status -->
+        <div *ngIf="statusOptions.length === 0" class="text-xs text-gray-500 italic py-2">
+          No status options available
+        </div>
       </div>
     </div>
 
@@ -40,6 +44,10 @@
           />
           <span class="text-xs text-gray-700">{{ deliveryUnit.code }}</span>
         </label>
+        <!-- Empty state for Delivery Unit -->
+        <div *ngIf="deliveryUnitOptions.length === 0" class="col-span-2 text-xs text-gray-500 italic py-2">
+          No delivery unit options available
+        </div>
       </div>
     </div>
 
@@ -72,29 +80,38 @@
         </div>
       </div>
 
-      <div class="space-y-1.5">
-        <!-- Show Initial 3 Managers -->
-        <label
-          *ngFor="let manager of filteredManagers"
-          class="flex items-center gap-1 cursor-pointer hover:bg-gray-100 p-1 rounded transition-colors"
-        >
-          <input
-            type="checkbox"
-            [checked]="isManagerSelected(manager.id)"
-            (change)="toggleManagerFilter(manager.id)"
-            class="w-3 h-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-          />
-          <span class="text-xs text-gray-700 truncate">{{ manager.name }}</span>
-        </label>
+      <div id="manager-list" class="flex flex-col">
+        <!-- Items wrapper: becomes scrollable when expanded; keeps the Show more button visible below -->
+        <div class="space-y-1.5 max-h-32 flex-1 min-h-0" [class.overflow-y-auto]="showManagersExpanded" [class.max-h-36]="showManagersExpanded">
+          <!-- Show Initial 4 Managers, expand to scrollable full list when requested -->
+          <label
+            *ngFor="let manager of (showManagersExpanded ? filteredManagers : (filteredManagers | slice:0:4))"
+            class="flex items-center gap-1 cursor-pointer hover:bg-gray-100 p-1 rounded transition-colors"
+          >
+            <input
+              type="checkbox"
+              [checked]="isManagerSelected(manager.id)"
+              (change)="toggleManagerFilter(manager.id)"
+              class="w-3 h-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+            />
+            <span class="text-xs text-gray-700 truncate">{{ manager.name }}</span>
+          </label>
+          <!-- Empty state for Project Manager -->
+          <div *ngIf="filteredManagers.length === 0" class="text-xs text-gray-500 italic py-2">
+            No project manager options available
+          </div>
+        </div>
 
-        <!-- Show More Button - Only if more than 3 managers exist -->
-        <button
-          *ngIf="totalManagerCount > 3 && !showAllManagers"
-          (click)="openManagerModal()"
-          class="w-full text-left text-xs text-blue-600 hover:text-blue-700 font-medium p-1 cursor-pointer hover:bg-blue-50 rounded transition-colors"
-        >
-          + Show {{ totalManagerCount - 3 }} more
-        </button>
+        <!-- Show More / Show Less Button - toggle inline expanded, scrollable list -->
+        <div>
+          <button
+            *ngIf="totalManagerCount > 4"
+            (click)="toggleShowAllManagers()"
+            class="w-full text-left text-xs text-blue-600 hover:text-blue-700 font-medium p-1 cursor-pointer hover:bg-blue-50 rounded transition-colors"
+          >
+            {{ showManagersExpanded ? 'Show less' : ('+ Show ' + (totalManagerCount - 4) + ' more') }}
+          </button>
+        </div>
       </div>
     </div>
 
@@ -153,8 +170,8 @@
           </div>
         </div>
 
-        <!-- Modal Manager List - Scrollable -->
-        <div class="max-h-64 overflow-y-auto">
+        <!-- Modal Manager List (kept for backward compatibility) -->
+        <div *ngIf="showManagerModal" class="max-h-64 overflow-y-auto">
           <label
             *ngFor="let manager of modalFilteredManagers"
             class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-3 border-b border-gray-100 last:border-b-0 transition-colors"
