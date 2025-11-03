@@ -1,0 +1,12 @@
+.min-h-screen {
+  position: relative;
+  z-index: 1;
+}
+
+/* Ensure pie chart and other dashboard elements have a lower z-index */
+:host ::ng-deep app-project-status-pie,
+:host ::ng-deep app-project-activity-timeline,
+:host ::ng-deep app-dashboard-metric-cards {
+  position: relative;
+  z-index: 1;
+}

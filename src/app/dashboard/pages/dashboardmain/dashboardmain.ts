@@ -67,8 +67,9 @@ export class DashboardMainComponent implements OnInit {
     allTime: []
   };
 
-  isLoading = false;
-  error: string | null = null;
+  // Loading and error states - only one should be true at a time
+  isLoading: boolean = true;
+  loadingError: string | null = null;
 
   ngOnInit(): void {
     this.initializeDefaultData();
@@ -80,62 +81,73 @@ export class DashboardMainComponent implements OnInit {
    */
   loadDashboardData(): void {
     console.log('🔄 Loading dashboard data...');
+    
+    // Set loading state and clear any previous errors
     this.isLoading = true;
-    this.error = null;
-
+    this.loadingError = null;
+    this.cdr.markForCheck();
+    
     forkJoin({
       summary: this.dashboardService.getDashboardSummary(),
       activity: this.dashboardService.getActivityChart()
     }).subscribe({
       next: (result) => {
-        console.log('✅ Dashboard data loaded successfully:', result);
-        
-        // Map all data at once
-        this.metricCards = this.mapSummaryToMetricCards(result.summary);
-        this.projectStatusData = this.mapSummaryToProjectStatus(result.summary);
-        this.chartData = this.mapActivityToChartData(result.activity);
-        
-        this.isLoading = false;
-        // this.cdr.detectChanges();
-        // setTimeout(() => this.cdr.detectChanges(), 0);
-        // this.cdr.markForCheck();
-        this.cdr.detectChanges();
+        try {
+          console.log('✅ Dashboard data loaded successfully:', result);
+          
+          // Map all data at once
+          this.metricCards = this.mapSummaryToMetricCards(result.summary);
+          this.projectStatusData = this.mapSummaryToProjectStatus(result.summary);
+          this.chartData = this.mapActivityToChartData(result.activity);
+          
+          // Clear loading and error states
+          this.loadingError = null;
 
-        // Success notifications
-        this.toastr.success('Dashboard loaded successfully', 'Success', {
-          timeOut: 3000,
-          progressBar: true
-        });
+          // Show success toast notification
+          setTimeout(() => {
+            this.toastr.success('Dashboard loaded successfully', 'Success', {
+              timeOut: 2000,
+              progressBar: true
+            });
+          }, 100);
 
-        this.notificationService.addNotification(
-          'success',
-          `Dashboard data loaded with ${result.summary.totalProjects} projects across ${result.summary.totalDeliveryUnits} delivery units`,
-          'Dashboard Loaded'
-        );
-
-        console.log('📊 Project Status Data (All Delivery Units):', this.projectStatusData);
-        
+          console.log('📊 Project Status Data (All Delivery Units):', this.projectStatusData);
+        } finally {
+          // Always clear loading state in finally block
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        }
       },
       error: (error) => {
         console.error('❌ Error loading dashboard data:', error);
-        this.error = 'Failed to load dashboard data. Please try again.';
         
-        // Error notifications
-        this.toastr.error('Failed to load dashboard data', 'Error', {
-          timeOut: 5000,
-          progressBar: true
-        });
-
-        this.notificationService.addNotification(
-          'error',
-          error.message || 'Unable to fetch dashboard data from server',
-          'Dashboard Load Failed'
-        );
+        // Provide specific error messages
+        let errorMessage = 'Failed to load dashboard data. Please try again.';
+        
+        if (error?.name === 'TimeoutError' || error?.message?.includes('Timeout')) {
+          errorMessage = 'Loading dashboard is taking longer than expected. Please wait or try refreshing the page.';
+        } else if (error?.status === 0) {
+          errorMessage = 'Unable to connect to the server. Please check your internet connection.';
+        } else if (error?.status >= 500) {
+          errorMessage = 'Server error occurred. Please try again later.';
+        } else if (error?.status === 404) {
+          errorMessage = 'Dashboard data not found.';
+        }
+        
+        // Set error message and clear loading
+        this.loadingError = errorMessage;
+        this.isLoading = false;
+        
+        // Show error toast notification
+        setTimeout(() => {
+          this.toastr.error(this.loadingError!, 'Error', {
+            timeOut: 3000,
+            progressBar: true
+          });
+        }, 100);
         
         this.initializeDefaultData();
-        this.isLoading = false;
-        this.cdr.detectChanges();
-        // this.cdr.markForCheck();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -206,7 +218,6 @@ export class DashboardMainComponent implements OnInit {
       total: status.total
     }));
     
-
     // Return overall summary first, followed by individual units
     return [overallSummary, ...individualUnits];
   }
@@ -299,7 +310,6 @@ export class DashboardMainComponent implements OnInit {
     window.location.href = 'https://pmt-user-frontend.vercel.app/projects';
   }
 }
-
 
 
 
