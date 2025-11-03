@@ -26,7 +26,8 @@ export class AuthorizeWithJiraSection implements OnInit {
   async ngOnInit() {
     const token = sessionStorage.getItem('jira_access_token');
     console.log('Token on init:', token);
-    if (token && !this.isJwtExpired(token)) {
+
+    if (token && !this.jiraService.isJwtExpired(token)) {
       let localName = sessionStorage.getItem('jira_name');
 
       if (!localName) {
@@ -44,6 +45,26 @@ export class AuthorizeWithJiraSection implements OnInit {
       this.isLoadingUserDetails = false;
       this.cdr.detectChanges();
     }
+
+    if (token && this.jiraService.isJwtExpired(token)) {
+      this.cdr.detectChanges();
+      // console.log('Token expired, removing from sessionStorage');
+      // sessionStorage.removeItem('jira_access_token');
+      // sessionStorage.removeItem('jira_name');
+      const refreshToken = sessionStorage.getItem('jira_refresh_token');
+      if (refreshToken) {
+        try {
+          const response = await this.jiraService.refreshAccessToken(refreshToken);
+          sessionStorage.setItem('jira_access_token', response.access_token);
+          if (response.refresh_token) {
+            sessionStorage.setItem('jira_refresh_token', response.refresh_token);
+          }
+        } catch (error) {
+          console.error('Error refreshing access token', error);
+        }
+      }
+    }
+
     this.isLoadingUserDetails = false;
     this.cdr.detectChanges();
   }
@@ -54,12 +75,24 @@ export class AuthorizeWithJiraSection implements OnInit {
     'client_id=' +
     environment.jiraClientId +
     '&' +
-    'scope=read:jira-work read:jira-user read:me&' +
+    'scope=' +
+    'offline_access ' +
+    'read:jira-work ' +
+    'read:jira-user ' +
+    'read:me ' +
+    'read:board-scope:jira-software ' +
+    'read:project:jira ' +
+    'read:epic:jira-software ' +
+    'read:project-role:jira ' +
+    'read:sprint:jira-software ' +
+    'read:issue:jira ' +
+    'read:issue-details:jira&' +
     'redirect_uri=' +
     environment.jiraRedirectUri +
     '&' +
     'response_type=code&' +
-    'prompt=consent';
+    'prompt=consent&' +
+    'state=secureRandomState123';
 
   onAuthorize() {
     window.location.href = this.url;
@@ -67,23 +100,5 @@ export class AuthorizeWithJiraSection implements OnInit {
 
   onContinueAsExistingUser() {
     this.importNavigationService.onNext();
-  }
-
-  isJwtExpired(token: string): boolean {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const exp = payload.exp;
-
-      if (!exp) {
-        console.warn('No expiry field in token');
-        return false;
-      }
-
-      const now = Math.floor(Date.now() / 1000); // current time in seconds
-      return exp < now;
-    } catch (error) {
-      console.error('Invalid JWT format', error);
-      return true;
-    }
   }
 }

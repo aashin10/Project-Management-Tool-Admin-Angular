@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Modal } from '../../../../shared/modal/modal';
 import { CustomButton } from '../../../../shared/custom-button/custom-button';
-import { ProjectsService, Project } from '../../../../shared/services/projects.service';
+import { ProjectsService, Project } from '../../../services/projects.service';
 
 @Component({
   selector: 'app-create-project-modal',
@@ -35,8 +35,32 @@ export class CreateProjectModal implements OnInit {
   constructor(private projectsService: ProjectsService) {}
 
   ngOnInit(): void {
-    this.projects = this.projectsService.getProjects();
-    this.filteredProjects = this.projects;
+    this.projectsService.getProjects(1, 1000).subscribe({
+      next: (response) => {
+        if (response.status === 200) {
+          this.projects = response.data.items.map(item => this.mapProjectTableDTOToProject(item));
+          this.filteredProjects = this.projects;
+        }
+      },
+      error: (err) => {
+        console.error('Failed to load projects for modal:', err);
+      }
+    });
+  }
+
+  private mapProjectTableDTOToProject(dto: any): Project {
+    return {
+      id: dto.id,
+      name: dto.name || '',
+      projectCode: dto.key || '',
+      status: dto.status?.name as 'Active' | 'Inactive' | 'Completed' || 'Active',
+      deliveryUnit: dto.deliveryUnit?.code || '',
+      projectManager: dto.projectManager?.name || '',
+      teamSize: dto.teamSize,
+      template: 'Scrum',
+      organisationName: '',
+      selected: false
+    };
   }
 
   onProjectNameChange(): void {
@@ -45,12 +69,42 @@ export class CreateProjectModal implements OnInit {
 
   // Generate project key using the first 3 alphanumeric characters of the project name (uppercase)
   generateProjectKey(): void {
+    // User-specified rules:
+    // - If project name has 3 or more words: key = first letter of word1 + first letter of word2 + first letter of word3
+    // - If project name has 2 words: key = first letter of word1 + first letter of word2 + last letter of word2
+    // - If project name has 1 word: key = first letter + middle letter + last letter of that word
+    // - If empty or unable to form letters, fallback to 'PRJ'
+    const fallback = 'PRJ';
     if (this.projectName && this.projectName.trim()) {
-      const normalized = this.projectName.trim().replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-      // take first 3 characters
-      this.projectKey = normalized.substring(0, 3);
+      const words = this.projectName.trim().split(/\s+/).filter(w => w.length > 0);
+      if (words.length >= 3) {
+        // Use first letters of the first three words
+        const chs = [words[0][0], words[1][0], words[2][0]].map(c => (c ? c.toUpperCase() : ''));
+        const candidate = chs.join('').replace(/[^A-Z0-9]/g, '');
+        this.projectKey = candidate.length === 3 ? candidate : (candidate + 'X'.repeat(Math.max(0, 3 - candidate.length))).slice(0, 3);
+      } else if (words.length === 2) {
+        // Two-word rule: first letter of word1, first letter of word2, last letter of word2
+        const w1 = words[0];
+        const w2 = words[1];
+        const ch1 = w1[0] ? w1[0].toUpperCase() : '';
+        const ch2 = w2[0] ? w2[0].toUpperCase() : '';
+        const ch3 = w2[w2.length - 1] ? w2[w2.length - 1].toUpperCase() : '';
+        const candidate = (ch1 + ch2 + ch3).replace(/[^A-Z0-9]/g, '');
+        this.projectKey = candidate.length === 3 ? candidate : (candidate + 'X'.repeat(Math.max(0, 3 - candidate.length))).slice(0, 3);
+      } else if (words.length === 1) {
+        const w = words[0];
+        const first = w[0] ? w[0].toUpperCase() : '';
+        // middle char: for even length choose left-middle (Math.floor((len-1)/2))
+        const midIndex = Math.floor((w.length - 1) / 2);
+        const middle = w[midIndex] ? w[midIndex].toUpperCase() : '';
+        const last = w[w.length - 1] ? w[w.length - 1].toUpperCase() : '';
+        const candidate = (first + middle + last).replace(/[^A-Z0-9]/g, '');
+        this.projectKey = candidate.length === 3 ? candidate : (candidate + 'X'.repeat(Math.max(0, 3 - candidate.length))).slice(0, 3);
+      } else {
+        this.projectKey = fallback;
+      }
     } else {
-      this.projectKey = '';
+      this.projectKey = fallback;
     }
   }
 

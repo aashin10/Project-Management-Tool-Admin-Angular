@@ -10,8 +10,8 @@ import { icons } from 'lucide-angular';
 })
 export class Usermenu {
   user = {
-    name: 'Alan Jose',
-    email: 'alan.jose@experionglobal.com',
+    name: 'Geo John',
+    email: 'geo.john@experionglobal.com',
   };
 
   menuItems = [

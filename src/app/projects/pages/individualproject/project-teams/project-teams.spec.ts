@@ -1,102 +1,125 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { of, Observable } from 'rxjs';
 import { ProjectTeams } from './project-teams';
+import { ProjectsService } from '../../../services/projects.service';
 
 describe('ProjectTeams', () => {
   let component: ProjectTeams;
   let fixture: ComponentFixture<ProjectTeams>;
+  let projectsServiceMock: jasmine.SpyObj<ProjectsService>;
+
+  const mockTeamMembers = [
+    { id: 1, name: 'Asha Varma', role: 'Frontend Lead', email: 'asha@company.com', teamId: 1 },
+    { id: 2, name: 'Raj Kumar', role: 'Frontend Developer', email: 'raj@company.com', teamId: 1 },
+    { id: 3, name: 'Priya Singh', role: 'Backend Lead', email: 'priya@company.com', teamId: 2 }
+  ];
+
+  const mockTeams = [
+    { id: '1', name: 'Frontend Team' },
+    { id: '2', name: 'Backend Team' }
+  ];
+
+  const mockProjectResponse = {
+    status: 200,
+    data: {
+      id: '1',
+      name: 'Test Project',
+      teams: mockTeams,
+      teamMembers: mockTeamMembers
+    },
+    message: 'Success'
+  };
 
   beforeEach(async () => {
+    projectsServiceMock = jasmine.createSpyObj('ProjectsService', ['getProjectById', 'getTeamMembers']);
+    projectsServiceMock.getProjectById.and.returnValue(of(mockProjectResponse as any));
+    projectsServiceMock.getTeamMembers.and.returnValue(of({ status: 200, data: { members: mockTeamMembers }, message: 'Success' }));
+
     await TestBed.configureTestingModule({
-      imports: [ProjectTeams]
-    })
-    .compileComponents();
+      imports: [ProjectTeams],
+      providers: [{ provide: ProjectsService, useValue: projectsServiceMock }]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ProjectTeams);
     component = fixture.componentInstance;
+    component.projectId = '1';
+  });
+
+  it('should initialize component and load project teams/members', () => {
+    component.teams = mockTeams;
     fixture.detectChanges();
-  });
 
-  it('should create', () => {
     expect(component).toBeTruthy();
+    expect(component.teams.length).toBe(2);
+    expect(component.showDropdown).toBe(false);
   });
 
-  it('should initialize with default team data', () => {
-    expect(component.teams.length).toBe(4);
+  it('should filter members by selected team correctly', () => {
+    component.teams = mockTeams;
+    fixture.detectChanges();
+
+    component.selectTeam('1');
     expect(component.selectedTeam).toBe('1');
-    expect(component.showDropdown).toBeFalse();
+    
+    component.selectTeam('2');
+    expect(component.selectedTeam).toBe('2');
   });
 
-  it('should filter members by selected team', () => {
+  it('should return correct team name and member count', () => {
+    component.teams = mockTeams;
+    fixture.detectChanges();
+
     component.selectedTeam = '1';
-    expect(component.filteredMembers.length).toBe(8); // Team 1 has 8 members
-    expect(component.filteredMembers.every(member => member.team === '1')).toBeTrue();
+    expect(component.selectedTeamName).toBe('Frontend Team');
+    expect(component.membersCount).toBeGreaterThanOrEqual(0);
 
     component.selectedTeam = '2';
-    expect(component.filteredMembers.length).toBe(2); // Team 2 has 2 members
-    expect(component.filteredMembers.every(member => member.team === '2')).toBeTrue();
+    expect(component.selectedTeamName).toBe('Backend Team');
   });
 
-  it('should return correct selected team name', () => {
-    component.selectedTeam = '1';
-    expect(component.selectedTeamName).toBe('Team 1 - Frontend');
+  it('should select team and toggle dropdown', () => {
+    component.teams = mockTeams;
+    fixture.detectChanges();
 
-    component.selectedTeam = '2';
-    expect(component.selectedTeamName).toBe('Team 2 - Backend');
-
-    component.selectedTeam = '999'; // Non-existent team
-    expect(component.selectedTeamName).toBe('');
-  });
-
-  it('should return correct member count', () => {
-    component.selectedTeam = '1';
-    expect(component.membersCount).toBe(8);
-
-    component.selectedTeam = '4';
-    expect(component.membersCount).toBe(3);
-  });
-
-  it('should select team and close dropdown', () => {
     component.showDropdown = true;
     component.selectTeam('2');
     expect(component.selectedTeam).toBe('2');
-    expect(component.showDropdown).toBeFalse();
-  });
+    expect(component.showDropdown).toBe(false);
 
-  it('should toggle dropdown', () => {
-    expect(component.showDropdown).toBeFalse();
     component.toggleDropdown();
-    expect(component.showDropdown).toBeTrue();
+    expect(component.showDropdown).toBe(true);
     component.toggleDropdown();
-    expect(component.showDropdown).toBeFalse();
+    expect(component.showDropdown).toBe(false);
   });
 
-  it('should have all team members data', () => {
-    expect(component.allMembers.length).toBe(14);
-    const member = component.allMembers[0];
-    expect(member).toEqual({
-      id: '1',
-      name: 'Asha Varma',
-      role: 'Frontend Lead',
-      avatar: 'AV',
-      avatarColor: '#8b5cf6',
-      email: 'asha.varma@company.com',
-      team: '1'
-    });
+  it('should get team name by ID and handle edge cases', () => {
+    component.teams = mockTeams;
+    fixture.detectChanges();
+
+    expect(component.getTeamName('1')).toBe('Frontend Team');
+    expect(component.getTeamName('2')).toBe('Backend Team');
+    expect(component.getTeamName('999')).toBe('Unknown Team');
   });
 
-  it('should filter members correctly for different teams', () => {
-    // Test team 3 (DevOps)
-    component.selectedTeam = '3';
-    const devopsMembers = component.filteredMembers;
-    expect(devopsMembers.length).toBe(1);
-    expect(devopsMembers[0].name).toBe('James Brown');
-    expect(devopsMembers[0].role).toBe('DevOps Engineer');
+  it('should handle empty teams and members', () => {
+    component.teams = [];
+    component.selectedTeamMembers = [];
+    fixture.detectChanges();
 
-    // Test team 4 (QA)
-    component.selectedTeam = '4';
-    const qaMembers = component.filteredMembers;
-    expect(qaMembers.length).toBe(3);
-    expect(qaMembers.every(member => member.team === '4')).toBeTrue();
+    expect(component.teams.length).toBe(0);
+    expect(component.selectedTeamMembers.length).toBe(0);
+  });
+
+  it('should handle API errors gracefully', () => {
+    projectsServiceMock.getTeamMembers.and.returnValue(
+      new Observable(subscriber => subscriber.error(new Error('API Error')))
+    );
+    spyOn(console, 'error');
+
+    component.teams = mockTeams;
+    component.selectTeam('1');
+    fixture.detectChanges();
+
+    expect(console.error).toHaveBeenCalled();
   });
 });

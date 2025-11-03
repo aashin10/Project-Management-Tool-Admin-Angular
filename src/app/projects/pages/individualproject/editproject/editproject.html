@@ -1,12 +1,8 @@
 
-<div class="create-project-container w-full px-2 md:px-6 lg:px-12 xl:px-32 py-4">
-  <div *ngIf="showSuccess" class="fixed top-0 left-0 w-full z-50 flex justify-center mt-4">
-    <div class="bg-green-500 text-white px-6 py-3 rounded shadow-lg font-semibold text-lg animate-fade-in">
-      Project edited successfully
-    </div>
-  </div>
+<div class="create-project-container w-full">
+  
   <div class="header-content mb-4">
-    <app-sectiontitle title="Edit Project" description="Update your project details, team members and objectives"></app-sectiontitle>
+    <app-sectiontitle [title]="projectName || 'Edit Project'" description="Update your project details, team members and objectives"></app-sectiontitle>
   </div>
 
   <div class="content-wrapper grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -19,19 +15,24 @@
         [(organisationName)]="organisationName"
         [(pocEmail)]="pocEmail"
         [(phoneNumber)]="phoneNumber"
+        [(status)]="status"
         (projectNameChange)="onProjectNameChange($event)"
         (projectKeyChange)="onProjectKeyChange($event)"
         (descriptionChange)="onDescriptionChange($event)"
         (organisationNameChange)="onOrganisationNameChange($event)"
         (pocEmailChange)="onPocEmailChange($event)"
         (phoneNumberChange)="onPhoneNumberChange($event)"
+        (statusChange)="status = $event"
       ></app-basic-information>
 
       <app-team-organization
         [(manager)]="manager"
         [(deliveryUnit)]="deliveryUnit"
+        [deliveryUnits]="deliveryUnits"
+  [filteredUsers]="(filteredUsers$ | async) ?? []"
         (managerChange)="onManagerChange($event)"
         (deliveryUnitChange)="onDeliveryUnitChange($event)"
+        (managerSearch)="searchProjectManagers($event)"
       ></app-team-organization>
 
       <app-additionalinfo 
@@ -132,6 +133,15 @@
             [padding]="'py-2 px-4'"
             (action)="onCancel()"
           ></app-custom-button>
+          
+         
+          
+          
+
+          
+
+          
+          
           <!-- Missing Fields Warning -->
           <div *ngIf="!canCreate && missingFields.length > 0" class="text-xs text-red-500 mt-2">
             Missing: {{ missingFields.join(', ') }}

@@ -79,7 +79,7 @@
   <div class="flex gap-6">
     <div class="flex-1 min-w-[220px]">
       <label class="block text-sm font-medium text-gray-700 mb-1">
-        Initial Status
+        Initial Status <span class="text-red-500">*</span>
       </label>
       <div class="h-2"></div>
       
@@ -105,7 +105,7 @@
           class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-auto"
         >
           <div
-            *ngFor="let opt of statusOptions"
+            *ngFor="let opt of statusOptions | async"
             (click)="status = opt.value; statusChange.emit(opt.value); statusDropdownOpen = false"
             class="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2 text-sm text-black"
           >
@@ -117,26 +117,6 @@
       <input type="hidden" name="status" [(ngModel)]="status" #statusRef="ngModel" />
       <div *ngIf="statusRef.invalid && statusRef.touched" class="text-red-600 text-xs mt-1">Status is required.</div>
     </div>
-    <div class="flex-1 min-w-[220px]">
-      <label class="block text-sm font-medium text-gray-700 mb-1">
-        Template <span class="text-red-500">*</span>
-      </label>
-      <div class="h-2"></div>
-      <select
-        id="template"
-        name="template"
-        [(ngModel)]="template"
-        #templateRef="ngModel"
-        (ngModelChange)="templateChange.emit($event)"
-        required
-        class="w-[220px] h-9 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 font-normal"
-        [ngClass]="template === '' ? 'text-gray-400' : 'text-black'"
-      >
-        <option value="" class="text-gray-400" style="font-weight:400">Select template</option>
-        <option *ngFor="let opt of templateOptions" [value]="opt.value" class="text-black">{{ opt.label }}</option>
-      </select>
-      <div *ngIf="templateRef.invalid && templateRef.touched" class="text-red-600 text-xs mt-1">Template is required.</div>
-    </div>
   </div>
 
   <!-- Customer Information -->
@@ -144,15 +124,15 @@
     <div class="flex items-center gap-2 mb-1">
       <span class="text-blue-600 text-sm">●</span>
       <h3 class="text-lg font-semibold text-gray-900">Customer Information</h3>
+      <span class="text-xs text-gray-500 font-normal">(Optional)</span>
     </div>
     <p class="text-gray-500 text-sm mb-6">Information about the client or organization</p>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Organisation Name <span class="text-red-500">*</span></label>
-        <input required name="organisationName" type="text" placeholder="Enter customer organisation name" [(ngModel)]="organisationName" #orgRef="ngModel" (ngModelChange)="onOrganisationNameChange()"
+        <label class="block text-sm font-medium text-gray-700 mb-2">Organisation Name</label>
+        <input name="organisationName" type="text" placeholder="Enter customer organisation name (optional)" [(ngModel)]="organisationName" (ngModelChange)="onOrganisationNameChange()"
           class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 placeholder:text-gray-400">
-        <div *ngIf="orgRef.invalid && orgRef.touched" class="text-red-600 text-xs mt-1">Organisation Name is required.</div>
       </div>
 
       <div>
@@ -168,22 +148,20 @@
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">POC Email <span class="text-red-500">*</span></label>
-        <input required name="pocEmail" type="email" placeholder="poc@example.com" [(ngModel)]="pocEmail" #emailRef="ngModel" (ngModelChange)="onPocEmailChange()"
+        <label class="block text-sm font-medium text-gray-700 mb-2">POC Email</label>
+        <input name="pocEmail" type="email" placeholder="poc@example.com (optional)" [(ngModel)]="pocEmail" #emailRef="ngModel" (ngModelChange)="onPocEmailChange()"
           class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 placeholder:text-gray-400">
         <div *ngIf="emailRef.invalid && emailRef.touched" class="text-red-600 text-xs mt-1">
-          <div *ngIf="emailRef.errors?.['required']">POC Email is required.</div>
           <div *ngIf="emailRef.errors?.['email']">Enter a valid email address.</div>
         </div>
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number <span class="text-red-500">*</span></label>
-        <input required name="phoneNumber" type="tel" placeholder="+1 (555) 123-4567" [(ngModel)]="phoneNumber" #phoneRef="ngModel" (ngModelChange)="onPhoneNumberChange()"
+        <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+        <input name="phoneNumber" type="tel" placeholder="+1 (555) 123-4567" [(ngModel)]="phoneNumber" #phoneRef="ngModel" (ngModelChange)="onPhoneNumberChange()"
           pattern="[0-9\-+() ]{7,20}"
           class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 placeholder:text-gray-400">
         <div *ngIf="phoneRef.invalid && phoneRef.touched" class="text-red-600 text-xs mt-1">
-          <div *ngIf="phoneRef.errors?.['required']">Phone Number is required.</div>
           <div *ngIf="phoneRef.errors?.['pattern']">Enter a valid phone number.</div>
         </div>
       </div>

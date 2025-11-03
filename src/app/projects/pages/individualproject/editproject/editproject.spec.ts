@@ -113,7 +113,7 @@ describe('Editproject', () => {
     component.onDeliveryUnitChange('New Unit');
     expect(component.deliveryUnit).toBe('New Unit');
 
-    component.onAdditionalFieldsChange([{ name: 'Field1', value: 'Value1' }]);
+    component.onAdditionalFieldsChange([{ id: 'test-id', name: 'Field1', value: 'Value1' }]);
     expect(component.additionalFields).toEqual([{ name: 'Field1', value: 'Value1' }]);
   });
 

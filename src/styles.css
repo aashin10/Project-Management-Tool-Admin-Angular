@@ -1,13 +1,12 @@
 @import 'tailwindcss';
 @import 'ngx-toastr/toastr';
 
-
 /* * {
   margin: 0px;
 } */
 body {
   font-family: sans-serif;
-}
+} 
 
 /* Custom Toaster Styles */
 .toast-success {
@@ -42,4 +41,3 @@ body {
   border-left: 4px solid #3b82f6 !important;
   color: #1e40af !important;
 }
-

@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { Login } from './authentication/pages/login/login';
 import { Layout } from './shared/layout/layout';
+import { NotFound } from './shared/components/not-found/not-found';
 
 export const routes: Routes = [
   // Redirect root to login - must be first
@@ -51,5 +52,11 @@ export const routes: Routes = [
         loadChildren: () => import('./roles/roles-module').then((m) => m.RolesModule),
       },
     ],
+  },
+
+  // Wildcard route for 404 - must be last
+  {
+    path: '**',
+    component: NotFound
   },
 ];
