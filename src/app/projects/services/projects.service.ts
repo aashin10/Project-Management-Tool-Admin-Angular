@@ -525,6 +525,40 @@ export class ProjectsService {
     );
   }
 
+  /**
+   * Create a new custom field for a project
+   * @param projectId Project ID (GUID)
+   * @param name Field name
+   * @param value Field value
+   * @returns Observable with the created custom field
+   */
+  createCustomField(projectId: string, name: string, value: string): Observable<ApiResponse<CustomFieldDTO>> {
+    const request = {
+      projectId: projectId,
+      name: name,
+      value: value
+    };
+    
+    console.log('Creating custom field:', request);
+    return this.http.post<ApiResponse<CustomFieldDTO>>('https://localhost:7178/api/customfields/create', request).pipe(
+      timeout(10000),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Delete a custom field
+   * @param fieldId Custom field ID (GUID)
+   * @returns Observable with deletion result
+   */
+  deleteCustomField(fieldId: string): Observable<ApiResponse<string>> {
+    console.log('Deleting custom field:', fieldId);
+    return this.http.delete<ApiResponse<string>>(`https://localhost:7178/api/customfields/delete/${fieldId}`).pipe(
+      timeout(10000),
+      catchError(this.handleError)
+    );
+  }
+
   deleteProject(id: string): Observable<ApiResponse<any>> {
     return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/${id}`, {
       timeout: 10000 // 10 second timeout

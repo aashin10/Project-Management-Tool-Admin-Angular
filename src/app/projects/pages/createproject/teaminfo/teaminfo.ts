@@ -12,9 +12,51 @@ import { FormsModule } from '@angular/forms';
 })
 export class TeamOrganizationComponent implements OnInit, OnChanges {
 
-  @Input() manager: string = '';
-  @Input() deliveryUnit: string = '';
+  // Private properties for two-way binding
+  private _manager: string = '';
+  private _deliveryUnit: string = '';
+  private _selectedProjectManagerId: number = 0;
+  private _selectedDeliveryUnitId: number = 0;
+
+  // Two-way binding getters and setters
+  @Input()
+  get manager(): string {
+    return this._manager;
+  }
+  set manager(value: string) {
+    this._manager = value || '';
+    this.managerChange.emit(this._manager);
+  }
+
+  @Input()
+  get deliveryUnit(): string {
+    return this._deliveryUnit;
+  }
+  set deliveryUnit(value: string) {
+    this._deliveryUnit = value || '';
+    this.deliveryUnitChange.emit(this._deliveryUnit);
+  }
+
   @Input() deliveryUnits: any[] = [];
+
+  @Input() 
+  get selectedProjectManagerId(): number {
+    return this._selectedProjectManagerId;
+  }
+  set selectedProjectManagerId(value: number) {
+    this._selectedProjectManagerId = value || 0;
+    this.selectedProjectManagerIdChange.emit(this._selectedProjectManagerId);
+  }
+
+  @Input()
+  get selectedDeliveryUnitId(): number {
+    return this._selectedDeliveryUnitId;
+  }
+  set selectedDeliveryUnitId(value: number) {
+    this._selectedDeliveryUnitId = value || 0;
+    this.selectedDeliveryUnitIdChange.emit(this._selectedDeliveryUnitId);
+  }
+
   private _filteredUsers: UserFilterResponse[] = [];
   @Input() set filteredUsers(val: UserFilterResponse[] | null | undefined) {
     this._filteredUsers = val ?? [];
@@ -25,6 +67,8 @@ export class TeamOrganizationComponent implements OnInit, OnChanges {
 
   @Output() managerChange = new EventEmitter<string>();
   @Output() deliveryUnitChange = new EventEmitter<string>();
+  @Output() selectedProjectManagerIdChange = new EventEmitter<number>();
+  @Output() selectedDeliveryUnitIdChange = new EventEmitter<number>();
   @Output() managerSearch = new EventEmitter<string>();
   @Output() managerSelect = new EventEmitter<UserFilterResponse>();
 
@@ -39,22 +83,33 @@ export class TeamOrganizationComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     console.log('TeamOrganizationComponent - ngOnChanges triggered:', changes);
     
-    if (changes['manager']) {
+    // Update private properties directly without triggering change events during initialization
+    if (changes['manager'] && changes['manager'].currentValue !== undefined) {
       console.log('Manager changed from', changes['manager'].previousValue, 'to', changes['manager'].currentValue);
-      this.manager = changes['manager'].currentValue || '';
+      this._manager = changes['manager'].currentValue || '';
     }
     
-    if (changes['deliveryUnit']) {
+    if (changes['deliveryUnit'] && changes['deliveryUnit'].currentValue !== undefined) {
       console.log('Delivery Unit changed from', changes['deliveryUnit'].previousValue, 'to', changes['deliveryUnit'].currentValue);
-      this.deliveryUnit = changes['deliveryUnit'].currentValue || '';
+      this._deliveryUnit = changes['deliveryUnit'].currentValue || '';
     }
     
-    if (changes['deliveryUnits']) {
+    if (changes['deliveryUnits'] && changes['deliveryUnits'].currentValue !== undefined) {
       console.log('Delivery Units array changed:', changes['deliveryUnits'].currentValue);
       this.deliveryUnits = changes['deliveryUnits'].currentValue || [];
     }
     
-    // Force change detection
+    if (changes['selectedProjectManagerId'] && changes['selectedProjectManagerId'].currentValue !== undefined) {
+      console.log('Selected Project Manager ID changed:', changes['selectedProjectManagerId'].currentValue);
+      this._selectedProjectManagerId = changes['selectedProjectManagerId'].currentValue || 0;
+    }
+    
+    if (changes['selectedDeliveryUnitId'] && changes['selectedDeliveryUnitId'].currentValue !== undefined) {
+      console.log('Selected Delivery Unit ID changed:', changes['selectedDeliveryUnitId'].currentValue);
+      this._selectedDeliveryUnitId = changes['selectedDeliveryUnitId'].currentValue || 0;
+    }
+    
+    // Force change detection to update template
     this.cdr.detectChanges();
   }
 
@@ -80,15 +135,30 @@ export class TeamOrganizationComponent implements OnInit, OnChanges {
     if (!u || typeof u.name !== 'string') {
       return;
     }
-    this.manager = u.name;
-    this.managerChange.emit(this.manager);
+    this._manager = u.name;
+    this._selectedProjectManagerId = u.id;
+    this.managerChange.emit(this._manager);
+    this.selectedProjectManagerIdChange.emit(this._selectedProjectManagerId);
     this.managerSelect.emit(u); // Emit the full user object
     this.showManagerSuggestions = false;
   }
 
   clearManager() {
-    this.manager = '';
-    this.managerChange.emit(this.manager);
+    this._manager = '';
+    this._selectedProjectManagerId = 0;
+    this.managerChange.emit(this._manager);
+    this.selectedProjectManagerIdChange.emit(this._selectedProjectManagerId);
     this.showManagerSuggestions = false;
+  }
+
+  onDeliveryUnitChange(code: string) {
+    this._deliveryUnit = code;
+    // Find the delivery unit by code and emit the ID
+    const selectedDu = this.deliveryUnits.find(du => du.code === code);
+    if (selectedDu) {
+      this._selectedDeliveryUnitId = selectedDu.id;
+      this.selectedDeliveryUnitIdChange.emit(this._selectedDeliveryUnitId);
+    }
+    this.deliveryUnitChange.emit(code);
   }
 }

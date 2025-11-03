@@ -356,6 +356,7 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
       teamSize: dto.teamSize,
       template: 'Scrum', // Default
       organisationName: '', // Not in DTO
+      isImportedFromJira: dto.isImportedFromJira || false,
       selected: false
     };
   }

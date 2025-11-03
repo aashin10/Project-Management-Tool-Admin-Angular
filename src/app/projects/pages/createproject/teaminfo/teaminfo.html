@@ -56,7 +56,7 @@
         name="deliveryUnit"
         [(ngModel)]="deliveryUnit" 
         #duRef="ngModel"
-        (ngModelChange)="deliveryUnitChange.emit($event)"
+        (ngModelChange)="onDeliveryUnitChange($event)"
         required
         class="w-[220px] h-9 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 font-normal"
         [ngClass]="deliveryUnit === '' ? 'text-gray-400' : 'text-black'"
