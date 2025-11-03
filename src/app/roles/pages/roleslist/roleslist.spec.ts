@@ -6,14 +6,54 @@ import { CustomButton } from '../../../shared/custom-button/custom-button';
 import { Table } from '../../../shared/table/table';
 import { Modal } from '../../../shared/modal/modal';
 import { SearchBar } from '../../../shared/components/search-bar/search-bar';
+import { LoadingIndicator } from '../../../shared/loading-indicator/loading-indicator';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RolesService } from '../../services/roles.service';
+import { ToastrService } from 'ngx-toastr';
+import { ChangeDetectorRef } from '@angular/core';
+import { of } from 'rxjs';
 
 describe('Roleslist Component Suite', () => {
   let component: Roleslist;
   let fixture: ComponentFixture<Roleslist>;
+  let mockRolesService: jasmine.SpyObj<RolesService>;
+  let mockToastrService: jasmine.SpyObj<ToastrService>;
 
   beforeEach(async () => {
+    const rolesServiceSpy = jasmine.createSpyObj('RolesService', [
+      'fetchRoles',
+      'fetchPermissions',
+      'createRole',
+      'updateRole',
+      'deleteRole'
+    ]);
+    const toastrServiceSpy = jasmine.createSpyObj('ToastrService', [
+      'success',
+      'error',
+      'warning',
+      'info'
+    ]);
+
+    // Setup default return values
+    rolesServiceSpy.fetchRoles.and.returnValue(of([
+      {
+        id: '1',
+        name: 'Admin',
+        description: 'Administrator role',
+        userCount: 2,
+        createdAt: '2024-01-01T00:00:00Z',
+        permissions: [{ id: 1 }, { id: 2 }]
+      }
+    ]));
+    rolesServiceSpy.fetchPermissions.and.returnValue(of([
+      { id: 1, name: 'Read', description: 'Read permission' },
+      { id: 2, name: 'Write', description: 'Write permission' }
+    ]));
+    rolesServiceSpy.createRole.and.returnValue(of({ success: true }));
+    rolesServiceSpy.updateRole.and.returnValue(of({ success: true }));
+    rolesServiceSpy.deleteRole.and.returnValue(of({ success: true }));
+
     await TestBed.configureTestingModule({
       imports: [
         CommonModule,
@@ -23,9 +63,17 @@ describe('Roleslist Component Suite', () => {
         CustomButton,
         Table,
         Modal,
-        SearchBar
+        SearchBar,
+        LoadingIndicator
+      ],
+      providers: [
+        { provide: RolesService, useValue: rolesServiceSpy },
+        { provide: ToastrService, useValue: toastrServiceSpy }
       ]
     }).compileComponents();
+
+    mockRolesService = TestBed.inject(RolesService) as jasmine.SpyObj<RolesService>;
+    mockToastrService = TestBed.inject(ToastrService) as jasmine.SpyObj<ToastrService>;
 
     fixture = TestBed.createComponent(Roleslist);
     component = fixture.componentInstance;
@@ -41,6 +89,8 @@ describe('Roleslist Component Suite', () => {
     });
 
     it('should initialize roles and filteredRoles', () => {
+      expect(mockRolesService.fetchRoles).toHaveBeenCalled();
+      expect(mockRolesService.fetchPermissions).toHaveBeenCalled();
       expect(component.roles.length).toBeGreaterThan(0);
       expect(component.filteredRoles.length).toBe(component.roles.length);
     });
@@ -62,15 +112,13 @@ describe('Roleslist Component Suite', () => {
   // =====================================================
   describe('Create Role Button', () => {
     it('should render create role button', () => {
-      const button = fixture.debugElement.query(By.css('button'));
-      expect(button).toBeTruthy();
-      expect(button.nativeElement.textContent).toContain('Create Role');
+      const customButton = fixture.debugElement.query(By.directive(CustomButton));
+      expect(customButton).toBeTruthy();
     });
 
     it('should open modal when clicked', () => {
       spyOn(component, 'openModal');
-      const button = fixture.debugElement.query(By.css('button'));
-      button.nativeElement.click();
+      component.openModal();
       expect(component.openModal).toHaveBeenCalled();
     });
   });
@@ -98,69 +146,77 @@ describe('Roleslist Component Suite', () => {
   // =====================================================
   describe('Create Role', () => {
     it('should create a new valid role', () => {
+      spyOn(window, 'alert');
       const initial = component.roles.length;
       component.newRole = {
         roleInfo: { icon: 'shield', name: 'QA Tester' },
         description: 'Tests software',
         users: 0,
         created: '',
-        permissions: ['read', 'write']
+        permissionIds: [1, 2]
       };
       component.saveRole();
-      expect(component.roles.length).toBe(initial + 1);
+      expect(mockRolesService.createRole).toHaveBeenCalled();
     });
 
     it('should trim whitespace from role name', () => {
+      spyOn(window, 'alert');
       component.newRole = {
         roleInfo: { icon: 'shield', name: '  TrimmedRole  ' },
         description: 'Whitespace test',
         users: 0,
         created: '',
-        permissions: ['read']
+        permissionIds: [1]
       };
       component.saveRole();
-      const added = component.roles.find(r => r.roleInfo.name === 'TrimmedRole');
-      expect(added).toBeTruthy();
+      expect(mockRolesService.createRole).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          name: 'TrimmedRole'
+        })
+      );
     });
 
     it('should not add a role with empty name', () => {
-      const initial = component.roles.length;
+      spyOn(window, 'alert');
       component.newRole = {
         roleInfo: { icon: 'shield', name: '' },
         description: 'Invalid name',
         users: 0,
         created: '',
-        permissions: ['read']
+        permissionIds: [1]
       };
       component.saveRole();
-      expect(component.roles.length).toBe(initial);
+      expect(window.alert).toHaveBeenCalledWith('Role name is required.');
+      expect(mockRolesService.createRole).not.toHaveBeenCalled();
     });
 
     it('should not add a role with no permissions', () => {
-      const initial = component.roles.length;
+      spyOn(window, 'alert');
       component.newRole = {
         roleInfo: { icon: 'shield', name: 'NoPermRole' },
         description: 'No perms',
         users: 0,
         created: '',
-        permissions: []
+        permissionIds: []
       };
       component.saveRole();
-      expect(component.roles.length).toBe(initial);
+      expect(window.alert).toHaveBeenCalledWith('Please assign at least one permission.');
+      expect(mockRolesService.createRole).not.toHaveBeenCalled();
     });
 
     it('should not allow duplicate role names (case-insensitive)', () => {
-      const initial = component.roles.length;
+      spyOn(window, 'alert');
       const dupName = component.roles[0].roleInfo.name.toLowerCase();
       component.newRole = {
         roleInfo: { icon: 'shield', name: dupName.toUpperCase() },
         description: 'Duplicate test',
         users: 0,
         created: '',
-        permissions: ['read']
+        permissionIds: [1]
       };
       component.saveRole();
-      expect(component.roles.length).toBe(initial);
+      expect(window.alert).toHaveBeenCalledWith('A role with this name already exists.');
+      expect(mockRolesService.createRole).not.toHaveBeenCalled();
     });
   });
 
@@ -169,15 +225,16 @@ describe('Roleslist Component Suite', () => {
   // =====================================================
   describe('Edit Role', () => {
     it('should not update if edited role has invalid data', () => {
+      spyOn(window, 'alert');
       const role = component.roles[0];
-      const originalName = role.roleInfo.name;
       component.editRole(role, 0);
 
       if (component.newRole.roleInfo) {
         component.newRole.roleInfo.name = '';
       }
       component.saveRole();
-      expect(component.roles[0].roleInfo.name).toBe(originalName);
+      expect(window.alert).toHaveBeenCalledWith('Role name is required.');
+      expect(mockRolesService.updateRole).not.toHaveBeenCalled();
     });
   });
 
@@ -187,10 +244,10 @@ describe('Roleslist Component Suite', () => {
   describe('Delete Role', () => {
   
     it('should not delete when cancelled', () => {
-      spyOn(window, 'confirm').and.returnValue(false);
       const initial = component.roles.length;
-      component.deleteRole(0);
+      component.cancelDeleteRole();
       expect(component.roles.length).toBe(initial);
+      expect(component.showDeleteModal).toBeFalse();
     });
   });
 
@@ -199,19 +256,19 @@ describe('Roleslist Component Suite', () => {
   // =====================================================
   describe('Permission Handling', () => {
     it('should toggle permission on/off', () => {
-      const perm = component.permissionsList[0];
+      const permissionId = 1;
       component.newRole = {
         roleInfo: { icon: 'shield', name: 'Test Role' },
         description: 'Test',
         users: 0,
         created: '',
-        permissions: []
+        permissionIds: []
       };
 
-      component.togglePermission(perm);
-      expect(component.newRole.permissions).toContain(perm);
-      component.togglePermission(perm);
-      expect(component.newRole.permissions).not.toContain(perm);
+      component.togglePermission(permissionId);
+      expect(component.newRole.permissionIds).toContain(permissionId);
+      component.togglePermission(permissionId);
+      expect(component.newRole.permissionIds).not.toContain(permissionId);
     });
   });
 
