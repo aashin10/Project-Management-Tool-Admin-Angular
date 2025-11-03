@@ -5,8 +5,6 @@
     
     <!-- Left side: section title -->
     <div class="flex items-center gap-3">
-
-
       <!-- Shared SectionTitle component -->
       <app-sectiontitle
         title="Welcome back"
@@ -28,38 +26,61 @@
         Redirect to User Side
       </button>
     </div>
-
-
   </div>
 
-
-
-  <!-- Metric Cards Grid -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-    <app-dashboard-metric-card
-      *ngFor="let card of metricCards"
-      [title]="card.title"
-      [value]="card.value"
-      [icon]="card.icon"
-      [iconBgColor]="card.iconBgColor"
-      [iconColor]="card.iconColor"
-      [trend]="card.trend"
-      [trendColor]="card.trendColor"
-      [borderColor]="card.borderColor">
-    </app-dashboard-metric-card>
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="flex items-center justify-center py-12">
+    <div class="text-center">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#0052CC]"></div>
+      <p class="mt-4 text-sm text-gray-600">Loading dashboard...</p>
+    </div>
   </div>
 
-  <!-- Charts Section -->
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    
-    <!-- Project Activity Timeline (takes 2 columns) -->
-    <div class="lg:col-span-2">
-      <app-project-activity-timeline [chartData]="chartData"></app-project-activity-timeline>
+  <!-- Error State -->
+  <div *ngIf="!isLoading && error" class="bg-red-50 border border-red-200 rounded-md p-6 text-center">
+    <svg class="mx-auto h-12 w-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+    </svg>
+    <h3 class="mt-4 text-sm font-medium text-red-900">{{ error }}</h3>
+    <div class="mt-4 flex justify-center gap-3">
+      <button
+        (click)="refreshData()"
+        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+      >
+        Retry
+      </button>
+    </div>
+  </div>
+
+  <!-- Dashboard Content (only shown when loaded successfully) -->
+  <div *ngIf="!isLoading && !error">
+    <!-- Metric Cards Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+      <app-dashboard-metric-card
+        *ngFor="let card of metricCards"
+        [title]="card.title"
+        [value]="card.value"
+        [icon]="card.icon"
+        [iconBgColor]="card.iconBgColor"
+        [iconColor]="card.iconColor"
+        [trend]="card.trend"
+        [trendColor]="card.trendColor"
+        [borderColor]="card.borderColor">
+      </app-dashboard-metric-card>
     </div>
 
-    <!-- Project Status (takes 1 column) - UPDATED -->
-    <div class="lg:col-span-1">
-      <app-project-status [statusData]="projectStatusData"></app-project-status>
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Project Activity Timeline (takes 2 columns) -->
+      <div class="lg:col-span-2">
+        <app-project-activity-timeline [chartData]="chartData"></app-project-activity-timeline>
+      </div>
+
+      <!-- Project Status (takes 1 column) -->
+      <div class="lg:col-span-1">
+        <app-project-status [statusData]="projectStatusData"></app-project-status>
+      </div>
     </div>
   </div>
 </div>
