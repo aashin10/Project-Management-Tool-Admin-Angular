@@ -155,7 +155,7 @@ export class DashboardMainComponent implements OnInit {
         borderColor: 'border-blue-100'
       },
       {
-        title: 'In Progress',
+        title: 'Active Projects',
         value: summary.inProgressProjects,
         icon: '/images/dashboard-card2.svg',
         iconBgColor: 'bg-emerald-50',
@@ -164,7 +164,7 @@ export class DashboardMainComponent implements OnInit {
         borderColor: 'border-emerald-100'
       },
       {
-        title: 'On Hold Projects',
+        title: 'Inactive Projects',
         value: summary.onHoldProjects,
         icon: '/images/dashboard-card3.svg',
         iconBgColor: 'bg-amber-50',
