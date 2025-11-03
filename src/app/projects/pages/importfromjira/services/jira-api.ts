@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class JiraApi {
-  private apiUrl = 'https://localhost:7178/api/Jira';
+  private apiUrl = 'https://localhost:7178/api';
 
   constructor(private http: HttpClient) {}
 
@@ -18,7 +18,12 @@ export class JiraApi {
       'Jira-Access-Token': apiToken,
     };
 
-    const fullUrl = `${this.apiUrl}/import/${encodedUrl}?${query}`;
+    const fullUrl = `${this.apiUrl}/Jira/import/${encodedUrl}?${query}`;
     return this.http.get<any>(fullUrl, { headers });
+  }
+
+  uploadUsersCsv(users: any): Observable<any> {
+    const fullUrl = `${this.apiUrl}/User/jira-import`;
+    return this.http.post<any>(fullUrl, { users });
   }
 }
