@@ -28,6 +28,7 @@ import { debounceTime, distinctUntilChanged, switchMap, map, catchError } from '
   styleUrl: './editproject.css'
 })
 export class Editproject implements OnInit {
+  status: string = '';
   get managerInitials(): string {
     if (!this.manager) return '';
     const names = this.manager.trim().split(' ');
@@ -567,20 +568,23 @@ export class Editproject implements OnInit {
   }
 
   get canCreate(): boolean {
-    const basic = !!(this.projectName && this.projectName.trim() && this.projectKey && this.projectKey.trim());
-    const team = !!(this.manager && this.manager.trim() && this.deliveryUnit && this.deliveryUnit.trim());
-    const customer = !!(this.organisationName && this.organisationName.trim() && this.pocEmail && this.pocEmail.trim());
-    return basic && team && customer;
+    // Only require project name, project key, status, project manager, and delivery unit
+    return !!(
+      this.projectName?.trim() &&
+      this.projectKey?.trim() &&
+      this.status &&
+      this.selectedProjectManagerId &&
+      this.selectedDeliveryUnitId
+    );
   }
 
   get missingFields(): string[] {
     const missing: string[] = [];
     if (!this.projectName || !this.projectName.trim()) missing.push('Project Name');
     if (!this.projectKey || !this.projectKey.trim()) missing.push('Project Key');
-    if (!this.manager || !this.manager.trim()) missing.push('Project Manager');
-    if (!this.deliveryUnit || !this.deliveryUnit.trim()) missing.push('Delivery Unit');
-    if (!this.organisationName || !this.organisationName.trim()) missing.push('Organisation Name');
-    if (!this.pocEmail || !this.pocEmail.trim()) missing.push('POC Email');
+    if (!this.status) missing.push('Status');
+    if (!this.selectedProjectManagerId) missing.push('Project Manager');
+    if (!this.selectedDeliveryUnitId) missing.push('Delivery Unit');
     return missing;
   }
 
