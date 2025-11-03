@@ -406,28 +406,28 @@ describe('Deliveryunitslist Component', () => {
       const initialLength = component.deliveryUnits.length;
       const event = new Event('submit');
       
-      component.onCreateDeliveryUnit(event);
+      component.saveDeliveryUnit();
       
       expect(component.deliveryUnits.length).toBe(initialLength + 1);
     });
 
     it('should add new DU to beginning of array', () => {
       const event = new Event('submit');
-      component.onCreateDeliveryUnit(event);
+      component.saveDeliveryUnit();
       
       expect(component.deliveryUnits[0].duCode).toBe('NEW-001');
     });
 
     it('should generate correct initials for DU', () => {
       const event = new Event('submit');
-      component.onCreateDeliveryUnit(event);
+      component.saveDeliveryUnit();
       
       expect(component.deliveryUnits[0].duInfo.initials).toBe('NE');
     });
 
     it('should generate correct initials for head', () => {
       const event = new Event('submit');
-      component.onCreateDeliveryUnit(event);
+      component.saveDeliveryUnit();
       
       expect(component.deliveryUnits[0].duHead.avatar).toBe('JS');
     });
@@ -436,14 +436,14 @@ describe('Deliveryunitslist Component', () => {
       component.newDU.code = 'new-001';
       const event = new Event('submit');
       
-      component.onCreateDeliveryUnit(event);
+      component.saveDeliveryUnit();
       
       expect(component.deliveryUnits[0].duCode).toBe('NEW-001');
     });
 
     it('should initialize with zero members and projects', () => {
       const event = new Event('submit');
-      component.onCreateDeliveryUnit(event);
+      component.saveDeliveryUnit();
       
       expect(component.deliveryUnits[0].activeMembers).toBe('0');
       expect(component.deliveryUnits[0].activeProjects).toBe('0');
@@ -453,7 +453,7 @@ describe('Deliveryunitslist Component', () => {
       const initialLength = component.filteredDeliveryUnits.length;
       const event = new Event('submit');
       
-      component.onCreateDeliveryUnit(event);
+      component.saveDeliveryUnit();
       
       expect(component.filteredDeliveryUnits.length).toBe(initialLength + 1);
     });
@@ -462,14 +462,14 @@ describe('Deliveryunitslist Component', () => {
       component.isModalOpen = true;
       const event = new Event('submit');
       
-      component.onCreateDeliveryUnit(event);
+      component.saveDeliveryUnit();
       
       expect(component.isModalOpen).toBe(false);
     });
 
     it('should reset form after creation', () => {
       const event = new Event('submit');
-      component.onCreateDeliveryUnit(event);
+      component.saveDeliveryUnit();
       
       expect(component.newDU.name).toBe('');
       expect(component.newDU.code).toBe('');
@@ -481,7 +481,7 @@ describe('Deliveryunitslist Component', () => {
       const initialLength = component.deliveryUnits.length;
       const event = new Event('submit');
       
-      component.onCreateDeliveryUnit(event);
+      component.saveDeliveryUnit();
       
       expect(component.deliveryUnits.length).toBe(initialLength);
     });
@@ -490,7 +490,7 @@ describe('Deliveryunitslist Component', () => {
       const event = new Event('submit');
       spyOn(event, 'preventDefault');
       
-      component.onCreateDeliveryUnit(event);
+      component.saveDeliveryUnit();
       
       expect(event.preventDefault).toHaveBeenCalled();
     });
