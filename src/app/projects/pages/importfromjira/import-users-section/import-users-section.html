@@ -35,6 +35,45 @@
 </app-modal>
 
 <ng-container class="w-50">
+  <p class="text-gray-700 text-sm flex items-center gap-1 mb-3">
+    Where to import users from?
+    <button
+      type="button"
+      class="text-gray-500 border border-gray-400 rounded-full w-4 h-4 flex items-center justify-center text-xs"
+      (click)="openOptionalInfo()"
+    >
+      ?
+    </button>
+  </p>
+
+  <app-modal
+    [isOpen]="openCsvGuideModal"
+    [title]="'How to Export Users from JIRA'"
+    (close)="closeCsvGuideModal()"
+  >
+    <div class="p-4">
+      <h3 class="text-lg font-semibold mb-2">Steps to Download CSV</h3>
+
+      <ol class="list-decimal list-inside space-y-2 text-sm text-gray-800">
+        <li>Open JIRA and go to <strong>Administration &gt; User Management</strong>.</li>
+        <li>Navigate to the <strong>Users</strong> section.</li>
+        <li>Use the filter to find required users.</li>
+        <li>Click <strong>Export</strong> or <strong>Export CSV</strong> in the top-right menu.</li>
+        <li>Save the CSV file to your device.</li>
+        <li>Return here and upload the downloaded file.</li>
+      </ol>
+
+      <div class="mt-4">
+        <button
+          class="px-3 py-2 bg-blue-600 text-white rounded text-sm"
+          (click)="closeCsvGuideModal()"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </app-modal>
+
   <label
     for="dropzone-file"
     class="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-300 border-dashed rounded-sm cursor-pointer"
@@ -98,13 +137,13 @@
   <div class="flex gap-2 justify-around w-full mt-6">
     <app-custom-button
       label="Skip for Now"
-      [loading]="isUploading"
       shortLabel="Skip"
       (action)="onSkip()"
       bgClass="bg-blue-white border border-gray-300 hover:bg-gray-50 md:w-48 w-24"
     ></app-custom-button>
     <app-custom-button
       label="Finish"
+      [loading]="isUploading"
       shortLabel="Finish"
       bgClass="bg-[#0052cc] border border-gray-300 md:w-48 w-24"
       [hoverClass]="'hover:bg-[#0052cce6]'"

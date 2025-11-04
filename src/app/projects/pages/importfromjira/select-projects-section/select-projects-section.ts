@@ -174,7 +174,10 @@ export class SelectProjectsSection implements OnInit {
       this.toastr.warning('Please select at least one project to import.', 'No Projects Selected');
       return;
     }
-    alert(this.selectedCloudId);
+    const result = confirm('Do you want to import ' + selectedProjects.length + ' projects?');
+    if (!result) {
+      return;
+    }
 
     let token = sessionStorage.getItem('jira_access_token');
 
@@ -211,7 +214,8 @@ export class SelectProjectsSection implements OnInit {
           sessionStorage.setItem('import_response', JSON.stringify(response.data));
           this.isImporting = false;
           sessionStorage.setItem('isImporting', 'false');
-          this.toastr.success('Projects imported successfully.', 'Import Successful');
+          // sessionStorage.setItem()
+          //this.toastr.success('Projects imported successfully.', 'Import Successful');
           this.cdr.detectChanges();
           this.navigationService.onNext();
         },

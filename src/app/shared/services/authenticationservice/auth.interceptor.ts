@@ -4,7 +4,7 @@ import {
   HttpHandler,
   HttpEvent,
   HttpInterceptor,
-  HttpErrorResponse
+  HttpErrorResponse,
 } from '@angular/common/http';
 import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { catchError, filter, take, switchMap } from 'rxjs/operators';
@@ -50,7 +50,7 @@ export class AuthInterceptor implements HttpInterceptor {
 
     // Add token to request if available (for non-auth requests)
     const token = this.authService.getAccessToken();
-    
+
     if (token) {
       request = this.addTokenToRequest(request, token);
       console.log('🔐 Token added to request for:', request.url);
@@ -58,10 +58,12 @@ export class AuthInterceptor implements HttpInterceptor {
       console.log('⚠️ No token available for request:', request.url);
     }
 
+    console.log('Outgoing request:', request);
+
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
         console.error('❌ HTTP Error:', error.status, error.statusText, error.url);
-        
+
         if (error.status === 401) {
           console.log('🔄 Got 401 error, attempting token refresh');
           return this.handle401Error(request, next);
@@ -74,8 +76,8 @@ export class AuthInterceptor implements HttpInterceptor {
   private addTokenToRequest(request: HttpRequest<any>, token: string): HttpRequest<any> {
     return request.clone({
       setHeaders: {
-        Authorization: `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 
@@ -91,14 +93,14 @@ export class AuthInterceptor implements HttpInterceptor {
         return this.authService.refreshToken().pipe(
           switchMap((response: any) => {
             this.isRefreshing = false;
-            
+
             // Fixed: Check response.status instead of response.succeeded
             if (response.status === 200 && response.data) {
               console.log('✅ Token refresh successful, retrying original request');
               this.refreshTokenSubject.next(response.data.accessToken);
               return next.handle(this.addTokenToRequest(request, response.data.accessToken));
             }
-            
+
             // If refresh failed, logout and return error
             console.log('❌ Token refresh returned non-200 status, logging out');
             this.refreshTokenSubject.next(null);
@@ -126,7 +128,7 @@ export class AuthInterceptor implements HttpInterceptor {
       // Wait for token refresh to complete
       console.log('⏳ Waiting for token refresh to complete...');
       return this.refreshTokenSubject.pipe(
-        filter(token => token !== null),
+        filter((token) => token !== null),
         take(1),
         switchMap((token) => {
           console.log('✅ Using refreshed token to retry original request');
