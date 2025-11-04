@@ -35,7 +35,6 @@ export class Additionalinfo {
   }
 
   handleAdd(info: {id?: string, name: string, value: string}) {
-    console.log('Received additional info', info);
     this.addedFields.push(info);
     this.modalOpen = false;
     this.emitAddedFields();

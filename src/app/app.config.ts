@@ -21,16 +21,18 @@ export const appConfig: ApplicationConfig = {
     {
       provide: APP_INITIALIZER,
       useFactory: (authService: Authentication) => () => {
-        console.log('🚀 APP_INITIALIZER: Initializing authentication...');
-        
         return new Promise((resolve) => {
+          // Add timeout to prevent blocking hydration indefinitely
+          const timeout = setTimeout(() => {
+            resolve(true);
+          }, 2000); // Resolve after 2 seconds max
+          
           // Wait for authentication service to initialize
           authService.authState$.pipe(
             filter((status: AuthState) => status !== 'loading'),
             take(1) // Take the first resolved emission
           ).subscribe((status) => {
-            console.log('🔐 APP_INITIALIZER: Auth state initialized, status:', status);
-            console.log('✅ APP_INITIALIZER: Auth ready, proceeding with app initialization');
+            clearTimeout(timeout);
             resolve(true);
           });
         });

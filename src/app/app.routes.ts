@@ -3,12 +3,14 @@ import { Login } from './authentication/pages/login/login';
 import { Layout } from './shared/layout/layout';
 import { NotFound } from './shared/components/not-found/not-found';
 import { AuthGuard } from './shared/services/authenticationservice/auth.guard';
+import { LoginRedirectGuard } from './shared/services/authenticationservice/login-redirect.guard';
 
 export const routes: Routes = [
   // Login route (outside layout)
   { 
     path: 'login', 
-    component: Login 
+    component: Login,
+    canActivate: [LoginRedirectGuard]
   },
   
   // All authenticated routes wrapped inside the layout

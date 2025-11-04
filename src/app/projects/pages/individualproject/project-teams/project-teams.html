@@ -1,4 +1,4 @@
-<div class="bg-white rounded-lg shadow-sm border border-gray-200">
+<div class="bg-white rounded-sm shadow-sm border border-gray-200">
   <!-- Header -->
   <div class="px-6 py-5 border-b border-gray-100">
     <div class="flex items-start justify-between">
@@ -76,7 +76,7 @@
     </div>
 
     <!-- Error State -->
-    <div *ngIf="teams.length > 0 && !isLoading && errorMessage" class="bg-red-50 border border-red-200 rounded-lg p-4">
+    <div *ngIf="teams.length > 0 && !isLoading && errorMessage" class="bg-red-50 border border-red-200 rounded-sm p-4">
       <div class="flex items-start">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
           stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3 mt-0.5 flex-shrink-0">
@@ -94,7 +94,7 @@
     <!-- Members Grid -->
     <div *ngIf="teams.length > 0 && !isLoading && !errorMessage && selectedTeamMembers.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div *ngFor="let member of selectedTeamMembers" 
-        class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+        class="bg-white border border-gray-200 rounded-sm p-4 hover:shadow-md transition-shadow">
         
         <!-- Member Name -->
         <div class="mb-3">

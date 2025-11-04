@@ -44,7 +44,6 @@ export class AuthInterceptor implements HttpInterceptor {
 
     // Skip auth logic for local auth endpoints and Jira OAuth/API calls to avoid accidental logouts
     if (isLocalAuth || isJiraAuth) {
-      console.log('⏭️ Skipping auth interceptor for:', request.url);
       return next.handle(request);
     }
 
@@ -53,19 +52,13 @@ export class AuthInterceptor implements HttpInterceptor {
 
     if (token) {
       request = this.addTokenToRequest(request, token);
-      console.log('🔐 Token added to request for:', request.url);
     } else {
-      console.log('⚠️ No token available for request:', request.url);
     }
 
-    console.log('Outgoing request:', request);
 
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
-        console.error('❌ HTTP Error:', error.status, error.statusText, error.url);
-
         if (error.status === 401) {
-          console.log('🔄 Got 401 error, attempting token refresh');
           return this.handle401Error(request, next);
         }
         return throwError(() => error);
@@ -89,20 +82,17 @@ export class AuthInterceptor implements HttpInterceptor {
       const refreshToken = this.authService.getRefreshToken();
 
       if (refreshToken) {
-        console.log('🔄 Attempting to refresh token...');
         return this.authService.refreshToken().pipe(
           switchMap((response: any) => {
             this.isRefreshing = false;
 
             // Fixed: Check response.status instead of response.succeeded
             if (response.status === 200 && response.data) {
-              console.log('✅ Token refresh successful, retrying original request');
               this.refreshTokenSubject.next(response.data.accessToken);
               return next.handle(this.addTokenToRequest(request, response.data.accessToken));
             }
 
             // If refresh failed, logout and return error
-            console.log('❌ Token refresh returned non-200 status, logging out');
             this.refreshTokenSubject.next(null);
             this.authService.logout().subscribe();
             return throwError(() => new Error('Token refresh failed'));
@@ -110,7 +100,6 @@ export class AuthInterceptor implements HttpInterceptor {
           catchError((error) => {
             this.isRefreshing = false;
             this.refreshTokenSubject.next(null);
-            console.error('❌ Token refresh error:', error);
             // Logout on refresh failure
             this.authService.logout().subscribe();
             return throwError(() => error);
@@ -120,23 +109,19 @@ export class AuthInterceptor implements HttpInterceptor {
         // No refresh token, logout
         this.isRefreshing = false;
         this.refreshTokenSubject.next(null);
-        console.log('❌ No refresh token available, logging out');
         this.authService.logout().subscribe();
         return throwError(() => new Error('No refresh token available'));
       }
     } else {
       // Wait for token refresh to complete
-      console.log('⏳ Waiting for token refresh to complete...');
       return this.refreshTokenSubject.pipe(
         filter((token) => token !== null),
         take(1),
         switchMap((token) => {
-          console.log('✅ Using refreshed token to retry original request');
           return next.handle(this.addTokenToRequest(request, token));
         }),
         catchError((error) => {
           // If refresh fails, this will error out
-          console.error('❌ Token refresh failed while waiting:', error);
           return throwError(() => error);
         })
       );

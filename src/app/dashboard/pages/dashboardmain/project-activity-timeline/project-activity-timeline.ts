@@ -34,7 +34,6 @@ export class ProjectActivityTimelineComponent implements OnInit, OnChanges, OnDe
   public chart: any;
 
   ngOnInit() {
-    console.log('🎨 ProjectActivityTimelineComponent initialized with data:', this.chartData);
     // Initialize chart with data if available
     if (this.chartData) {
       this.initializeChart();
@@ -61,14 +60,11 @@ export class ProjectActivityTimelineComponent implements OnInit, OnChanges, OnDe
   // CRITICAL FIX: React to data changes including first load
   ngOnChanges(changes: SimpleChanges) {
     if (changes['chartData']) {
-      console.log('🔄 ChartData changed in child component:', changes['chartData'].currentValue);
       // Check if this is the first change and chart hasn't been initialized yet
       if (changes['chartData'].firstChange && changes['chartData'].currentValue) {
-        console.log('📊 First data load - initializing chart');
         this.initializeChart();
       } else if (!changes['chartData'].firstChange) {
         // Subsequent changes - update chart
-        console.log('🔄 Subsequent data change - updating chart');
         this.updateChart();
       }
     }
@@ -91,28 +87,21 @@ export class ProjectActivityTimelineComponent implements OnInit, OnChanges, OnDe
 
   private initializeChart() {
     if (!this.chartData) {
-      console.warn('⚠️ No chart data available for initialization');
       return;
     }
-    console.log('✅ Initializing chart with data');
     this.updateChart();
   }
 
   private updateChart() {
     if (!this.chartData) {
-      console.warn('⚠️ No chart data available for update');
       return;
     }
 
     const data = this.getDataForPeriod(this.selectedPeriod);
     
     if (!data || data.length === 0) {
-      console.warn('⚠️ No data available for selected period:', this.selectedPeriod);
       return;
     }
-
-    console.log(`📊 Updating chart for period: ${this.selectedPeriod}`, data);
-    
     // Calculate max value for consistent y-axis scaling
     const maxValue = data.length > 0 ? Math.max(...data.map(d => d.projects)) : 10;
     const yAxisMax = Math.ceil(maxValue * 1.1); // Add 10% padding
@@ -266,7 +255,6 @@ export class ProjectActivityTimelineComponent implements OnInit, OnChanges, OnDe
 
   private getDataForPeriod(period: string): ActivityData[] {
     if (!this.chartData) {
-      console.warn('⚠️ No chartData available');
       return [];
     }
 

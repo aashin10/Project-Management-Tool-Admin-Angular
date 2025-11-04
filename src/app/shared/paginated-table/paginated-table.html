@@ -1,7 +1,7 @@
 <div class="w-full">
   <!-- Loading Overlay -->
   <div *ngIf="loading" class="relative">
-    <div class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10 rounded-lg">
+    <div class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10 rounded-sm">
       <div class="flex flex-col items-center gap-3">
         <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
         <p class="text-sm text-gray-600">Loading...</p>
@@ -10,7 +10,7 @@
   </div>
 
   <!-- Table -->
-  <div class="overflow-x-auto border border-gray-200 rounded-lg" [class.opacity-50]="loading">
+  <div class="overflow-x-auto border border-gray-200 rounded-sm" [class.opacity-50]="loading">
     <table class="min-w-full divide-y divide-gray-200">
       <thead class="bg-gray-50">
         <tr>
@@ -68,7 +68,7 @@
             <!-- Role Icon type -->
             <div *ngIf="column.type === 'roleIcon'" class="flex items-center gap-3">
               <div
-                class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0"
+                class="w-8 h-8 rounded-sm bg-blue-50 flex items-center justify-center flex-shrink-0"
               >
                 <svg
                   class="w-4 h-4 text-blue-600"
@@ -198,7 +198,7 @@
                 (click)="handleAction(actionItem.action, row); $event.stopPropagation()"
                 [class]="getActionButtonClass(actionItem.action)"
                 [disabled]="loading"
-                class="p-1 rounded-md text-sm font-medium transition-colors flex items-center justify-center min-w-[32px] min-h-[32px] disabled:opacity-50 disabled:cursor-not-allowed"
+                class="p-1 rounded-sm text-sm font-medium transition-colors flex items-center justify-center min-w-[32px] min-h-[32px] disabled:opacity-50 disabled:cursor-not-allowed"
                 [title]="actionItem.label"
               >
                 <img

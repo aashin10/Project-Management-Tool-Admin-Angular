@@ -84,8 +84,6 @@ export class Editproject implements OnInit {
   ngOnInit() {
     // Get project ID from route
     this.projectId = this.route.snapshot.params['id'];
-    console.log('Edit Project - Project ID from route:', this.projectId);
-    
     // Load data immediately
     this.loadDeliveryUnits();
     this.loadProjectStatuses();
@@ -94,24 +92,19 @@ export class Editproject implements OnInit {
     
     // Fallback: Force change detection after a short delay to ensure everything is rendered
     setTimeout(() => {
-      console.log('Fallback change detection triggered');
       this.cdr.detectChanges();
     }, 100);
   }
 
   loadProjectData() {
-    console.log('Loading project data for ID:', this.projectId);
-    
     if (!this.projectId) {
-      console.error('No project ID provided');
       this.toastr.error('Invalid project ID', 'Error');
       return;
     }
 
     this.projectsService.getProjectById(this.projectId).subscribe({
       next: (response) => {
-        console.log('Project data received:', response);
-        console.log('Project data structure:', JSON.stringify(response.data, null, 2));
+        
         
         if (response.status === 200 && response.data) {
           const project = response.data;
@@ -134,76 +127,44 @@ export class Editproject implements OnInit {
           this.additionalFields = project.additionalInformation || [];
           // Store original fields for detecting changes
           this.originalAdditionalFields = JSON.parse(JSON.stringify(project.additionalInformation || []));
-          
-          console.log('Form populated with:', {
-            projectName: this.projectName,
-            projectKey: this.projectKey,
-            description: this.description,
-            organisationName: this.organisationName,
-            customerDescription: this.customerDescription,
-            domainLink: this.domainLink,
-            pocEmail: this.pocEmail,
-            phoneNumber: this.phoneNumber,
-            manager: this.manager,
-            deliveryUnit: this.deliveryUnit,
-            selectedProjectManagerId: this.selectedProjectManagerId,
-            selectedDeliveryUnitId: this.selectedDeliveryUnitId,
-            status: this.status
-          });
-
           // Force change detection to update child components immediately
           this.cdr.detectChanges();
           
           // Also force update after a short delay to ensure child components are updated
           setTimeout(() => {
             this.cdr.detectChanges();
-            console.log('Forced change detection after delay');
           }, 100);
         } else {
-          console.error('Invalid response format:', response);
           this.toastr.error('Invalid project data received', 'Error');
         }
       },
       error: (err) => {
-        console.error('Failed to load project for editing:', err);
         this.toastr.error('Failed to load project data. Please try refreshing the page.', 'Error');
       }
     });
   }
 
   private loadDeliveryUnits() {
-    console.log('Loading delivery units...');
-    
     this.projectsService.getDeliveryUnits().subscribe({
       next: (response) => {
-        console.log('Delivery units received:', response);
         this.deliveryUnits = response.data || [];
-        console.log('Delivery units set to:', this.deliveryUnits);
-        
         // Force change detection to update child components
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('Failed to load delivery units:', error);
         this.toastr.error('Failed to load delivery units', 'Error');
       }
     });
   }
 
   private loadProjectStatuses() {
-    console.log('Loading project statuses...');
-    
     this.projectStatusService.getStatuses().subscribe({
       next: (statuses) => {
-        console.log('Project statuses received:', statuses);
         this.projectStatuses = statuses || [];
-        console.log('Project statuses set to:', this.projectStatuses);
-        
         // Force change detection to update child components
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('Failed to load project statuses:', error);
         this.toastr.error('Failed to load project statuses', 'Error');
       }
     });
@@ -226,7 +187,6 @@ export class Editproject implements OnInit {
     // Validate search term - only allow alphanumeric, spaces, and common name characters
     const cleanSearchTerm = searchTerm.trim().replace(/[^a-zA-Z0-9\s\-\.]/g, '');
     if (cleanSearchTerm !== searchTerm.trim()) {
-      console.warn('Invalid characters removed from search term:', searchTerm, '->', cleanSearchTerm);
     }
     
     if (cleanSearchTerm.length < 3) {
@@ -236,12 +196,9 @@ export class Editproject implements OnInit {
     }
     
     this.isLoadingUsers = true;
-    console.log('Searching for users with term:', cleanSearchTerm);
-    
     this.filteredUsers$ = this.projectsService.getFilteredUsers({}).pipe(
       map((response: any) => {
         this.isLoadingUsers = false;
-        console.log('User search results:', response);
         // Filter users by search term on the client side
         const allUsers = response.data || [];
         const searchLower = cleanSearchTerm.toLowerCase();
@@ -252,8 +209,6 @@ export class Editproject implements OnInit {
       }),
       catchError((error) => {
         this.isLoadingUsers = false;
-        console.error('Failed to search for users:', error);
-        
         // Show user-friendly error message
         if (error.message?.includes('400')) {
           this.toastr.error('Invalid search term. Please use only letters, numbers, and spaces.', 'Search Error');
@@ -319,14 +274,12 @@ export class Editproject implements OnInit {
   }
 
   onDeliveryUnitChange(unit: string) {
-    console.log('Delivery unit changed to:', unit);
     this.deliveryUnit = unit;
     
     // Find the corresponding delivery unit ID
     const selectedDU = this.deliveryUnits.find(du => du.code === unit);
     if (selectedDU) {
       this.selectedDeliveryUnitId = selectedDU.id;
-      console.log('Selected delivery unit ID:', this.selectedDeliveryUnitId);
     }
   }
 
@@ -341,10 +294,6 @@ export class Editproject implements OnInit {
 
   // Sync custom fields to backend: delete removed, create new, update modified
   private async syncCustomFields(): Promise<void> {
-    console.log('=== Starting Custom Field Sync ===');
-    console.log('Original fields:', this.originalAdditionalFields);
-    console.log('Current fields:', this.additionalFields);
-
     try {
       // Track fields to delete, create, and update
       const fieldsToDelete: Array<{id?: string, name: string, value: string}> = [];
@@ -358,7 +307,6 @@ export class Editproject implements OnInit {
         );
         if (!exists && originalField.id) {
           fieldsToDelete.push(originalField);
-          console.log('Found deleted field:', originalField);
         }
       });
 
@@ -370,28 +318,18 @@ export class Editproject implements OnInit {
           // New field - no ID yet
           if (!currentField.id) {
             fieldsToCreate.push(currentField);
-            console.log('Found new field:', currentField);
           }
         } else if (originalField.name !== currentField.name || originalField.value !== currentField.value) {
           // Modified field
           fieldsToUpdate.push(currentField);
-          console.log('Found modified field:', {original: originalField, current: currentField});
         }
       });
-
-      console.log('Fields to delete:', fieldsToDelete);
-      console.log('Fields to create:', fieldsToCreate);
-      console.log('Fields to update:', fieldsToUpdate);
-
       // Delete removed fields
       for (const field of fieldsToDelete) {
         if (field.id) {
           try {
-            console.log('Deleting custom field:', field.id);
             await this.deleteCustomField(field.id).toPromise();
-            console.log('Successfully deleted custom field:', field.id);
           } catch (error) {
-            console.error('Failed to delete custom field:', field.id, error);
           }
         }
       }
@@ -399,42 +337,28 @@ export class Editproject implements OnInit {
       // Create new fields
       for (const field of fieldsToCreate) {
         try {
-          console.log('Creating custom field:', field);
           await this.createCustomField(field).toPromise();
-          console.log('Successfully created custom field:', field.name);
         } catch (error) {
-          console.error('Failed to create custom field:', field.name, error);
         }
       }
 
       // Handle updated fields by deleting old and creating new with updated values
       if (fieldsToUpdate.length > 0) {
-        console.log('Processing updated fields...');
         for (const field of fieldsToUpdate) {
           if (field.id) {
             try {
-              console.log('Deleting custom field for update:', field.id);
               await this.deleteCustomField(field.id).toPromise();
-              console.log('Successfully deleted custom field for update:', field.id);
-              
               // Recreate with new values
               try {
-                console.log('Recreating custom field with updated values:', field);
                 await this.createCustomField(field).toPromise();
-                console.log('Successfully recreated custom field:', field.name);
               } catch (createError) {
-                console.error('Failed to recreate custom field:', field.name, createError);
               }
             } catch (deleteError) {
-              console.error('Failed to delete custom field for update:', field.id, deleteError);
             }
           }
         }
       }
-
-      console.log('=== Custom Field Sync Complete ===');
     } catch (error) {
-      console.error('Error during custom field sync:', error);
       this.toastr.error('Failed to sync custom fields', 'Error');
     }
   }
@@ -448,22 +372,6 @@ export class Editproject implements OnInit {
   }
 
   onUpdateProject() {
-    console.log('=== Starting Project Update ===');
-    console.log('Project ID:', this.projectId);
-    console.log('Form Data:', {
-      projectName: this.projectName,
-      projectKey: this.projectKey,
-      manager: this.manager,
-      deliveryUnit: this.deliveryUnit,
-      organisationName: this.organisationName,
-      customerDescription: this.customerDescription,
-      domainLink: this.domainLink,
-      pocEmail: this.pocEmail,
-      phoneNumber: this.phoneNumber,
-      selectedProjectManagerId: this.selectedProjectManagerId,
-      selectedDeliveryUnitId: this.selectedDeliveryUnitId
-    });
-
     // Validate email format if provided
     if (this.pocEmail && this.pocEmail.trim() !== '') {
       const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -518,65 +426,41 @@ export class Editproject implements OnInit {
     };
 
     // Validate required fields before API call
-    console.log('=== PRE-API VALIDATION ===');
-    console.log('Project ID:', this.projectId);
-    console.log('Name:', updateRequest.name);
-    console.log('Key:', updateRequest.key);
-    console.log('Description:', updateRequest.description);
-    console.log('Customer Org:', updateRequest.customerOrgName);
-    console.log('POC Email:', updateRequest.pocEmail);
-    console.log('Project Manager ID:', updateRequest.projectManagerId);
-    console.log('Delivery Unit ID:', updateRequest.deliveryUnitId);
-    console.log('Note: Custom fields are managed separately via API');
-
     // Final validation before sending
     if (!this.projectId || this.projectId.trim() === '') {
-      console.error('Project ID is missing or empty');
       this.toastr.error('Project ID is required', 'Validation Error');
       return;
     }
 
     if (!updateRequest.name || updateRequest.name.trim() === '') {
-      console.error('Project name is empty');
       this.toastr.error('Project name is required', 'Validation Error');
       return;
     }
 
     if (!updateRequest.key || updateRequest.key.trim() === '') {
-      console.error('Project key is empty');
       this.toastr.error('Project key is required', 'Validation Error');
       return;
     }
 
     if (!updateRequest.statusId || updateRequest.statusId <= 0) {
-      console.error('Invalid status ID:', updateRequest.statusId);
       this.toastr.error('Valid status is required', 'Validation Error');
       return;
     }
 
     if (!updateRequest.deliveryUnitId || updateRequest.deliveryUnitId <= 0) {
-      console.error('Invalid delivery unit ID:', updateRequest.deliveryUnitId);
       this.toastr.error('Valid delivery unit is required', 'Validation Error');
       return;
     }
 
-    console.log('Update Request Payload:', JSON.stringify(updateRequest, null, 2));
+    
 
     // Update the project using the service (now returns Observable)
     this.isUpdatingProject = true;
-    
-    console.log('Calling projectsService.updateProject...');
     this.projectsService.updateProject(this.projectId, updateRequest).subscribe({
       next: (response) => {
         this.isUpdatingProject = false;
-        console.log('=== Project Update SUCCESS ===');
-        console.log('API Response:', response);
-        
         // After successful project update, sync custom fields
-        console.log('Starting custom field synchronization...');
         this.syncCustomFields().then(() => {
-          console.log('Custom field synchronization completed');
-          
           // Show success message
           this.showSuccess = true;
           this.toastr.success(
@@ -588,17 +472,11 @@ export class Editproject implements OnInit {
               closeButton: true
             }
           );
-          
-          console.log('Success notification shown');
-          
           setTimeout(() => {
             this.showSuccess = false;
-            console.log('Navigating to projects list...');
             this.router.navigate(['/projects']);
           }, 1800);
         }).catch((syncError) => {
-          console.error('Custom field sync failed but project was updated:', syncError);
-          
           // Show partial success (project updated but fields sync failed)
           this.showSuccess = true;
           this.toastr.warning(
@@ -613,18 +491,12 @@ export class Editproject implements OnInit {
           
           setTimeout(() => {
             this.showSuccess = false;
-            console.log('Navigating to projects list...');
             this.router.navigate(['/projects']);
           }, 2000);
         });
       },
       error: (error) => {
         this.isUpdatingProject = false;
-        console.error('=== Project Update FAILED ===');
-        console.error('Full Error Object:', error);
-        console.error('Error Message:', error.message);
-        console.error('Error Status:', error.status);
-        
         // The enhanced error handling from service will provide detailed logs
         let errorMessage = 'Failed to update project. Please check your input and try again.';
         let errorTitle = 'Update Failed';
@@ -636,14 +508,12 @@ export class Editproject implements OnInit {
             : ' Please choose a different project key.';
           errorMessage = `The project key "${this.projectKey}" is already used by another project.${suggestion}`;
           errorTitle = 'Duplicate Project Key';
-          console.warn('Project key conflict detected:', this.projectKey);
         } else if (error.message && error.message.includes('Data Conflict')) {
           errorMessage = 'Some of the data conflicts with existing records. Please check for duplicate values and try again.';
           errorTitle = 'Data Conflict';
         } else if (error.message && error.message.includes('400')) {
           errorMessage = 'Invalid data provided. Please verify all required fields are correctly filled and try again.';
           errorTitle = 'Validation Error';
-          console.warn('400 Error - Check request payload format and required fields');
         } else if (error.message && error.message.includes('401')) {
           errorMessage = 'You are not authorized to update this project.';
           errorTitle = 'Authorization Error';
@@ -680,24 +550,10 @@ export class Editproject implements OnInit {
 
   // Debug method - remove after fixing
   debugDataStatus() {
-    console.log('=== DEBUG DATA STATUS ===');
-    console.log('Project ID:', this.projectId);
-    console.log('Project Name:', this.projectName);
-    console.log('Project Key:', this.projectKey);
-    console.log('Manager:', this.manager);
-    console.log('Delivery Unit:', this.deliveryUnit);
-    console.log('Selected Delivery Unit ID:', this.selectedDeliveryUnitId);
-    console.log('Available Delivery Units:', this.deliveryUnits);
-    console.log('Delivery Units Length:', this.deliveryUnits?.length);
-    console.log('Organisation Name:', this.organisationName);
-    console.log('POC Email:', this.pocEmail);
-    console.log('Phone Number:', this.phoneNumber);
-    console.log('========================');
   }
 
   // Force refresh method - remove after fixing
   forceRefresh() {
-    console.log('Force refreshing data and change detection...');
     this.loadProjectData();
     this.loadDeliveryUnits();
     
@@ -712,15 +568,7 @@ export class Editproject implements OnInit {
 
   // Debug update data method - remove after fixing
   debugUpdateData() {
-    console.log('=== DEBUG UPDATE DATA ===');
-    console.log('Can Update:', this.canCreate);
-    console.log('Missing Fields:', this.missingFields);
-    console.log('Project ID:', this.projectId);
-    console.log('Is Updating:', this.isUpdatingProject);
-    
     // Test if the button is actually calling the method
-    console.log('Update Project button was clicked');
-    
     // Show current form validation status
     if (!this.canCreate) {
       this.toastr.warning(
@@ -733,8 +581,6 @@ export class Editproject implements OnInit {
         'Validation Check'
       );
     }
-    
-    console.log('=========================');
   }
 
   // Test minimal update - for debugging API issues
@@ -743,8 +589,6 @@ export class Editproject implements OnInit {
       this.toastr.error('Project ID is required for testing', 'Test Error');
       return;
     }
-
-    console.log('=== TESTING MINIMAL UPDATE ===');
     const minimalRequest: UpdateProjectRequest = {
       id: this.projectId,
       name: this.projectName?.trim() || 'Test Project Name',
@@ -757,15 +601,13 @@ export class Editproject implements OnInit {
       deliveryUnitId: this.selectedDeliveryUnitId || 1
     };
 
-    console.log('Minimal Request:', JSON.stringify(minimalRequest, null, 2));
+    
 
     this.projectsService.updateProject(this.projectId, minimalRequest).subscribe({
       next: (response) => {
-        console.log('✅ Minimal update succeeded:', response);
         this.toastr.success('Minimal update test passed!', 'Test Success');
       },
       error: (error) => {
-        console.error('❌ Minimal update failed:', error);
         this.toastr.error('Minimal update test failed', 'Test Failed');
       }
     });
@@ -773,14 +615,11 @@ export class Editproject implements OnInit {
 
   // Test user filter endpoint - remove after fixing
   testUserEndpoint() {
-    console.log('Testing user filter endpoint...');
     this.projectsService.testUserFilterEndpoint().subscribe({
       next: (response) => {
-        console.log('User filter endpoint test success:', response);
         this.toastr.success('User endpoint is working!', 'Test Result');
       },
       error: (error) => {
-        console.error('User filter endpoint test failed:', error);
         this.toastr.error(`User endpoint failed: ${error.status} - ${error.message}`, 'Test Result');
       }
     });
@@ -852,8 +691,6 @@ export class Editproject implements OnInit {
       this.toastr.warning('Please enter a project key to check', 'Validation');
       return;
     }
-
-    console.log('Checking project key availability:', this.projectKey);
     this.projectsService.checkProjectKeyAvailability(this.projectKey.trim(), this.projectId).subscribe({
       next: (response) => {
         if (response.data.available) {
@@ -863,7 +700,6 @@ export class Editproject implements OnInit {
         }
       },
       error: (error) => {
-        console.warn('Key checking not available:', error);
         this.toastr.info('Project key validation is not available. The key will be checked when saving.', 'Info');
       }
     });
@@ -875,9 +711,6 @@ export class Editproject implements OnInit {
       this.toastr.error('Project ID is required for testing', 'Test Error');
       return;
     }
-
-    console.log('=== TESTING EXACT API FORMAT ===');
-    
     // Use the exact structure from your successful API example
     // Generate a unique key to avoid conflicts
     const uniqueKey = `TEST-${Date.now()}`;
@@ -909,15 +742,13 @@ export class Editproject implements OnInit {
       ]
     };
 
-    console.log('Exact Format Request:', JSON.stringify(exactFormatRequest, null, 2));
+    
 
     this.projectsService.updateProject(this.projectId, exactFormatRequest).subscribe({
       next: (response) => {
-        console.log('✅ Exact format update succeeded:', response);
         this.toastr.success('Exact format test passed!', 'Test Success');
       },
       error: (error) => {
-        console.error('❌ Exact format update failed:', error);
         this.toastr.error('Exact format test failed - check console for details', 'Test Failed');
       }
     });

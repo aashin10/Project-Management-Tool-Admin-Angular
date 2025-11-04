@@ -32,16 +32,11 @@ export class Usermenu implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    console.log('UserMenu initialized');
-    
     // Subscribe to current user observable to get real-time updates
     this.userSubscription = this.authService.currentUser$.subscribe(user => {
-      console.log('User data received in subscription:', user);
       if (user) {
         this.user.name = user.name || 'User';
         this.user.email = user.email || 'user@company.com';
-        console.log('User menu updated:', this.user);
-        
         // Force change detection
         this.cdr.detectChanges();
       }
@@ -49,21 +44,15 @@ export class Usermenu implements OnInit, OnDestroy {
 
     // Check if we already have user data
     const currentUser = this.authService.currentUserValue;
-    console.log('Current user value:', currentUser);
-    
     if (currentUser) {
       this.user.name = currentUser.name || 'User';
       this.user.email = currentUser.email || 'user@company.com';
-      console.log('User loaded from cache:', this.user);
       this.cdr.detectChanges();
     } else {
       // Fetch user data if not already loaded
-      console.log('Fetching user data from API...');
-      
       // Add a timeout to prevent indefinite loading
       const timeout = setTimeout(() => {
         if (this.user.name === 'Loading...') {
-          console.warn('User data fetch timeout');
           this.user.name = 'User';
           this.user.email = 'user@company.com';
           this.cdr.detectChanges();
@@ -73,14 +62,11 @@ export class Usermenu implements OnInit, OnDestroy {
       this.authService.getCurrentUser().subscribe({
         next: (response) => {
           clearTimeout(timeout);
-          console.log('User data fetched successfully:', response);
           if (response && response.status === 200 && response.data) {
             this.user.name = response.data.name || 'User';
             this.user.email = response.data.email || 'user@company.com';
-            console.log('User menu updated from API:', this.user);
             this.cdr.detectChanges();
           } else {
-            console.warn('Invalid response format:', response);
             this.user.name = 'User';
             this.user.email = 'user@company.com';
             this.cdr.detectChanges();
@@ -88,7 +74,6 @@ export class Usermenu implements OnInit, OnDestroy {
         },
         error: (error) => {
           clearTimeout(timeout);
-          console.error('Failed to load user data:', error);
           // Set default values instead of error message
           this.user.name = 'User';
           this.user.email = 'user@company.com';
@@ -112,22 +97,17 @@ export class Usermenu implements OnInit, OnDestroy {
   }
 
   private handleLogout(): void {
-    console.log('🚪 Logout initiated from usermenu');
-    
     // Clear all notifications on logout
     this.notificationService.clearAllNotifications();
     
     this.authService.logout().subscribe({
       next: (response) => {
-        console.log('✅ Logout successful, response:', response);
         // Navigation is handled in the authentication service's logout method
       },
       error: (error) => {
-        console.error('❌ Logout error:', error);
         // Even if the API call fails, we should still be redirected by the service
         // But just in case, check if we need to manually redirect
         if (!this.authService.hasValidToken()) {
-          console.log('📍 Token already cleared, navigating to login');
           this.router.navigate(['/login']);
         }
       }

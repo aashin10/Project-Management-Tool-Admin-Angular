@@ -87,7 +87,6 @@ export class Createproject {
             }
           },
           error: (err) => {
-            console.error('Failed to load project for template:', err);
           }
         });
       }
@@ -130,7 +129,6 @@ export class Createproject {
           resolve();
         },
         error: (err) => {
-          console.error('Failed to load delivery units:', err);
           this.deliveryUnits = [];
           resolve(); // Resolve anyway to not block initialization
         }
@@ -290,14 +288,9 @@ export class Createproject {
       deliveryUnitId: selectedDeliveryUnit.id,
       isImportedFromJira: false
     };
-
-    console.log('Creating project with data:', createProjectRequest);
-
     // Call the API
     this.projectsService.createProject(createProjectRequest).subscribe({
       next: (response) => {
-        console.log('Project created successfully:', response);
-        
         // Show notification using NotificationService
         this.notificationService.addNotification(
           'success',
@@ -325,7 +318,6 @@ export class Createproject {
         }, 600);
       },
       error: (error) => {
-        console.error('Failed to create project:', error);
         this.toastr.error(
           error.message || 'Failed to create project. Please try again.',
           'Creation Failed',

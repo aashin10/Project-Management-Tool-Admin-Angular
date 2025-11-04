@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -7,7 +7,7 @@ import { CustomButton } from "../../../shared/custom-button/custom-button";
 import { Authentication, type AuthState } from '../../../shared/services/authenticationservice/authentication';
 import { ToastrService } from 'ngx-toastr';
 import { LoadingIndicator } from '../../../shared/loading-indicator/loading-indicator';
-import { Observable, Subscription } from 'rxjs';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -16,7 +16,7 @@ import { Observable, Subscription } from 'rxjs';
   templateUrl: './login.html',
   styleUrl: './login.css'
 })
-export class Login implements OnInit, OnDestroy {
+export class Login implements OnInit {
   email: string = '';
   password: string = '';
   showPassword: boolean = false;
@@ -33,9 +33,6 @@ export class Login implements OnInit, OnDestroy {
   returnUrl: string = '/dashboard';
   public authState$!: Observable<AuthState>;
 
-  private authStateSubscription?: Subscription;
-  private hasNavigatedAfterAuth = false;
-
   constructor(
     private router: Router,
     private route: ActivatedRoute,
@@ -49,18 +46,7 @@ export class Login implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // React to authentication state changes so refreshes show a loader instead of flashing the login page.
-    this.authStateSubscription = this.authState$.subscribe((state: AuthState) => {
-      if (state === 'authenticated') {
-        this.navigateAfterAuthResolved();
-      } else if (state === 'unauthenticated') {
-        this.hasNavigatedAfterAuth = false;
-      }
-    });
-  }
-
-  ngOnDestroy(): void {
-    this.authStateSubscription?.unsubscribe();
+    // LoginRedirectGuard handles navigation for authenticated users
   }
 
   togglePasswordVisibility(): void {
@@ -182,18 +168,14 @@ export class Login implements OnInit, OnDestroy {
     // Call authentication service
     this.authService.login(this.email, this.password).subscribe({
       next: (response) => {
-        console.log('📥 Login response:', response);
-        
         // Check if response has status 200 AND has token data
         if (response && response.status === 200 && response.data && response.data.accessToken) {
-          console.log('✅ Login successful');
           this.isLoading = false;
           this.toastr.success('Welcome back!', 'Login Successful');
           // Navigate to return URL or dashboard
           this.router.navigate([this.returnUrl]);
         } else {
           // Response received but not successful
-          console.log('❌ Login response indicates failure');
           this.isLoading = false;
           const errorMsg = response?.message || 'Invalid Login Credentials';
           this.loginError = errorMsg;
@@ -201,8 +183,6 @@ export class Login implements OnInit, OnDestroy {
         }
       },
       error: (error) => {
-        console.error('❌ Login error:', error);
-        
         // Always set isLoading to false first
         this.isLoading = false;
         
@@ -228,14 +208,5 @@ export class Login implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       }
     });
-  }
-
-  private navigateAfterAuthResolved(): void {
-    if (this.hasNavigatedAfterAuth) {
-      return;
-    }
-
-    this.hasNavigatedAfterAuth = true;
-    this.router.navigate([this.returnUrl]);
   }
 }
