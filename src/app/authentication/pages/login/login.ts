@@ -1,8 +1,10 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { CustomButton } from "../../../shared/custom-button/custom-button";
+import { Authentication } from '../../../shared/services/authenticationservice/authentication';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-login',
@@ -19,8 +21,28 @@ export class Login {
   // Validation states
   emailError: string = '';
   passwordError: string = '';
+  
+  // Loading and error states
+  isLoading: boolean = false;
+  loginError: string = '';
+  
+  // Return URL for redirect after login
+  returnUrl: string = '/dashboard';
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private authService: Authentication,
+    private toastr: ToastrService
+  ) {
+    // Get return URL from route parameters or default to '/dashboard'
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
+    
+    // Redirect if already authenticated
+    if (this.authService.isAuthenticated()) {
+      this.router.navigate([this.returnUrl]);
+    }
+  }
 
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
@@ -112,25 +134,55 @@ export class Login {
   }
 
   onSubmit(): void {
+    // Clear previous login error
+    this.loginError = '';
+    
     // Validate all fields before submission
     this.validateEmail();
     this.validatePassword();
 
     if (!this.isFormValid()) {
       if (this.emailError) {
-        alert(this.emailError);
+        this.loginError = this.emailError;
+        this.toastr.error(this.emailError, 'Validation Error');
       } else if (this.passwordError) {
-        alert(this.passwordError);
+        this.loginError = this.passwordError;
+        this.toastr.error(this.passwordError, 'Validation Error');
       }
       return;
     }
 
-    console.log('Login attempt:', { 
-      email: this.email, 
-      password: this.password 
+    // Prevent multiple submissions
+    if (this.isLoading) {
+      return;
+    }
+
+    this.isLoading = true;
+
+    // Call authentication service
+    this.authService.login(this.email, this.password).subscribe({
+      next: (response) => {
+        this.isLoading = false;
+        console.log(response);
+        if (response.status === 200) {
+          console.log('Login successful');
+          this.toastr.success('Welcome back!', 'Login Successful');
+          // Navigate to return URL or dashboard
+          this.router.navigate([this.returnUrl]);
+        } else {
+          // Login failed - show error toaster
+          this.loginError = 'Invalid Login Credentials';
+          this.toastr.error('Invalid Login Credentials', 'Login Failed');
+        }
+      },
+      error: (error) => {
+        this.isLoading = false;
+        console.error('Login error:', error);
+        
+        // Show toaster for invalid credentials or any login error
+        this.toastr.error('Invalid Login Credentials', 'Login Failed');
+        this.loginError = 'Invalid Login Credentials';
+      }
     });
-    
-    // Redirect to dashboard
-    this.router.navigate(['/dashboard']);
   }
 }
