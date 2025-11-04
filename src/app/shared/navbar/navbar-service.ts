@@ -7,7 +7,7 @@ import { map } from 'rxjs/operators';
   providedIn: 'root',
 })
 export class NavbarService {
-  private readonly apiUrl = 'http://localhost:5291/api';
+  private readonly apiUrl = 'https://localhost:7178/api';
 
   constructor(private http: HttpClient) {}
 

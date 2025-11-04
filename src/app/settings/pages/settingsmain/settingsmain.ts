@@ -347,16 +347,30 @@ export class Settingsmain implements OnInit {
           this.cdr.detectChanges();
           
           // Show toast popup notification
-          this.toastr.success('Super Admin Added Successfully', '', {
-            timeOut: 3000,
-            progressBar: true,
-            closeButton: true,
-          });
+          // this.toastr.success('Super Admin Added Successfully', '', {
+          //   timeOut: 3000,
+          //   progressBar: true,
+          //   closeButton: true,
+          // });
+                   this.toastr.success(
+            `Login credentials have been sent to ${this.newAdminEmail.trim()}`, 
+            'Super Admin Added Successfully', 
+            {
+              timeOut: 5000,
+              progressBar: true,
+              closeButton: true,
+            }
+          );
           
           // Add notification to notification service
-          this.notificationService.addNotification(
+          // this.notificationService.addNotification(
+          //   'success',
+          //   `Super admin "${newAdminName}" has been successfully added to the system.`,
+          //   'Admin Added'
+          // );
+                    this.notificationService.addNotification(
             'success',
-            `Super admin "${newAdminName}" has been successfully added to the system.`,
+            `Super admin "${newAdminName}" has been successfully added to the system. Login credentials have been sent.`,
             'Admin Added'
           );
           

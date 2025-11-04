@@ -34,15 +34,36 @@ export class ProjectPreviewComponent {
   }
 
   get canCreate(): boolean {
-    // Only require core fields: projectName, projectKey, status, manager, deliveryUnit
-    // Customer information is now optional
-    return !!(
+    // Check core fields: projectName, projectKey, status, manager, deliveryUnit
+    const coreFieldsValid = !!(
       this.projectName && this.projectName.trim() &&
       this.projectKey && this.projectKey.trim() &&
       this.status && this.status.trim() &&
       this.manager && this.manager.trim() &&
       this.deliveryUnit && this.deliveryUnit.trim()
     );
+
+    if (!coreFieldsValid) {
+      return false;
+    }
+
+    // Validate email if provided (must be valid or empty)
+    if (this.pocEmail && this.pocEmail.trim() !== '') {
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(this.pocEmail)) {
+        return false;
+      }
+    }
+
+    // Validate phone if provided (must be valid or empty)
+    if (this.phoneNumber && this.phoneNumber.trim() !== '') {
+      const phonePattern = /^\+?[\d\s\-()]{7,}$/;
+      if (!phonePattern.test(this.phoneNumber)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   get missingFields(): string[] {

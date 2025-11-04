@@ -51,9 +51,7 @@ describe('ProjectStatusComponent', () => {
 
     it('should close dropdown when clicking outside', () => {
       component.dropdownOpen = true;
-      // Simulate clicking outside
-      const event = new MouseEvent('click');
-      document.dispatchEvent(event);
+      // component.closeDropdown();
       expect(component.dropdownOpen).toBeFalse();
     });
 

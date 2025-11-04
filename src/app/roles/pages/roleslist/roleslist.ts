@@ -81,7 +81,7 @@ export class Roleslist implements OnInit {
     this.rolesService.fetchRoles().subscribe({
       next: (apiRoles) => {
         console.log('Raw API roles response:', apiRoles);
-        this.roles = apiRoles.map(r => {
+        this.roles = apiRoles.map((r, index) => {
           const mappedRole = {
             id: r.id,
             roleInfo: { icon: 'shield', name: r.name },
@@ -91,7 +91,8 @@ export class Roleslist implements OnInit {
             permissionIds: Array.isArray(r.permissions)
               ? r.permissions.map((p: any) => typeof p === 'object' && p.id ? p.id : Number(p))
               : [],
-            isDefault: false
+            // Mark first two roles (Admin and Project Manager) as default/non-editable
+            isDefault: index < 2
           };
           console.log(`Mapped role ${r.name}:`, mappedRole);
           return mappedRole;

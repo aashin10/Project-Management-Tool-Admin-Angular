@@ -1,19 +1,22 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { ChangeDetectorRef } from '@angular/core';
 import { CustomButton } from "../../../shared/custom-button/custom-button";
-import { Authentication } from '../../../shared/services/authenticationservice/authentication';
+import { Authentication, type AuthState } from '../../../shared/services/authenticationservice/authentication';
 import { ToastrService } from 'ngx-toastr';
+import { LoadingIndicator } from '../../../shared/loading-indicator/loading-indicator';
+import { Observable, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomButton],
+  imports: [CommonModule, FormsModule, CustomButton, LoadingIndicator],
   templateUrl: './login.html',
   styleUrl: './login.css'
 })
-export class Login {
+export class Login implements OnInit, OnDestroy {
   email: string = '';
   password: string = '';
   showPassword: boolean = false;
@@ -28,20 +31,36 @@ export class Login {
   
   // Return URL for redirect after login
   returnUrl: string = '/dashboard';
+  public authState$!: Observable<AuthState>;
+
+  private authStateSubscription?: Subscription;
+  private hasNavigatedAfterAuth = false;
 
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private authService: Authentication,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private cdr: ChangeDetectorRef
   ) {
     // Get return URL from route parameters or default to '/dashboard'
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
-    
-    // Redirect if already authenticated
-    if (this.authService.isAuthenticated()) {
-      this.router.navigate([this.returnUrl]);
-    }
+    this.authState$ = this.authService.authState$;
+  }
+
+  ngOnInit(): void {
+    // React to authentication state changes so refreshes show a loader instead of flashing the login page.
+    this.authStateSubscription = this.authState$.subscribe((state: AuthState) => {
+      if (state === 'authenticated') {
+        this.navigateAfterAuthResolved();
+      } else if (state === 'unauthenticated') {
+        this.hasNavigatedAfterAuth = false;
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.authStateSubscription?.unsubscribe();
   }
 
   togglePasswordVisibility(): void {
@@ -134,8 +153,9 @@ export class Login {
   }
 
   onSubmit(): void {
-    // Clear previous login error
+    // Clear previous login error and messages
     this.loginError = '';
+    this.toastr.clear();
     
     // Validate all fields before submission
     this.validateEmail();
@@ -162,27 +182,60 @@ export class Login {
     // Call authentication service
     this.authService.login(this.email, this.password).subscribe({
       next: (response) => {
-        this.isLoading = false;
-        console.log(response);
-        if (response.status === 200) {
-          console.log('Login successful');
+        console.log('📥 Login response:', response);
+        
+        // Check if response has status 200 AND has token data
+        if (response && response.status === 200 && response.data && response.data.accessToken) {
+          console.log('✅ Login successful');
+          this.isLoading = false;
           this.toastr.success('Welcome back!', 'Login Successful');
           // Navigate to return URL or dashboard
           this.router.navigate([this.returnUrl]);
         } else {
-          // Login failed - show error toaster
-          this.loginError = 'Invalid Login Credentials';
-          this.toastr.error('Invalid Login Credentials', 'Login Failed');
+          // Response received but not successful
+          console.log('❌ Login response indicates failure');
+          this.isLoading = false;
+          const errorMsg = response?.message || 'Invalid Login Credentials';
+          this.loginError = errorMsg;
+          this.toastr.error(errorMsg, 'Login Failed');
         }
       },
       error: (error) => {
-        this.isLoading = false;
-        console.error('Login error:', error);
+        console.error('❌ Login error:', error);
         
-        // Show toaster for invalid credentials or any login error
-        this.toastr.error('Invalid Login Credentials', 'Login Failed');
-        this.loginError = 'Invalid Login Credentials';
+        // Always set isLoading to false first
+        this.isLoading = false;
+        
+        // Extract error message from various possible response formats
+        let errorMessage = 'Invalid Login Credentials';
+        
+        if (error?.error?.message) {
+          errorMessage = error.error.message;
+        } else if (error?.error?.errors && Array.isArray(error.error.errors)) {
+          errorMessage = error.error.errors[0] || 'Invalid Login Credentials';
+        } else if (error?.error?.data?.message) {
+          errorMessage = error.error.data.message;
+        } else if (error?.message) {
+          errorMessage = error.message;
+        } else if (error?.statusText && error.statusText !== 'Unknown Error') {
+          errorMessage = error.statusText;
+        }
+        
+        this.loginError = errorMessage;
+        this.toastr.error(errorMessage, 'Login Failed');
+        
+        // Force change detection
+        this.cdr.markForCheck();
       }
     });
+  }
+
+  private navigateAfterAuthResolved(): void {
+    if (this.hasNavigatedAfterAuth) {
+      return;
+    }
+
+    this.hasNavigatedAfterAuth = true;
+    this.router.navigate([this.returnUrl]);
   }
 }
