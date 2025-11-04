@@ -208,11 +208,11 @@ export class SelectProjectsSection implements OnInit {
       .subscribe({
         next: (response) => {
           console.log('Import Response:', response);
-          sessionStorage.setItem('users_missing', JSON.stringify(response.data));
+          sessionStorage.setItem('import_response', JSON.stringify(response.data));
           this.isImporting = false;
           sessionStorage.setItem('isImporting', 'false');
+          this.toastr.success('Projects imported successfully.', 'Import Successful');
           this.cdr.detectChanges();
-          this.toastr.success('Projects imported successfully!', 'Import Successful');
           this.navigationService.onNext();
         },
         error: (error) => {

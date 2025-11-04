@@ -4,16 +4,29 @@ import {
   provideZonelessChangeDetection,
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
-
-import { routes } from './app.routes';
+import { provideHttpClient, withFetch, withInterceptorsFromDi, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
-import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideToastr } from 'ngx-toastr';
 
+import { routes } from './app.routes';
+import { AuthInterceptor } from './shared/services/authenticationservice/auth.interceptor';
+
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideHttpClient(withFetch()),
+    // HTTP Client with interceptors enabled
+    provideHttpClient(
+      withFetch(),
+      withInterceptorsFromDi()  // ← Enable class-based interceptors
+    ),
+    
+    // Register the AuthInterceptorz
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true  // ← CRITICAL: must be true!
+    },
+    
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
     provideRouter(routes),

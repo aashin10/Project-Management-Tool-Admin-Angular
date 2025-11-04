@@ -119,14 +119,17 @@ export class IndividualprojectComponent implements OnInit, OnDestroy {
         }
 
         console.log('API response received:', response);
+        console.log('isImportedFromJira from API:', response?.data?.isImportedFromJira);
         
         // Handle successful response - check for data first
         if (response && response.data) {
           console.log('Mapping project data:', response.data);
           console.log('Teams from API:', response.data.teams);
+          console.log('isImportedFromJira from API:', response.data.isImportedFromJira);
           this.project = this.mapProjectDTOToProject(response.data);
           this.loadingError = '';
           console.log('Project mapped successfully:', this.project);
+          console.log('isImportedFromJira after mapping:', this.project?.isImportedFromJira);
           console.log('Project teams after mapping:', this.project?.teams);
         } else {
           console.warn('No data in response:', response);
@@ -317,6 +320,9 @@ export class IndividualprojectComponent implements OnInit, OnDestroy {
    */
   formatDate(dateString: string): string {
     // Simple date formatting - enhance as needed
-    return dateString;
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   }
 }
+
