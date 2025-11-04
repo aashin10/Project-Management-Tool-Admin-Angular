@@ -98,13 +98,13 @@
   <div class="flex gap-2 justify-around w-full mt-6">
     <app-custom-button
       label="Skip for Now"
-      [loading]="isUploading"
       shortLabel="Skip"
       (action)="onSkip()"
       bgClass="bg-blue-white border border-gray-300 hover:bg-gray-50 md:w-48 w-24"
     ></app-custom-button>
     <app-custom-button
       label="Finish"
+      [loading]="isUploading"
       shortLabel="Finish"
       bgClass="bg-[#0052cc] border border-gray-300 md:w-48 w-24"
       [hoverClass]="'hover:bg-[#0052cce6]'"
