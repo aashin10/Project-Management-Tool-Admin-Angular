@@ -256,6 +256,24 @@ export class Createproject {
       return;
     }
 
+    // Validate email format if provided
+    if (this.pocEmail && this.pocEmail.trim() !== '') {
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(this.pocEmail)) {
+        this.toastr.error('Please enter a valid email address', 'Validation Error');
+        return;
+      }
+    }
+
+    // Validate phone format if provided
+    if (this.phoneNumber && this.phoneNumber.trim() !== '') {
+      const phonePattern = /^\+?[\d\s\-()]{7,}$/;
+      if (!phonePattern.test(this.phoneNumber)) {
+        this.toastr.error('Please enter a valid phone number (at least 7 digits)', 'Validation Error');
+        return;
+      }
+    }
+
     // Create project request object matching API structure
     const createProjectRequest = {
       name: this.projectName,
