@@ -106,13 +106,43 @@ export class Authentication {
     this.setAuthLoading();
 
     setTimeout(() => {
-      // Defer token validation to the next macrotask so consumers can subscribe before the first emission.
-      const isValid = this.hasValidToken();
-      this.updateAuthenticatedState(isValid);
+      // Defer token validation so subscribers can attach before the first emission
+      const hasAccessToken = !!this.getAccessToken();
+      const hasRefreshToken = !!this.getRefreshToken();
 
-      if (isValid) {
-        this.loadCurrentUser();
+      if (!hasAccessToken && !hasRefreshToken) {
+        this.updateAuthenticatedState(false);
+        return;
       }
+
+      if (hasAccessToken && this.hasValidToken()) {
+        this.updateAuthenticatedState(true);
+        this.loadCurrentUser();
+        return;
+      }
+
+      if (hasRefreshToken) {
+        console.log('🔄 Access token invalid or missing, attempting session refresh with refresh token');
+        this.refreshToken().subscribe({
+          next: (response) => {
+            if (response.status === 200 && response.data) {
+              console.log('✅ Session refreshed successfully during initialization');
+              this.loadCurrentUser();
+            } else {
+              console.warn('⚠️ Refresh token response did not return new tokens during initialization');
+              this.updateAuthenticatedState(false);
+            }
+          },
+          error: (error) => {
+            console.error('❌ Failed to refresh session during initialization:', error);
+            this.updateAuthenticatedState(false);
+          }
+        });
+        return;
+      }
+
+      // No valid token and no refresh token available
+      this.updateAuthenticatedState(false);
     }, 0);
   }
 
@@ -299,18 +329,24 @@ export class Authentication {
     try {
       const payload = this.decodeToken(token);
       const currentTime = Math.floor(Date.now() / 1000);
+
+      if (payload?.exp === undefined) {
+        console.warn('⚠️ Token payload has no exp claim; treating token as opaque and valid');
+        return true;
+      }
+
       const isValid = payload.exp > currentTime;
-      
+
       if (!isValid) {
         console.log('⚠️ Token expired. Expires at:', new Date(payload.exp * 1000), 'Current time:', new Date());
       } else {
         console.log('✅ Token is valid. Expires at:', new Date(payload.exp * 1000));
       }
-      
+
       return isValid;
     } catch (error) {
-      console.error('❌ Error decoding token:', error);
-      return false;
+      console.warn('⚠️ Unable to decode token payload, assuming opaque token remains valid:', error);
+      return true; // Assume opaque tokens are valid if present
     }
   }
 

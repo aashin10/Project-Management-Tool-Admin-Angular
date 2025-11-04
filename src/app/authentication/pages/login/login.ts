@@ -1,20 +1,22 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ChangeDetectorRef } from '@angular/core';
 import { CustomButton } from "../../../shared/custom-button/custom-button";
-import { Authentication } from '../../../shared/services/authenticationservice/authentication';
+import { Authentication, type AuthState } from '../../../shared/services/authenticationservice/authentication';
 import { ToastrService } from 'ngx-toastr';
+import { LoadingIndicator } from '../../../shared/loading-indicator/loading-indicator';
+import { Observable, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomButton],
+  imports: [CommonModule, FormsModule, CustomButton, LoadingIndicator],
   templateUrl: './login.html',
   styleUrl: './login.css'
 })
-export class Login {
+export class Login implements OnInit, OnDestroy {
   email: string = '';
   password: string = '';
   showPassword: boolean = false;
@@ -29,6 +31,10 @@ export class Login {
   
   // Return URL for redirect after login
   returnUrl: string = '/dashboard';
+  public authState$!: Observable<AuthState>;
+
+  private authStateSubscription?: Subscription;
+  private hasNavigatedAfterAuth = false;
 
   constructor(
     private router: Router,
@@ -39,11 +45,22 @@ export class Login {
   ) {
     // Get return URL from route parameters or default to '/dashboard'
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
-    
-    // Redirect if already authenticated
-    if (this.authService.isAuthenticated()) {
-      this.router.navigate([this.returnUrl]);
-    }
+    this.authState$ = this.authService.authState$;
+  }
+
+  ngOnInit(): void {
+    // React to authentication state changes so refreshes show a loader instead of flashing the login page.
+    this.authStateSubscription = this.authState$.subscribe((state: AuthState) => {
+      if (state === 'authenticated') {
+        this.navigateAfterAuthResolved();
+      } else if (state === 'unauthenticated') {
+        this.hasNavigatedAfterAuth = false;
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.authStateSubscription?.unsubscribe();
   }
 
   togglePasswordVisibility(): void {
@@ -211,5 +228,14 @@ export class Login {
         this.cdr.markForCheck();
       }
     });
+  }
+
+  private navigateAfterAuthResolved(): void {
+    if (this.hasNavigatedAfterAuth) {
+      return;
+    }
+
+    this.hasNavigatedAfterAuth = true;
+    this.router.navigate([this.returnUrl]);
   }
 }
