@@ -1,1 +1,11 @@
-<router-outlet></router-outlet>
+<ng-container *ngIf="authState$ | async as authState">
+		<div *ngIf="authState === 'loading'" class="auth-loading-wrapper" aria-live="polite">
+		<app-loading-indicator></app-loading-indicator>
+			<p class="auth-loading-title">Loading your workspace...</p>
+			<p class="auth-loading-subtitle">We're restoring your session, just a moment.</p>
+	</div>
+
+	<router-outlet *ngIf="authState !== 'loading'"></router-outlet>
+</ng-container>
+
+

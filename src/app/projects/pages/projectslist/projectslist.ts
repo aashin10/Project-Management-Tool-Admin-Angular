@@ -203,12 +203,16 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
                 id: manager.id,
                 name: manager.name || 'Unknown'
               }));
+              console.log('✅ Project managers loaded:', this.managerOptions.length);
             }
             resolve();
           },
           error: (err) => {
-            console.error('Failed to load project managers:', err);
-            this.managerOptions = [];
+            console.error('❌ Failed to load project managers:', err);
+            // Only log error if it's not a 401 (401 will be handled by interceptor)
+            if (err.status !== 401) {
+              this.managerOptions = [];
+            }
             resolve();
           }
         });
@@ -223,11 +227,15 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
       this.deliveryUnitsService.getAllDeliveryUnits().subscribe({
         next: (deliveryUnits) => {
           this.deliveryUnits = deliveryUnits;
+          console.log('✅ Delivery units loaded:', this.deliveryUnits.length);
           resolve();
         },
         error: (err) => {
-          console.error('Failed to load delivery units:', err);
-          this.deliveryUnits = [];
+          console.error('❌ Failed to load delivery units:', err);
+          // Only log error if it's not a 401 (401 will be handled by interceptor)
+          if (err.status !== 401) {
+            this.deliveryUnits = [];
+          }
           resolve();
         }
       });
@@ -292,6 +300,20 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
    */
   private handleFetchError(err: any) {
     console.error('Projects API call failed:', err);
+    
+    // Handle authentication errors specifically
+    if (err instanceof HttpErrorResponse && err.status === 401) {
+      console.log('🔴 401 error from projects API - token likely expired, logging out');
+      this.toastr.error('Your session has expired. Please log in again.', 'Session Expired', {
+        timeOut: 5000,
+        progressBar: true
+      });
+      // The interceptor should handle logout, but let's also clear local state
+      this.loadingError = 'Session expired. Redirecting to login...';
+      this.isLoading = false;
+      this.cdr.markForCheck();
+      return;
+    }
     
     // Provide specific messages for different error types
     let errorMessage = 'Failed to load projects. Please try again.';
