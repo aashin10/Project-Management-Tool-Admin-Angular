@@ -161,7 +161,7 @@ export class DashboardMainComponent implements OnInit {
         borderColor: 'border-blue-100'
       },
       {
-        title: 'Active Projects',
+        title: 'In Progress',
         value: summary.inProgressProjects,
         icon: '/images/dashboard-card2.svg',
         iconBgColor: 'bg-emerald-50',
@@ -170,7 +170,7 @@ export class DashboardMainComponent implements OnInit {
         borderColor: 'border-emerald-100'
       },
       {
-        title: 'Inactive Projects',
+        title: 'On Hold Projects',
         value: summary.onHoldProjects,
         icon: '/images/dashboard-card3.svg',
         iconBgColor: 'bg-amber-50',
@@ -191,29 +191,17 @@ export class DashboardMainComponent implements OnInit {
 
   /**
    * Map summary DTO to project status data
-   * This creates data for ALL delivery units + overall summary
+   * This creates data for individual delivery units
    */
   private mapSummaryToProjectStatus(summary: DashboardSummaryDTO): ProjectStatusData[] {
-    // Create overall summary card (All Delivery Units)
-    const overallSummary: ProjectStatusData = {
-      deliveryUnit: 'All Delivery Units',
-      inProgress: summary.inProgressProjects,
-      completed: summary.completedProjects,
-      onHold: summary.onHoldProjects,
-      total: summary.totalProjects
-    };
-
     // Map individual delivery units
-    const individualUnits = summary.projectStatuses.map(status => ({
+    return summary.projectStatuses.map(status => ({
       deliveryUnit: status.deliveryUnit,
       inProgress: status.inProgress,
       completed: status.completed,
       onHold: status.onHold,
       total: status.total
     }));
-    
-    // Return overall summary first, followed by individual units
-    return [overallSummary, ...individualUnits];
   }
 
   /**

@@ -33,11 +33,21 @@ export class ImportUsersSection implements OnInit {
   openMissingUserModal = false;
   missingUsersAvailable = false;
   operationResultsAvailable = false;
+  openCsvGuideModal = false;
 
   isUploading = false;
 
   closeMissingUserModal() {
     this.openMissingUserModal = false;
+  }
+
+  closeCsvGuideModal() {
+    this.openCsvGuideModal = false;
+  }
+
+  openOptionalInfo() {
+    this.openCsvGuideModal = true;
+    this.cdr.detectChanges();
   }
 
   ngOnInit() {
@@ -115,5 +125,6 @@ export class ImportUsersSection implements OnInit {
         this.toastr.error('Error uploading users. Please try again.');
       }
     );
+    sessionStorage.removeItem('import_response');
   }
 }

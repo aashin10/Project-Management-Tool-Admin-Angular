@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -37,6 +38,7 @@ describe('Deliveryunitslist Component', () => {
 
     await TestBed.configureTestingModule({
       imports: [
+        HttpClientTestingModule,
         Deliveryunitslist,
         Table,
         Sectiontitle,
