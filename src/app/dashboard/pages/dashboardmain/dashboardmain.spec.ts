@@ -1,28 +1,108 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { ToastrModule } from 'ngx-toastr';
 import { DashboardMainComponent } from './dashboardmain';
 import { DashboardMetricCards } from './dashboard-metric-cards/dashboard-metric-cards';
 import { ProjectActivityTimelineComponent } from './project-activity-timeline/project-activity-timeline';
 import { ProjectStatusComponent } from './project-status-pie/project-status-pie';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
+import { DashboardService, DashboardSummaryDTO, ActivityChartDTO } from './dashboard-service';
+import { NotificationService } from '../../../shared/services/notification.service';
+import { of } from 'rxjs';
 
 describe('DashboardMainComponent', () => {
   let component: DashboardMainComponent;
   let fixture: ComponentFixture<DashboardMainComponent>;
   let compiled: HTMLElement;
+  let mockDashboardService: jasmine.SpyObj<DashboardService>;
+
+  // Mock data
+  const mockSummary: DashboardSummaryDTO = {
+    totalProjects: 111,
+    inProgressProjects: 54,
+    onHoldProjects: 15,
+    completedProjects: 42,
+    totalDeliveryUnits: 5,
+    projectStatuses: [
+      { deliveryUnit: 'Engineering', inProgress: 20, onHold: 5, completed: 15, total: 40 },
+      { deliveryUnit: 'Design', inProgress: 10, onHold: 3, completed: 10, total: 23 },
+      { deliveryUnit: 'Product', inProgress: 8, onHold: 2, completed: 6, total: 16 },
+      { deliveryUnit: 'Quality Assurance', inProgress: 8, onHold: 3, completed: 6, total: 17 },
+      { deliveryUnit: 'DevOps', inProgress: 8, onHold: 2, completed: 5, total: 15 }
+    ]
+  };
+
+  const mockActivity: ActivityChartDTO = {
+    monthly: [
+      { period: 'Week 1', projects: 15 },
+      { period: 'Week 2', projects: 12 },
+      { period: 'Week 3', projects: 8 },
+      { period: 'Week 4', projects: 25 }
+    ],
+    quarterly: [
+      { period: 'Q1 2024', projects: 45 },
+      { period: 'Q2 2024', projects: 32 },
+      { period: 'Q3 2024', projects: 18 },
+      { period: 'Q4 2024', projects: 78 }
+    ],
+    yearly: [
+      { period: 'Jan', projects: 12 },
+      { period: 'Feb', projects: 15 },
+      { period: 'Mar', projects: 8 },
+      { period: 'Apr', projects: 10 },
+      { period: 'May', projects: 14 },
+      { period: 'Jun', projects: 9 },
+      { period: 'Jul', projects: 11 },
+      { period: 'Aug', projects: 13 },
+      { period: 'Sep', projects: 7 },
+      { period: 'Oct', projects: 16 },
+      { period: 'Nov', projects: 12 },
+      { period: 'Dec', projects: 37 }
+    ],
+    last5Years: [
+      { period: '2020', projects: 120 },
+      { period: '2021', projects: 150 },
+      { period: '2022', projects: 200 },
+      { period: '2023', projects: 250 },
+      { period: '2024', projects: 320 }
+    ],
+    allTime: [
+      { period: '2018', projects: 80 },
+      { period: '2019', projects: 80 },
+      { period: '2020', projects: 120 },
+      { period: '2021', projects: 150 },
+      { period: '2022', projects: 200 },
+      { period: '2023', projects: 250 },
+      { period: '2024', projects: 320 }
+    ]
+  };
 
   beforeEach(async () => {
+    const dashboardServiceSpy = jasmine.createSpyObj('DashboardService', ['getDashboardSummary', 'getActivityChart']);
+    dashboardServiceSpy.getDashboardSummary.and.returnValue(of(mockSummary));
+    dashboardServiceSpy.getActivityChart.and.returnValue(of(mockActivity));
+
+    const notificationServiceSpy = jasmine.createSpyObj('NotificationService', ['showSuccess', 'showError']);
+
     await TestBed.configureTestingModule({
       imports: [
+        HttpClientTestingModule,
+        ToastrModule.forRoot(),
         DashboardMainComponent,
         DashboardMetricCards,
         ProjectActivityTimelineComponent,
         ProjectStatusComponent
+      ],
+      providers: [
+        { provide: DashboardService, useValue: dashboardServiceSpy },
+        { provide: NotificationService, useValue: notificationServiceSpy }
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(DashboardMainComponent);
     component = fixture.componentInstance;
+    mockDashboardService = TestBed.inject(DashboardService) as jasmine.SpyObj<DashboardService>;
     compiled = fixture.nativeElement;
     fixture.detectChanges();
   });
@@ -47,7 +127,7 @@ describe('DashboardMainComponent', () => {
     it('should have correct Total Projects card data', () => {
       const totalProjectsCard = component.metricCards[0];
       expect(totalProjectsCard.title).toBe('Total Projects');
-      expect(totalProjectsCard.value).toBe(37);
+      expect(totalProjectsCard.value).toBe(111);
       expect(totalProjectsCard.icon).toBe('/images/dashboard-card1.svg');
       expect(totalProjectsCard.iconBgColor).toBe('bg-blue-50');
       expect(totalProjectsCard.iconColor).toBe('text-blue-600');
@@ -57,7 +137,7 @@ describe('DashboardMainComponent', () => {
     it('should have correct In Progress card data', () => {
       const inProgressCard = component.metricCards[1];
       expect(inProgressCard.title).toBe('In Progress');
-      expect(inProgressCard.value).toBe(18);
+      expect(inProgressCard.value).toBe(54);
       expect(inProgressCard.icon).toBe('/images/dashboard-card2.svg');
       expect(inProgressCard.iconBgColor).toBe('bg-emerald-50');
       expect(inProgressCard.iconColor).toBe('text-emerald-600');
@@ -67,7 +147,7 @@ describe('DashboardMainComponent', () => {
     it('should have correct On Hold Projects card data', () => {
       const onHoldCard = component.metricCards[2];
       expect(onHoldCard.title).toBe('On Hold Projects');
-      expect(onHoldCard.value).toBe(5);
+      expect(onHoldCard.value).toBe(15);
       expect(onHoldCard.icon).toBe('/images/dashboard-card3.svg');
       expect(onHoldCard.iconBgColor).toBe('bg-amber-50');
       expect(onHoldCard.iconColor).toBe('text-amber-600');
@@ -105,46 +185,46 @@ describe('DashboardMainComponent', () => {
     it('should have correct Engineering delivery unit data', () => {
       const engineering = component.projectStatusData[0];
       expect(engineering.deliveryUnit).toBe('Engineering');
-      expect(engineering.inProgress).toBe(8);
-      expect(engineering.completed).toBe(6);
-      expect(engineering.onHold).toBe(2);
-      expect(engineering.total).toBe(16);
+      expect(engineering.inProgress).toBe(20);
+      expect(engineering.completed).toBe(15);
+      expect(engineering.onHold).toBe(5);
+      expect(engineering.total).toBe(40);
     });
 
     it('should have correct Design delivery unit data', () => {
       const design = component.projectStatusData[1];
       expect(design.deliveryUnit).toBe('Design');
-      expect(design.inProgress).toBe(4);
-      expect(design.completed).toBe(3);
-      expect(design.onHold).toBe(1);
-      expect(design.total).toBe(8);
+      expect(design.inProgress).toBe(10);
+      expect(design.completed).toBe(10);
+      expect(design.onHold).toBe(3);
+      expect(design.total).toBe(23);
     });
 
     it('should have correct Product delivery unit data', () => {
       const product = component.projectStatusData[2];
       expect(product.deliveryUnit).toBe('Product');
-      expect(product.inProgress).toBe(3);
-      expect(product.completed).toBe(2);
-      expect(product.onHold).toBe(1);
-      expect(product.total).toBe(6);
+      expect(product.inProgress).toBe(8);
+      expect(product.completed).toBe(6);
+      expect(product.onHold).toBe(2);
+      expect(product.total).toBe(16);
     });
 
     it('should have correct Quality Assurance delivery unit data', () => {
       const qa = component.projectStatusData[3];
       expect(qa.deliveryUnit).toBe('Quality Assurance');
-      expect(qa.inProgress).toBe(2);
-      expect(qa.completed).toBe(2);
-      expect(qa.onHold).toBe(1);
-      expect(qa.total).toBe(5);
+      expect(qa.inProgress).toBe(8);
+      expect(qa.completed).toBe(6);
+      expect(qa.onHold).toBe(3);
+      expect(qa.total).toBe(17);
     });
 
     it('should have correct DevOps delivery unit data', () => {
       const devops = component.projectStatusData[4];
       expect(devops.deliveryUnit).toBe('DevOps');
-      expect(devops.inProgress).toBe(1);
-      expect(devops.completed).toBe(1);
-      expect(devops.onHold).toBe(0);
-      expect(devops.total).toBe(2);
+      expect(devops.inProgress).toBe(8);
+      expect(devops.completed).toBe(5);
+      expect(devops.onHold).toBe(2);
+      expect(devops.total).toBe(15);
     });
 
     it('should have total matching sum of individual statuses', () => {
@@ -244,15 +324,16 @@ describe('DashboardMainComponent', () => {
 
   describe('Template Rendering', () => {
     it('should render header with title', () => {
-      const header = compiled.querySelector('h1');
-      expect(header).toBeTruthy();
-      expect(header?.textContent).toContain('Welcome back');
+      const sectionTitle = compiled.querySelector('app-sectiontitle');
+      expect(sectionTitle).toBeTruthy();
+      // Check if the title attribute contains 'Welcome back'
+      expect(sectionTitle?.getAttribute('title')).toContain('Welcome back');
     });
 
     it('should render header description', () => {
-      const description = compiled.querySelector('p.text-gray-500');
-      expect(description).toBeTruthy();
-      expect(description?.textContent).toContain('Comprehensive overview');
+      const sectionTitle = compiled.querySelector('app-sectiontitle');
+      expect(sectionTitle).toBeTruthy();
+      expect(sectionTitle?.getAttribute('description')).toContain('Comprehensive overview');
     });
 
     it('should render redirect button', () => {

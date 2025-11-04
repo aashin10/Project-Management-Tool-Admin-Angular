@@ -146,7 +146,6 @@ describe('Roleslist Component Suite', () => {
   // =====================================================
   describe('Create Role', () => {
     it('should create a new valid role', () => {
-      spyOn(window, 'alert');
       const initial = component.roles.length;
       component.newRole = {
         roleInfo: { icon: 'shield', name: 'QA Tester' },
@@ -160,7 +159,6 @@ describe('Roleslist Component Suite', () => {
     });
 
     it('should trim whitespace from role name', () => {
-      spyOn(window, 'alert');
       component.newRole = {
         roleInfo: { icon: 'shield', name: '  TrimmedRole  ' },
         description: 'Whitespace test',
@@ -177,7 +175,6 @@ describe('Roleslist Component Suite', () => {
     });
 
     it('should not add a role with empty name', () => {
-      spyOn(window, 'alert');
       component.newRole = {
         roleInfo: { icon: 'shield', name: '' },
         description: 'Invalid name',
@@ -186,12 +183,11 @@ describe('Roleslist Component Suite', () => {
         permissionIds: [1]
       };
       component.saveRole();
-      expect(window.alert).toHaveBeenCalledWith('Role name is required.');
+      expect(mockToastrService.warning).toHaveBeenCalledWith('Role name is required', 'Validation Error');
       expect(mockRolesService.createRole).not.toHaveBeenCalled();
     });
 
     it('should not add a role with no permissions', () => {
-      spyOn(window, 'alert');
       component.newRole = {
         roleInfo: { icon: 'shield', name: 'NoPermRole' },
         description: 'No perms',
@@ -200,12 +196,11 @@ describe('Roleslist Component Suite', () => {
         permissionIds: []
       };
       component.saveRole();
-      expect(window.alert).toHaveBeenCalledWith('Please assign at least one permission.');
+      expect(mockToastrService.warning).toHaveBeenCalledWith('Please assign at least one permission.', 'Validation Error');
       expect(mockRolesService.createRole).not.toHaveBeenCalled();
     });
 
     it('should not allow duplicate role names (case-insensitive)', () => {
-      spyOn(window, 'alert');
       const dupName = component.roles[0].roleInfo.name.toLowerCase();
       component.newRole = {
         roleInfo: { icon: 'shield', name: dupName.toUpperCase() },
@@ -215,7 +210,7 @@ describe('Roleslist Component Suite', () => {
         permissionIds: [1]
       };
       component.saveRole();
-      expect(window.alert).toHaveBeenCalledWith('A role with this name already exists.');
+      expect(mockToastrService.warning).toHaveBeenCalledWith('A role with this name already exists.', 'Validation Error');
       expect(mockRolesService.createRole).not.toHaveBeenCalled();
     });
   });
@@ -225,7 +220,6 @@ describe('Roleslist Component Suite', () => {
   // =====================================================
   describe('Edit Role', () => {
     it('should not update if edited role has invalid data', () => {
-      spyOn(window, 'alert');
       const role = component.roles[0];
       component.editRole(role, 0);
 
@@ -233,7 +227,7 @@ describe('Roleslist Component Suite', () => {
         component.newRole.roleInfo.name = '';
       }
       component.saveRole();
-      expect(window.alert).toHaveBeenCalledWith('Role name is required.');
+      expect(mockToastrService.warning).toHaveBeenCalledWith('Role name is required', 'Validation Error');
       expect(mockRolesService.updateRole).not.toHaveBeenCalled();
     });
   });
