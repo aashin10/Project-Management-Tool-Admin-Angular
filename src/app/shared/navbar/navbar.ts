@@ -125,7 +125,6 @@ export class Navbar implements OnInit, OnDestroy {
   }
 
   onSearch(query: string) {
-    this.isSearching = true;
     this.isSearchBarVisible = true;
     this.search$.next(query);
   }
