@@ -291,20 +291,32 @@ export class Roleslist implements OnInit {
   saveRole() {
     // Validate role name
     if (!this.newRole.roleInfo?.name) {
-      alert('Role name is required.');
+      this.toastr.warning('Role name is required', 'Validation Error', {
+        timeOut: 3000,
+        progressBar: true,
+        closeButton: true
+      });
       return;
     }
 
     const trimmedName = this.newRole.roleInfo.name.trim();
 
     if (!trimmedName) {
-      alert('Role name is required.');
+      this.toastr.warning('Role name is required', 'Validation Error', {
+        timeOut: 3000,
+        progressBar: true,
+        closeButton: true
+      });
       return;
     }
 
     // Validate description
     if (!this.newRole.description || !this.newRole.description.trim()) {
-      alert('Description is required.');
+      this.toastr.warning('Description is required', 'Validation Error', {
+        timeOut: 3000,
+        progressBar: true,
+        closeButton: true
+      });
       return;
     }
 
@@ -313,14 +325,22 @@ export class Roleslist implements OnInit {
       (r, i) => r.roleInfo.name.toLowerCase() === trimmedName.toLowerCase() && i !== this.editingIndex
     );
     if (duplicate) {
-      alert('A role with this name already exists.');
+      this.toastr.error('This role already exists', 'Duplicate Role', {
+        timeOut: 3000,
+        progressBar: true,
+        closeButton: true
+      });
       return;
     }
 
     // Validate permissions
     console.log('Validating permissionIds:', this.newRole.permissionIds);
     if (!this.newRole.permissionIds || this.newRole.permissionIds.length === 0) {
-      alert('Please assign at least one permission.');
+      this.toastr.warning('Assign at least one permission', 'Validation Error', {
+        timeOut: 3000,
+        progressBar: true,
+        closeButton: true
+      });
       return;
     }
 
