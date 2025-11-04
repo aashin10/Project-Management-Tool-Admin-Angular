@@ -125,20 +125,20 @@ export class TeamOrganizationComponent implements OnInit, OnChanges {
     if (!u || typeof u.name !== 'string') {
       return;
     }
-    this._manager = u.name;
+    this.manager = u.name;
     this._selectedProjectManagerId = u.id;
-    this.managerChange.emit(this._manager);
     this.selectedProjectManagerIdChange.emit(this._selectedProjectManagerId);
     this.managerSelect.emit(u); // Emit the full user object
     this.showManagerSuggestions = false;
+    this.cdr.detectChanges();
   }
 
   clearManager() {
-    this._manager = '';
+    this.manager = '';
     this._selectedProjectManagerId = 0;
-    this.managerChange.emit(this._manager);
     this.selectedProjectManagerIdChange.emit(this._selectedProjectManagerId);
     this.showManagerSuggestions = false;
+    this.cdr.detectChanges();
   }
 
   onDeliveryUnitChange(code: string) {

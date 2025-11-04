@@ -19,7 +19,7 @@ export const routes: Routes = [
     component: Layout,
     canActivate: [AuthGuard],
     children: [
-      // Default redirect to projects
+      // Default redirect to dashboard
       {
         path: '',
         redirectTo: 'dashboard',

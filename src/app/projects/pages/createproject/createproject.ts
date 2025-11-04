@@ -167,7 +167,19 @@ export class Createproject {
   onManagerChange(manager: string) {
     this.manager = manager;
     // Clear managerId when text changes (user is typing, not selecting)
-    this.managerId = null;
+    // But only if the manager name doesn't match the currently selected user
+    if (this.managerId) {
+      const selectedUser = this.allUsers.find(u => u.id === this.managerId);
+      if (!selectedUser || selectedUser.name !== manager) {
+        this.managerId = null;
+      }
+    } else {
+      // Try to find a user with this name and set managerId
+      const matchingUser = this.allUsers.find(u => u.name === manager);
+      if (matchingUser) {
+        this.managerId = matchingUser.id;
+      }
+    }
   }
 
   onManagerSearch(searchTerm: string) {
