@@ -49,7 +49,7 @@ describe('ProjectStatusComponent', () => {
       expect(component.dropdownOpen).toBeFalse();
     });
 
-    it('should close dropdown explicitly', () => {
+    it('should close dropdown when clicking outside', () => {
       component.dropdownOpen = true;
       // component.closeDropdown();
       expect(component.dropdownOpen).toBeFalse();
