@@ -89,7 +89,7 @@
           <!-- Edit Button -->
           <button
             (click)="openEditModal(admin)"
-            class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+            class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors cursor-pointer"
             type="button"
             aria-label="Edit admin"
           >
@@ -102,7 +102,7 @@
               (click)="openDeleteModal(admin)"
               [disabled]="isDeleteDisabled(admin)"
               [attr.title]="isDeleteDisabled(admin) ? 'Cannot delete the only active Super Admin' : 'Remove admin'"
-              class="p-2 rounded transition-colors"
+              class="p-2 rounded transition-colors cursor-pointer"
               [ngClass]="{
                 'text-gray-400 hover:text-red-600 hover:bg-red-50': !isDeleteDisabled(admin),
                 'text-gray-300 cursor-not-allowed opacity-60 bg-transparent': isDeleteDisabled(admin)
@@ -244,14 +244,14 @@
     <div class="flex justify-end gap-3">
       <button
         (click)="closeDeleteModal()"
-        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors cursor-pointer"
         type="button"
       >
         Cancel
       </button>
       <button
         (click)="confirmDelete()"
-        class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 transition-colors"
+        class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 transition-colors cursor-pointer"
         type="button"
       >
         Remove
@@ -335,7 +335,7 @@
         <button
           (click)="closeAddModal()"
           type="button"
-          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors cursor-pointer"
         >
           Cancel
         </button>
@@ -344,7 +344,7 @@
           [disabled]="!isAddFormValid"
           [class.opacity-50]="!isAddFormValid"
           [class.cursor-not-allowed]="!isAddFormValid"
-          class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors disabled:hover:bg-blue-600"
+          class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors disabled:hover:bg-blue-600 cursor-pointer"
         >
           Add Admin
         </button>
@@ -428,7 +428,7 @@
         <button
           (click)="closeEditModal()"
           type="button"
-          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors cursor-pointer"
         >
           Cancel
         </button>
@@ -437,7 +437,7 @@
           [disabled]="!isEditFormValid"
           [class.opacity-50]="!isEditFormValid"
           [class.cursor-not-allowed]="!isEditFormValid"
-          class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors disabled:hover:bg-blue-600"
+          class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors disabled:hover:bg-blue-600 cursor-pointer"
         >
           Save Changes
         </button>
