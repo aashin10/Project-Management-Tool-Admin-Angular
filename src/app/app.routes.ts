@@ -22,7 +22,7 @@ export const routes: Routes = [
       // Default redirect to projects
       {
         path: '',
-        redirectTo: 'projects',
+        redirectTo: 'dashboard',
         pathMatch: 'full'
       },
       {
