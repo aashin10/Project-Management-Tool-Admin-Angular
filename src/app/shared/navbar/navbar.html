@@ -20,7 +20,11 @@
             class="relative flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full hover:bg-gray-100 transition-colors hover:cursor-pointer"
             aria-label="Notifications"
           >
-            <img src="/images/notification.svg" class="h-14 w-14 text-gray-500" alt="notifications" />
+            <img
+              src="/images/notification.svg"
+              class="h-14 w-14 text-gray-500"
+              alt="notifications"
+            />
             <!-- Unread notification badge -->
             <span
               *ngIf="unreadNotificationCount > 0"
@@ -29,9 +33,12 @@
               {{ unreadNotificationCount > 99 ? '99+' : unreadNotificationCount }}
             </span>
           </button>
-          
+
           <!-- Notification Dropdown -->
-          <div *ngIf="isNotificationDropdownVisible" class="absolute right-0 mt-2 z-50 origin-top-right">
+          <div
+            *ngIf="isNotificationDropdownVisible"
+            class="absolute right-0 mt-2 z-50 origin-top-right"
+          >
             <app-notification-dropdown></app-notification-dropdown>
           </div>
         </div>
@@ -44,10 +51,12 @@
             aria-label="User Profile"
           >
             <svg class="h-6 w-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+              <path
+                d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+              />
             </svg>
           </button>
-          
+
           <!-- User Menu Dropdown -->
           <div *ngIf="isUserMenuVisible" class="absolute right-0 mt-2 z-50 origin-top-right">
             <app-user-menu></app-user-menu>
@@ -57,17 +66,41 @@
     </div>
   </div>
 </nav>
-
-<!-- Search Results Dropdown -->
 <div class="relative">
+  <!-- Loading -->
   <div
-    *ngIf="isSearchBarVisible && searchResults"
-    class="absolute z-10 w-full lg:max-w-2xl bg-white p-4 space-y-6 border border-gray-300 shadow-lg border-l-0"
+    *ngIf="isSearchBarVisible && isSearching"
+    class="absolute z-10 w-full lg:max-w-2xl bg-white p-4 border border-gray-300 shadow-lg"
+  >
+    <p class="text-gray-600 text-sm">Searching...</p>
+  </div>
+
+  <!-- No results -->
+  <div
+    *ngIf="
+      isSearchBarVisible &&
+      !isSearching &&
+      !searchResults.projects?.length &&
+      !searchResults.users?.length
+    "
+    class="absolute z-10 w-full lg:max-w-2xl bg-white p-4 border border-gray-300 shadow-lg"
+  >
+    <p class="text-gray-600 text-sm">No results found</p>
+  </div>
+
+  <!-- Results -->
+  <div
+    *ngIf="
+      isSearchBarVisible &&
+      !isSearching &&
+      (searchResults.projects?.length || searchResults.users?.length)
+    "
+    class="absolute z-10 w-full lg:max-w-2xl bg-white p-4 space-y-6 border border-gray-300 shadow-lg"
   >
     <!-- Projects -->
     <div *ngIf="searchResults.projects?.length">
-      <h3 class="text-lg font-semibold text-gray-600">Projects</h3>
-      <ul class="">
+      <h3 class="text-sm font-semibold text-gray-600">Projects</h3>
+      <ul>
         <li *ngFor="let project of searchResults.projects" class="py-1 text-sm">
           <a [routerLink]="['/projects', project.id]" class="text-blue-600 hover:underline">
             {{ project.name }}
@@ -78,8 +111,8 @@
 
     <!-- Users -->
     <div *ngIf="searchResults.users?.length">
-      <h3 class="text-lg font-semibold text-gray-600">Users</h3>
-      <ul class="">
+      <h3 class="text-sm font-semibold text-gray-600">Users</h3>
+      <ul>
         <li *ngFor="let user of searchResults.users" class="py-1 text-sm">
           <a
             [routerLink]="['/users']"

@@ -66,11 +66,12 @@ export class Navbar implements OnInit, OnDestroy {
           distinctUntilChanged(),
           switchMap((query) => {
             if (!query.trim()) {
-              return forkJoin({
-                projects: [null],
-                users: [null],
-              });
+              this.isSearching = false;
+              this.searchResults = { projects: [], users: [] };
+              this.cdr.markForCheck();
+              return [];
             }
+
             return forkJoin({
               projects: this.navbarService.getProjects(1, 5, query),
               users: this.navbarService.getUsers(query),
@@ -78,19 +79,15 @@ export class Navbar implements OnInit, OnDestroy {
           })
         )
         .subscribe((res: any) => {
-          if (!res.projects || !res.users) {
-            this.searchResults = { projects: [], users: [] };
-            this.isSearching = false;
-            return;
-          }
+          if (!res) return;
 
           this.searchResults = {
-            projects: res.projects.data.items || [],
-            users: res.users.data.users || [],
+            projects: res.projects?.data?.items || [],
+            users: res.users?.data?.users || [],
           };
+
           this.isSearching = false;
           this.cdr.markForCheck();
-          this.cdr.detectChanges();
         })
     );
   }
@@ -125,6 +122,8 @@ export class Navbar implements OnInit, OnDestroy {
 
   onSearch(query: string) {
     this.isSearchBarVisible = true;
+    this.isSearching = true;
+    this.cdr.detectChanges(); // ensure the spinner shows instantly
     this.search$.next(query);
   }
 
