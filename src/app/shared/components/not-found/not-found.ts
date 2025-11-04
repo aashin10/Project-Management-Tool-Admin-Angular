@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { CustomButton } from '../../custom-button/custom-button';
+import { Authentication } from '../../services/authenticationservice/authentication';
 
 @Component({
   selector: 'app-not-found',
@@ -10,10 +11,21 @@ import { CustomButton } from '../../custom-button/custom-button';
 })
 export class NotFound {
 
-  constructor(private router: Router) {}
+  isAuthenticated: boolean = false;
+
+  constructor(
+    private router: Router,
+    private authService: Authentication
+  ) {
+    this.isAuthenticated = this.authService.isAuthenticated() && this.authService.hasValidToken();
+  }
 
   goHome(): void {
     this.router.navigate(['/dashboard']);
+  }
+
+  goLogin(): void {
+    this.router.navigate(['/login']);
   }
 
   goBack(): void {

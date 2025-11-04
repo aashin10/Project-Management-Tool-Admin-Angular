@@ -9,7 +9,9 @@
     </div>
 
     <div class="flex justify-center gap-4">
+      <!-- If user is authenticated, show Dashboard button -->
       <app-custom-button
+        *ngIf="isAuthenticated"
         label="Go to Dashboard"
         shortLabel="Dashboard"
         bgClass="bg-blue-600"
@@ -18,6 +20,19 @@
         height="h-12"
         fontSize="text-base"
         (action)="goHome()">
+      </app-custom-button>
+
+      <!-- If user is not authenticated, show Login button -->
+      <app-custom-button
+        *ngIf="!isAuthenticated"
+        label="Go to Login"
+        shortLabel="Login"
+        bgClass="bg-blue-600"
+        textColor="text-white"
+        hoverClass="hover:bg-blue-700"
+        height="h-12"
+        fontSize="text-base"
+        (action)="goLogin()">
       </app-custom-button>
 
       <app-custom-button

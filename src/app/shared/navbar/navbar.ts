@@ -11,7 +11,6 @@ import { CommonModule } from '@angular/common';
 import { Subscription, Subject, forkJoin } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { SearchBar } from '../components/search-bar/search-bar';
-import { ActionButtons } from '../components/action-buttons/action-buttons';
 import { Usermenu } from '../components/usermenu/usermenu';
 import { NotificationDropdown } from '../components/notification-dropdown/notification-dropdown';
 import { NotificationService } from '../services/notification.service';
@@ -21,7 +20,7 @@ import { NavbarService } from './navbar-service';
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, SearchBar, ActionButtons, Usermenu, NotificationDropdown, RouterModule],
+  imports: [CommonModule, SearchBar, Usermenu, NotificationDropdown, RouterModule],
   templateUrl: './navbar.html',
   styles: [
     `
@@ -145,18 +144,19 @@ export class Navbar implements OnInit, OnDestroy {
     const target = event.target as HTMLElement;
     const notificationDropdown = target.closest('.notification-dropdown');
     const userMenu = target.closest('.dropdown-menu');
-    const actionButtons = target.closest('app-action-buttons');
+    const userMenuButton = target.closest('[aria-label="User Profile"]');
+    const notificationButton = target.closest('[aria-label="Notifications"]');
     const searchBar = target.closest('app-search-bar');
 
-    if (!notificationDropdown && !actionButtons && this.isNotificationDropdownVisible) {
+    if (!notificationDropdown && !notificationButton && this.isNotificationDropdownVisible) {
       this.isNotificationDropdownVisible = false;
     }
 
-    if (!userMenu && !actionButtons && this.isUserMenuVisible) {
+    if (!userMenu && !userMenuButton && this.isUserMenuVisible) {
       this.isUserMenuVisible = false;
     }
 
-    if (!searchBar && !actionButtons && this.isSearchBarVisible) {
+    if (!searchBar && this.isSearchBarVisible) {
       this.isSearchBarVisible = false;
     }
   }
