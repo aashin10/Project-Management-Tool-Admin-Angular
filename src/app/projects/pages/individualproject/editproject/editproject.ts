@@ -787,14 +787,36 @@ export class Editproject implements OnInit {
   }
 
   get canCreate(): boolean {
-    // Only require project name, project key, status, project manager, and delivery unit
-    return !!(
+    // Check core fields: project name, project key, status, project manager, and delivery unit
+    const coreFieldsValid = !!(
       this.projectName?.trim() &&
       this.projectKey?.trim() &&
       this.status &&
       this.selectedProjectManagerId &&
       this.selectedDeliveryUnitId
     );
+
+    if (!coreFieldsValid) {
+      return false;
+    }
+
+    // Validate email if provided (must be valid or empty)
+    if (this.pocEmail && this.pocEmail.trim() !== '') {
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(this.pocEmail)) {
+        return false;
+      }
+    }
+
+    // Validate phone if provided (must be valid or empty)
+    if (this.phoneNumber && this.phoneNumber.trim() !== '') {
+      const phonePattern = /^\+?[\d\s\-()]{7,}$/;
+      if (!phonePattern.test(this.phoneNumber)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   get missingFields(): string[] {
