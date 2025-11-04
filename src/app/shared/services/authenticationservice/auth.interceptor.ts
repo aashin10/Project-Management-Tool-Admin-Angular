@@ -55,7 +55,6 @@ export class AuthInterceptor implements HttpInterceptor {
     } else {
     }
 
-    console.log('Outgoing request:', request);
 
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
