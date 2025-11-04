@@ -91,6 +91,7 @@ export class Navbar implements OnInit, OnDestroy {
           };
           this.isSearching = false;
           this.cdr.markForCheck();
+          this.cdr.detectChanges();
         })
     );
   }
