@@ -64,9 +64,15 @@
           <!-- Left Section - Project Info -->
           <div class="flex items-start gap-4 flex-1">
             <!-- Project Avatar -->
-            <div 
-              class="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
-              {{ project.name.substring(0, 2).toUpperCase() }}
+            <div class="relative">
+              <div 
+                class="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
+                {{ project.name.substring(0, 2).toUpperCase() }}
+              </div>
+              <!-- Jira Import Badge on Avatar -->
+              <span *ngIf="project.isImportedFromJira" class="absolute -top-2 -right-2 w-6 h-6 bg-white border border-blue-200 rounded-full flex items-center justify-center shadow-md" title="Imported from Jira">
+                <img src="/images/import.svg" alt="Imported" class="w-3 h-3 object-contain" />
+              </span>
             </div>
 
             <!-- Project Details -->

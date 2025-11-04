@@ -36,13 +36,7 @@
 
 <div class="relative">
   <div
-    *ngIf="
-      isSearchBarVisible &&
-      searchResults &&
-      (searchResults.projects?.length ||
-        searchResults.users?.length ||
-        searchResults.reports?.length)
-    "
+    *ngIf="isSearchBarVisible && searchResults"
     class="absolute z-10 w-full lg:max-w-2xl bg-white p-4 space-y-6 border border-gray-300 shadow-lg border-l-0"
   >
     <!-- Projects -->
@@ -50,7 +44,9 @@
       <h3 class="text-lg font-semibold text-gray-600">Projects</h3>
       <ul class="">
         <li *ngFor="let project of searchResults.projects" class="py-1 text-sm">
-          {{ project.name }}
+          <a [routerLink]="['/projects', project.id]" class="text-blue-600 hover:underline">
+            {{ project.name }}
+          </a>
         </li>
       </ul>
     </div>
@@ -60,17 +56,13 @@
       <h3 class="text-lg font-semibold text-gray-600">Users</h3>
       <ul class="">
         <li *ngFor="let user of searchResults.users" class="py-1 text-sm">
-          {{ user.name }}
-        </li>
-      </ul>
-    </div>
-
-    <!-- Reports -->
-    <div *ngIf="searchResults.reports?.length">
-      <h3 class="text-lg font-semibold text-gray-600">Reports</h3>
-      <ul class="">
-        <li *ngFor="let report of searchResults.reports" class="py-1 text-sm">
-          {{ report.name }}
+          <a
+            [routerLink]="['/users']"
+            [queryParams]="{ name: user.name }"
+            class="text-blue-600 hover:underline"
+          >
+            {{ user.name }}
+          </a>
         </li>
       </ul>
     </div>
