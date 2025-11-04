@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, BehaviorSubject, throwError } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
+import { tap, catchError, finalize } from 'rxjs/operators';
 
 // =======================
 // DTOs matching your backend
@@ -38,6 +38,8 @@ interface UserInfo {
   roles: string[];
 }
 
+export type AuthState = 'loading' | 'authenticated' | 'unauthenticated';
+
 // =======================
 // Authentication Service
 // =======================
@@ -48,25 +50,43 @@ export class Authentication {
   private apiUrl = 'https://localhost:7178/api'; // change to your backend URL
   private tokenKey = 'access_token';
   private refreshTokenKey = 'refresh_token';
+  private isLoggingOut = false; // Flag to prevent multiple logout calls
 
   private currentUserSubject: BehaviorSubject<UserInfo | null>;
   public currentUser$: Observable<UserInfo | null>;
 
-  private isAuthenticatedSubject: BehaviorSubject<boolean>;
-  public isAuthenticated$: Observable<boolean>;
+  private isAuthenticatedSubject: BehaviorSubject<boolean | null>;
+  public isAuthenticated$: Observable<boolean | null>;
+
+  private authStateSubject: BehaviorSubject<AuthState>;
+  public authState$: Observable<AuthState>;
 
   constructor(
     private http: HttpClient,
     private router: Router
   ) {
-    this.isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasValidToken());
+    this.isAuthenticatedSubject = new BehaviorSubject<boolean | null>(null);
     this.isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
+
+    this.authStateSubject = new BehaviorSubject<AuthState>('loading');
+    this.authState$ = this.authStateSubject.asObservable();
 
     this.currentUserSubject = new BehaviorSubject<UserInfo | null>(null);
     this.currentUser$ = this.currentUserSubject.asObservable();
 
-    if (this.hasValidToken()) {
-      this.loadCurrentUser();
+    this.initializeAuthState();
+
+    // Listen to storage events to sync across tabs
+    if (this.isBrowser()) {
+      window.addEventListener('storage', (event) => {
+        if (event.key === this.tokenKey || event.key === this.refreshTokenKey) {
+          const isValid = this.hasValidToken();
+          this.updateAuthenticatedState(isValid);
+          if (isValid) {
+            this.loadCurrentUser();
+          }
+        }
+      });
     }
   }
 
@@ -77,6 +97,66 @@ export class Authentication {
     return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
   }
 
+  private initializeAuthState(): void {
+    if (!this.isBrowser()) {
+      this.updateAuthenticatedState(false);
+      return;
+    }
+
+    this.setAuthLoading();
+
+    setTimeout(() => {
+      // Defer token validation so subscribers can attach before the first emission
+      const hasAccessToken = !!this.getAccessToken();
+      const hasRefreshToken = !!this.getRefreshToken();
+
+      if (!hasAccessToken && !hasRefreshToken) {
+        this.updateAuthenticatedState(false);
+        return;
+      }
+
+      if (hasAccessToken && this.hasValidToken()) {
+        this.updateAuthenticatedState(true);
+        this.loadCurrentUser();
+        return;
+      }
+
+      if (hasRefreshToken) {
+        this.refreshToken().subscribe({
+          next: (response) => {
+            if (response.status === 200 && response.data) {
+              this.updateAuthenticatedState(true);
+              this.loadCurrentUser();
+            } else {
+              this.updateAuthenticatedState(false);
+            }
+          },
+          error: (error) => {
+            this.updateAuthenticatedState(false);
+          }
+        });
+        return;
+      }
+
+      // No valid token and no refresh token available
+      this.updateAuthenticatedState(false);
+    }, 0);
+  }
+
+  private setAuthLoading(): void {
+    this.isAuthenticatedSubject.next(null);
+    this.authStateSubject.next('loading');
+  }
+
+  private updateAuthenticatedState(isAuthenticated: boolean): void {
+    this.isAuthenticatedSubject.next(isAuthenticated);
+    this.authStateSubject.next(isAuthenticated ? 'authenticated' : 'unauthenticated');
+
+    if (!isAuthenticated) {
+      this.currentUserSubject.next(null);
+    }
+  }
+
   // =======================
   // 🚪 Login
   // =======================
@@ -85,20 +165,23 @@ export class Authentication {
       email: email.trim().toLowerCase(),
       password: password
     };
-
     return this.http.post<ApiResponse<LoginResponse>>(
       `${this.apiUrl}/Auth/login`,
       loginRequest
     ).pipe(
       tap(response => {
-        if (response.status==200 && response.data) {
+        if (response.status === 200 && response.data) {
           this.setTokens(response.data.accessToken, response.data.refreshToken);
-          this.isAuthenticatedSubject.next(true);
-          //this.loadCurrentUser();
+          this.updateAuthenticatedState(true);
+          this.loadCurrentUser();
           
         }
       }),
-      catchError(this.handleError)
+      catchError(error => {
+        // Return the error as a response so login component can handle it
+        // This allows the component to show proper error messages
+        return throwError(() => error);
+      })
     );
   }
 
@@ -113,20 +196,19 @@ export class Authentication {
     }
 
     const refreshRequest: RefreshTokenRequest = { refreshToken };
-
     return this.http.post<ApiResponse<LoginResponse>>(
       `${this.apiUrl}/Auth/refresh`,
       refreshRequest
     ).pipe(
       tap(response => {
-        if (response.status==200 && response.data) {
+        if (response.status === 200 && response.data) {
           this.setTokens(response.data.accessToken, response.data.refreshToken);
-          this.isAuthenticatedSubject.next(true);
-          console.log('%c✅ Token successfully refreshed', 'color: green; font-weight: bold;');
+          this.updateAuthenticatedState(true);
+        } else {
         }
       }),
       catchError(error => {
-        this.logout();
+        // Don't logout here - let the interceptor handle it
         return throwError(() => error);
       })
     );
@@ -136,14 +218,27 @@ export class Authentication {
   // 🚪 Logout
   // =======================
   logout(): Observable<ApiResponse<any>> {
+    // If already logging out, return early to prevent duplicate navigation
+    if (this.isLoggingOut) {
+      return throwError(() => new Error('Logout already in progress'));
+    }
+
+    this.isLoggingOut = true;
     return this.http.post<ApiResponse<any>>(
       `${this.apiUrl}/Auth/logout`,
       {}
     ).pipe(
-      tap(() => this.clearAuthData()),
+      tap(() => {
+        this.clearAuthDataSilent();
+      }),
       catchError(error => {
-        this.clearAuthData();
+        this.clearAuthDataSilent();
         return throwError(() => error);
+      }),
+      finalize(() => {
+        // Cleanup always happens - whether success or error
+        this.isLoggingOut = false;
+        this.router.navigate(['/login']);
       })
     );
   }
@@ -158,7 +253,6 @@ export class Authentication {
       tap(response => {
         if (response.status==200 && response.data) {
           this.currentUserSubject.next(response.data);
-          console.log('Current user loaded:', response.data);          
         }
       }),
       catchError(this.handleError)
@@ -176,7 +270,6 @@ export class Authentication {
         }
       },
       error: (error) => {
-        console.error('Failed to load user info:', error);
         //this.clearAuthData();
       }
     });
@@ -205,14 +298,29 @@ export class Authentication {
   // =======================
   hasValidToken(): boolean {
     const token = this.getAccessToken();
-    if (!token) return false;
+    if (!token) {
+      return false;
+    }
 
     try {
       const payload = this.decodeToken(token);
       const currentTime = Math.floor(Date.now() / 1000);
-      return payload.exp > currentTime;
-    } catch {
-      return false;
+
+      if (payload?.exp === undefined) {
+        return true;
+      }
+
+      const isValid = payload.exp > currentTime;
+
+      if (!isValid) {
+        
+      } else {
+        
+      }
+
+      return isValid;
+    } catch (error) {
+      return true; // Assume opaque tokens are valid if present
     }
   }
 
@@ -237,16 +345,28 @@ export class Authentication {
       localStorage.removeItem(this.tokenKey);
       localStorage.removeItem(this.refreshTokenKey);
     }
-    this.isAuthenticatedSubject.next(false);
-    this.currentUserSubject.next(null);
+    this.updateAuthenticatedState(false);
     this.router.navigate(['/login']);
+  }
+
+  private clearAuthDataSilent(): void {
+    if (this.isBrowser()) {
+      localStorage.removeItem(this.tokenKey);
+      localStorage.removeItem(this.refreshTokenKey);
+    }
+    this.updateAuthenticatedState(false);
+    // Don't navigate here - let the caller handle navigation
   }
 
   // =======================
   // 👥 Helpers
   // =======================
   isAuthenticated(): boolean {
-    return this.isAuthenticatedSubject.value;
+    return this.isAuthenticatedSubject.value === true;
+  }
+
+  isLoggingOutInProgress(): boolean {
+    return this.isLoggingOut;
   }
 
   get currentUserValue(): UserInfo | null {
@@ -279,8 +399,6 @@ export class Authentication {
         errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
       }
     }
-
-    console.error(errorMessage);
     return throwError(() => new Error(errorMessage));
   }
 }

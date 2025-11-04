@@ -63,13 +63,12 @@ export class RolesService {
    */
   updateRole(id: string, role: Partial<Role>): Observable<any> {
     const url = `${this.apiUrl}/${id}`;
-    console.log('🌐 RolesService.updateRole()');
-    console.log('  URL:', url);
-    console.log('  Request body:', JSON.stringify(role, null, 2));
+    
+    
     
     return this.http.put(url, role).pipe(
       map(response => {
-        console.log('🌐 RolesService HTTP response:', JSON.stringify(response, null, 2));
+        
         return response;
       })
     );

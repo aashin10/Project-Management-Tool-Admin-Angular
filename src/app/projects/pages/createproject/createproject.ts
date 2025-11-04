@@ -87,7 +87,6 @@ export class Createproject {
             }
           },
           error: (err) => {
-            console.error('Failed to load project for template:', err);
           }
         });
       }
@@ -130,7 +129,6 @@ export class Createproject {
           resolve();
         },
         error: (err) => {
-          console.error('Failed to load delivery units:', err);
           this.deliveryUnits = [];
           resolve(); // Resolve anyway to not block initialization
         }
@@ -256,6 +254,24 @@ export class Createproject {
       return;
     }
 
+    // Validate email format if provided
+    if (this.pocEmail && this.pocEmail.trim() !== '') {
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(this.pocEmail)) {
+        this.toastr.error('Please enter a valid email address', 'Validation Error');
+        return;
+      }
+    }
+
+    // Validate phone format if provided
+    if (this.phoneNumber && this.phoneNumber.trim() !== '') {
+      const phonePattern = /^\+?[\d\s\-()]{7,}$/;
+      if (!phonePattern.test(this.phoneNumber)) {
+        this.toastr.error('Please enter a valid phone number (at least 7 digits)', 'Validation Error');
+        return;
+      }
+    }
+
     // Create project request object matching API structure
     const createProjectRequest = {
       name: this.projectName,
@@ -272,14 +288,9 @@ export class Createproject {
       deliveryUnitId: selectedDeliveryUnit.id,
       isImportedFromJira: false
     };
-
-    console.log('Creating project with data:', createProjectRequest);
-
     // Call the API
     this.projectsService.createProject(createProjectRequest).subscribe({
       next: (response) => {
-        console.log('Project created successfully:', response);
-        
         // Show notification using NotificationService
         this.notificationService.addNotification(
           'success',
@@ -307,7 +318,6 @@ export class Createproject {
         }, 600);
       },
       error: (error) => {
-        console.error('Failed to create project:', error);
         this.toastr.error(
           error.message || 'Failed to create project. Please try again.',
           'Creation Failed',

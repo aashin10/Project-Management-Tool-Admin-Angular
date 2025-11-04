@@ -128,8 +128,6 @@ export class BasicInformationComponent implements OnChanges {
   constructor(private projectStatusService: ProjectStatusService, private cdr: ChangeDetectorRef) {}
 
   ngOnChanges(changes: SimpleChanges) {
-    console.log('BasicInformationComponent - ngOnChanges triggered:', changes);
-    
     // Update private properties directly without triggering change events during initialization
     if (changes['projectName'] && changes['projectName'].currentValue !== undefined) {
       this._projectName = changes['projectName'].currentValue || '';
@@ -157,7 +155,6 @@ export class BasicInformationComponent implements OnChanges {
     }
     if (changes['status'] && changes['status'].currentValue !== undefined) {
       this._status = changes['status'].currentValue || 'Active';
-      console.log('Status updated to:', this._status);
     }
     
     // Force change detection to update template

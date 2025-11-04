@@ -115,7 +115,6 @@ export class NotificationService {
         }
       }
     } catch (error) {
-      console.error('Error loading notifications from localStorage:', error);
       this.notificationsSubject.next([]);
     }
   }
@@ -127,7 +126,6 @@ export class NotificationService {
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(notifications));
       }
     } catch (error) {
-      console.error('Error saving notifications to localStorage:', error);
     }
   }
 }

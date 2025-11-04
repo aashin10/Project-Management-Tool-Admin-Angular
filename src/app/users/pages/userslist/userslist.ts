@@ -75,8 +75,6 @@ export class Userslist implements OnInit, OnDestroy {
     sortOrder: 'asc',
   };
   onActionClick(event: { action: string; row: any }) {
-    console.log('Action clicked:', event.action, 'Row:', event.row);
-
     switch (event.action) {
       case 'edit':
         this.onEditUser(event.row.actions);
@@ -87,7 +85,6 @@ export class Userslist implements OnInit, OnDestroy {
         this.showDeleteConfirmModal = true;
         break;
       case 'view':
-        console.log('View user details:', event.row);
         // Add your view logic here
         break;
     }
@@ -95,7 +92,6 @@ export class Userslist implements OnInit, OnDestroy {
 
   onSelectionChange(selectedRows: any[]) {
     this.selectedUsers = selectedRows;
-    console.log('Selected users:', selectedRows);
   }
   showTypeDropdown = false;
   showStatusDropdown = false;
@@ -241,9 +237,6 @@ export class Userslist implements OnInit, OnDestroy {
       status: this.newUser.status || undefined,
       createdBy: 1, // ID of the user creating this user
     };
-
-    console.log('Creating new user:', createUserData);
-
     // Show loading state first
     this.isLoading = true;
 
@@ -253,8 +246,6 @@ export class Userslist implements OnInit, OnDestroy {
     // Call API to create user
     this.usersApi.createUser(createUserData).subscribe({
       next: (response) => {
-        console.log('User created successfully:', response);
-
         // Backend returns array, get first user
         const createdUser = response.data && response.data.length > 0 ? response.data[0] : null;
 
@@ -286,26 +277,18 @@ export class Userslist implements OnInit, OnDestroy {
               this.cdr.detectChanges();
             },
             error: (error) => {
-              console.error('Failed to refresh users after creation:', error);
               this.isLoading = false;
             },
           });
         }, 0);
       },
       error: (error) => {
-        console.error('Failed to create user:', error);
-        console.log('Component: Error object:', error);
-        console.log('Component: Error.message:', error.message);
-        console.log('Component: Error type:', typeof error);
-
         // Use setTimeout to avoid ExpressionChangedAfterItHasBeenCheckedError
         setTimeout(() => {
           this.isLoading = false;
 
           // Extract the error message
           const errorMessage = error?.message || 'Failed to create user';
-          console.log('Component: Final error message to display:', errorMessage);
-
           // Show error toaster notification
           this.toastr.error(errorMessage, 'Error', {
             timeOut: 5000,
@@ -323,10 +306,7 @@ export class Userslist implements OnInit, OnDestroy {
    * Opens edit modal and fetches user details
    */
   onEditUser(user: any) {
-    console.log('Opening edit modal for user:', user);
-
     if (!user.id) {
-      console.error('User ID is missing!', user);
       this.toastr.error('Cannot edit user: ID is missing', 'Error');
       return;
     }
@@ -338,8 +318,6 @@ export class Userslist implements OnInit, OnDestroy {
     // Fetch user details by ID
     this.usersApi.getUserById(user.id).subscribe({
       next: (response) => {
-        console.log('User details fetched:', response);
-
         const userData = response.data;
 
         // Populate edit form
@@ -360,8 +338,6 @@ export class Userslist implements OnInit, OnDestroy {
         setTimeout(() => this.cdr.detectChanges());
       },
       error: (error) => {
-        console.error('Failed to fetch user details:', error);
-
         this.isLoadingUserDetails = false;
         this.showEditUserModal = false;
 
@@ -505,9 +481,6 @@ export class Userslist implements OnInit, OnDestroy {
       // Convert status string to isActive boolean
       updateDto.isActive = this.editUser.status === 'Active';
     }
-
-    console.log('Updating user with DTO:', updateDto);
-
     // Show loading state
     this.isLoading = true;
 
@@ -517,8 +490,6 @@ export class Userslist implements OnInit, OnDestroy {
     // Call API to update user
     this.usersApi.updateUser(this.editUser.id, updateDto).subscribe({
       next: (response) => {
-        console.log('User updated successfully:', response);
-
         setTimeout(() => {
           this.isLoading = false;
 
@@ -541,8 +512,6 @@ export class Userslist implements OnInit, OnDestroy {
         }, 0);
       },
       error: (error) => {
-        console.error('Failed to update user:', error);
-
         setTimeout(() => {
           this.isLoading = false;
 
@@ -604,7 +573,6 @@ export class Userslist implements OnInit, OnDestroy {
     if (file) {
       this.selectedFileName = file.name;
       this.selectedFile = file;
-      console.log('File selected:', file.name);
     }
   }
 
@@ -636,7 +604,6 @@ export class Userslist implements OnInit, OnDestroy {
       ) {
         this.selectedFileName = file.name;
         this.selectedFile = file;
-        console.log('File dropped:', file.name);
       } else {
         this.toastr.error('Please upload a CSV file', 'Invalid File Type', {
           timeOut: 3000,
@@ -676,7 +643,6 @@ export class Userslist implements OnInit, OnDestroy {
   }
 
   onSearchChange(query: string) {
-    console.log('Search input changed:', query);
     this.searchQuery = query;
 
     // Immediately show loading state for better UX
@@ -721,8 +687,6 @@ export class Userslist implements OnInit, OnDestroy {
   }
 
   exportToCSV() {
-    console.log('Starting CSV export...');
-
     // Show loading state
     this.isLoading = true;
     this.cdr.detectChanges();
@@ -736,8 +700,6 @@ export class Userslist implements OnInit, OnDestroy {
       })
       .subscribe({
         next: (users) => {
-          console.log('Export: Received', users.length, 'users from API');
-
           // Determine which users to export (selected or all filtered)
           const usersToExport =
             this.selectedUsers.length > 0
@@ -746,9 +708,6 @@ export class Userslist implements OnInit, OnDestroy {
                   return users.find((u) => u.email === su.user?.email) || su.actions;
                 })
               : users;
-
-          console.log('Export: Exporting', usersToExport.length, 'users');
-
           // Prepare CSV headers
           const headers = ['Name', 'Email', 'Type', 'Status', 'Created On', 'Last Activity'];
 
@@ -792,7 +751,6 @@ export class Userslist implements OnInit, OnDestroy {
           );
         },
         error: (error) => {
-          console.error('Export error:', error);
           this.isLoading = false;
           this.cdr.detectChanges();
 
@@ -878,14 +836,6 @@ export class Userslist implements OnInit, OnDestroy {
   ];
 
   ngOnInit() {
-    console.log('Userslist component initialized');
-    console.log(
-      'Component: ngOnInit - isLoading:',
-      this.isLoading,
-      'loadingError:',
-      this.loadingError
-    );
-
     this.route.queryParams.subscribe((params) => {
       const name = params['name'];
       this.searchQuery = name || '';
@@ -898,7 +848,6 @@ export class Userslist implements OnInit, OnDestroy {
         distinctUntilChanged() // Only emit if value has changed
       )
       .subscribe((searchTerm) => {
-        console.log('Search term changed:', searchTerm);
         // Reset to page 1 when search changes
         this.paginationState.currentPage = 1;
         this.fetchUsers();
@@ -921,31 +870,19 @@ export class Userslist implements OnInit, OnDestroy {
     if (this.networkErrorRetryTimer) {
       clearInterval(this.networkErrorRetryTimer);
       this.networkErrorRetryTimer = undefined;
-      console.log('Component: Stopped network error retry timer');
     }
   }
 
   private startNetworkErrorRetry() {
     // Clear any existing timer first
     this.stopNetworkErrorRetry();
-
-    console.log('Component: Starting network error retry - will retry every 5 seconds');
     this.networkErrorRetryTimer = setInterval(() => {
-      console.log('Component: Auto-retry attempt due to network error');
       this.fetchUsers();
     }, 5000); // Retry every 5 seconds
   }
 
   // Method to manually refresh data (can be called from UI)
   refreshData() {
-    console.log('Component: Manual refresh requested');
-    console.log(
-      'Component: Initial state - isLoading:',
-      this.isLoading,
-      'loadingError:',
-      this.loadingError
-    );
-
     // Reset states explicitly
     this.isLoading = true;
     this.loadingError = null;
@@ -954,9 +891,6 @@ export class Userslist implements OnInit, OnDestroy {
     // Show network error only after 2 seconds if still loading
     const networkErrorTimeout = setTimeout(() => {
       if (this.isLoading && !this.loadingError) {
-        console.log(
-          'Component: 2 seconds elapsed during refresh, still loading - showing network error message'
-        );
         this.loadingError = 'Network issue. Check your internet connection';
         this.cdr.detectChanges();
       }
@@ -965,39 +899,21 @@ export class Userslist implements OnInit, OnDestroy {
     this.retrySubscription = this.usersApi.refreshUsers().subscribe({
       next: (users) => {
         clearTimeout(networkErrorTimeout); // Clear the timeout if data arrives
-        console.log('Component: Data refreshed successfully, count:', users.length);
         this.users = users;
         this.isLoading = false;
         this.loadingError = null; // Clear any error message immediately
         this.stopNetworkErrorRetry(); // Stop retry timer on success
-        console.log(
-          'Component: After refresh - isLoading:',
-          this.isLoading,
-          'loadingError:',
-          this.loadingError
-        );
         this.cdr.detectChanges();
       },
       error: (error) => {
         clearTimeout(networkErrorTimeout); // Clear the timeout on error
-        console.error('Component: Error refreshing users:', error);
         this.isLoading = false;
         this.loadingError = error.message || 'Failed to refresh users. Please try again.';
 
         // Start auto-retry if it's a network error
         if (error.message && error.message.includes('Network issue')) {
-          console.log(
-            'Component: Network error detected during refresh, starting auto-retry every 5 seconds'
-          );
           this.startNetworkErrorRetry();
         }
-
-        console.log(
-          'Component: After refresh error - isLoading:',
-          this.isLoading,
-          'loadingError:',
-          this.loadingError
-        );
         this.cdr.detectChanges();
       },
     });
@@ -1005,29 +921,16 @@ export class Userslist implements OnInit, OnDestroy {
 
   // Method to manually show error message (for development)
   loadSampleDataManually() {
-    console.log('Showing error message instead of loading sample data');
     this.loadingError = 'Network issue. Check your internet connection';
     this.isLoading = false;
     this.cdr.detectChanges();
   }
 
   fetchUsers() {
-    console.log('Component: Starting to fetch paginated users...');
-    console.log('Component: Pagination state:', this.paginationState);
-    console.log(
-      'Component: Filters - Type:',
-      this.filterType,
-      'Status:',
-      this.filterStatus,
-      'Search:',
-      this.searchQuery
-    );
-
     // Cancel any pending API request to prevent race conditions
     // This ensures only the latest search result updates the table
     if (this.retrySubscription) {
       this.retrySubscription.unsubscribe();
-      console.log('Component: Cancelled previous API request');
     }
 
     // Set loading state
@@ -1038,7 +941,6 @@ export class Userslist implements OnInit, OnDestroy {
     // Show network error only after 2 seconds if still loading
     const networkErrorTimeout = setTimeout(() => {
       if (this.isLoading && !this.loadingError) {
-        console.log('Component: 2 seconds elapsed, still loading - showing network error message');
         this.loadingError = 'Network issue. Check your internet connection';
         this.cdr.detectChanges();
       }
@@ -1058,14 +960,6 @@ export class Userslist implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           clearTimeout(networkErrorTimeout);
-          console.log('Component: Paginated users loaded successfully');
-          console.log(
-            'Component: Total count:',
-            response.totalCount,
-            'Current page:',
-            response.page
-          );
-
           this.users = response.users;
           this.paginationState.totalCount = response.totalCount;
           this.paginationState.currentPage = response.page;
@@ -1083,34 +977,17 @@ export class Userslist implements OnInit, OnDestroy {
           this.isLoading = false;
           this.loadingError = null;
           this.stopNetworkErrorRetry();
-
-          console.log(
-            'Component: After success - isLoading:',
-            this.isLoading,
-            'users count:',
-            this.users.length
-          );
           this.cdr.detectChanges();
         },
         error: (error) => {
           clearTimeout(networkErrorTimeout);
-          console.error('Component: Error fetching paginated users:', error);
-
           this.isLoading = false;
           this.loadingError = error.message || 'Failed to load users. Please try again.';
 
           // Start auto-retry if it's a network error
           if (error.message && error.message.includes('Network issue')) {
-            console.log('Component: Network error detected, starting auto-retry every 5 seconds');
             this.startNetworkErrorRetry();
           }
-
-          console.log(
-            'Component: After error - isLoading:',
-            this.isLoading,
-            'loadingError:',
-            this.loadingError
-          );
           this.cdr.detectChanges();
         },
       });
@@ -1767,7 +1644,6 @@ export class Userslist implements OnInit, OnDestroy {
 
   // Pagination event handlers
   onPageChange(page: number) {
-    console.log('Page changed to:', page);
     this.paginationState.currentPage = page;
 
     // Clear selected users when changing pages
@@ -1777,7 +1653,6 @@ export class Userslist implements OnInit, OnDestroy {
   }
 
   onPageSizeChange(pageSize: number) {
-    console.log('Page size changed to:', pageSize);
     this.paginationState.pageSize = pageSize;
     this.paginationState.currentPage = 1; // Reset to first page
 
@@ -1788,7 +1663,6 @@ export class Userslist implements OnInit, OnDestroy {
   }
 
   onFilterChange() {
-    console.log('Filters changed - Type:', this.filterType, 'Status:', this.filterStatus);
     // Reset to page 1 when filters change
     this.paginationState.currentPage = 1;
 
@@ -1800,7 +1674,6 @@ export class Userslist implements OnInit, OnDestroy {
 
   // Bulk Actions
   onAssignProjects() {
-    console.log('Assign projects to selected users:', this.selectedUsers);
     // Add your assign projects logic here
   }
 
@@ -1816,7 +1689,6 @@ export class Userslist implements OnInit, OnDestroy {
     });
     // Clear selection after action
     this.selectedUsers = [];
-    console.log('Suspended users:', this.selectedUsers);
   }
 
   onBulkDelete() {
@@ -1869,7 +1741,6 @@ export class Userslist implements OnInit, OnDestroy {
     // Call delete API
     this.usersApi.deleteUsers(userIdsToDelete).subscribe({
       next: (response) => {
-        console.log('Users deleted successfully:', response);
         this.isLoading = false;
 
         const userCount = userIdsToDelete.length;
@@ -1900,13 +1771,11 @@ export class Userslist implements OnInit, OnDestroy {
             this.cdr.detectChanges();
           },
           error: (error) => {
-            console.error('Failed to refresh users after deletion:', error);
             this.isLoading = false;
           },
         });
       },
       error: (error) => {
-        console.error('Failed to delete users:', error);
         this.isLoading = false;
 
         // Show error toaster notification
@@ -1961,8 +1830,6 @@ export class Userslist implements OnInit, OnDestroy {
 
         // Parse header row (case-insensitive)
         const headers = lines[0].split(',').map((h: string) => h.trim().toLowerCase());
-        console.log('CSV Headers:', headers);
-
         // Validation: Check for required columns
         const hasUserName = headers.some(
           (h: string) => h === 'user name' || h === 'username' || h === 'name'
@@ -2055,14 +1922,13 @@ export class Userslist implements OnInit, OnDestroy {
 
           // Basic validation for required fields
           if (!user.email || !user.name) {
-            console.warn(`Skipping row ${i + 1}: missing required fields (email or name)`, values);
+            
             continue;
           }
 
           // Basic email format validation
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           if (!emailRegex.test(user.email)) {
-            console.warn(`Skipping row ${i + 1}: invalid email format: ${user.email}`);
             continue;
           }
 
@@ -2077,9 +1943,6 @@ export class Userslist implements OnInit, OnDestroy {
           });
           return;
         }
-
-        console.log('Parsed users from CSV:', users);
-
         // Show info notification that import is in progress
         this.toastr.info(
           `Importing ${users.length} user(s) from "${fileName}"...`,
@@ -2094,8 +1957,6 @@ export class Userslist implements OnInit, OnDestroy {
         // Call the new bulk import API
         this.usersApi.bulkImportUsers(users, 1).subscribe({
           next: (response) => {
-            console.log('Bulk import response:', response);
-
             setTimeout(() => {
               this.isLoading = false;
 
@@ -2134,7 +1995,6 @@ export class Userslist implements OnInit, OnDestroy {
 
                 // Show details of skipped users (max 3, then count)
                 if (data.skipped.length > 0) {
-                  console.log('Skipped users:', data.skipped);
                   const skippedMessage = this.formatNotificationMessage(
                     data.skipped,
                     data.skippedCount
@@ -2161,7 +2021,6 @@ export class Userslist implements OnInit, OnDestroy {
 
                 // Show details of duplicate users (max 3, then count)
                 if (data.duplicates.length > 0) {
-                  console.log('Duplicate users:', data.duplicates);
                   const duplicatesMessage = this.formatNotificationMessage(
                     data.duplicates,
                     data.duplicateCount
@@ -2184,7 +2043,6 @@ export class Userslist implements OnInit, OnDestroy {
 
                 // Show details of errors (max 3, then count)
                 if (data.errors.length > 0) {
-                  console.error('Import errors:', data.errors);
                   const errorsMessage = this.formatNotificationMessage(
                     data.errors,
                     data.errorCount
@@ -2194,8 +2052,6 @@ export class Userslist implements OnInit, OnDestroy {
               }
 
               // Show summary message
-              console.log('Import summary:', response.message);
-
               // Refresh the users list if any users were successfully created
               if (data.successCount > 0) {
                 this.fetchUsers();
@@ -2203,8 +2059,6 @@ export class Userslist implements OnInit, OnDestroy {
             }, 0);
           },
           error: (error: any) => {
-            console.error('Bulk import failed:', error);
-
             setTimeout(() => {
               this.isLoading = false;
 
@@ -2223,7 +2077,6 @@ export class Userslist implements OnInit, OnDestroy {
           },
         });
       } catch (error: any) {
-        console.error('Error parsing CSV:', error);
         this.toastr.error(
           'Failed to parse CSV file. Please check the file format.',
           'Parse Error',

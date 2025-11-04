@@ -45,7 +45,6 @@ export class ProjectStatusComponent implements OnInit, OnChanges {
   };
 
   ngOnInit() {
-    console.log('🎨 ProjectStatusComponent initialized with data:', this.statusData);
     this.initializeData();
     
     // Add click listener to document
@@ -68,14 +67,12 @@ export class ProjectStatusComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['statusData'] && !changes['statusData'].firstChange) {
-      console.log('🔄 StatusData changed in child component:', changes['statusData'].currentValue);
       this.initializeData();
     }
   }
 
   private initializeData() {
     if (!this.statusData || this.statusData.length === 0) {
-      console.warn('⚠️ No status data available');
       this.deliveryUnits = ['All Delivery Units'];
       this.chartSegments = [];
       this.totalProjects = 0;
@@ -83,8 +80,6 @@ export class ProjectStatusComponent implements OnInit, OnChanges {
     }
 
     this.deliveryUnits = this.statusData.map(du => du.deliveryUnit);
-    console.log('📋 Available Delivery Units:', this.deliveryUnits);
-    
     if (this.deliveryUnits.includes('All Delivery Units')) {
       this.selectedDeliveryUnit = 'All Delivery Units';
     } else if (this.deliveryUnits.length > 0) {
@@ -99,7 +94,6 @@ export class ProjectStatusComponent implements OnInit, OnChanges {
   }
 
   onDeliveryUnitChange(unit: string) {
-    console.log('🔄 Delivery unit changed to:', unit);
     this.selectedDeliveryUnit = unit;
     this.dropdownOpen = false;
     this.updateChartData();
@@ -110,7 +104,6 @@ export class ProjectStatusComponent implements OnInit, OnChanges {
     const selectedData = this.statusData.find(du => du.deliveryUnit === this.selectedDeliveryUnit);
     
     if (!selectedData) {
-      console.warn('⚠️ No data found for selected delivery unit:', this.selectedDeliveryUnit);
       this.totalProjects = 0;
       this.chartSegments = [];
       return;
@@ -121,9 +114,6 @@ export class ProjectStatusComponent implements OnInit, OnChanges {
       completed: selectedData.completed,
       onHold: selectedData.onHold
     };
-
-    console.log(`📊 Chart data for "${this.selectedDeliveryUnit}":`, data);
-
     this.totalProjects = data.inProgress + data.completed + data.onHold;
     this.generateChartSegments(data);
   }
@@ -158,7 +148,6 @@ export class ProjectStatusComponent implements OnInit, OnChanges {
     });
 
     this.chartSegments = segments;
-    console.log('🎨 Generated chart segments:', this.chartSegments);
   }
 
   // Convert polar coordinates to cartesian for pie chart

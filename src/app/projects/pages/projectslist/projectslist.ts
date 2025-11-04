@@ -204,11 +204,15 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
                 name: manager.name || 'Unknown'
               }));
             }
+            this.cdr.detectChanges();
             resolve();
           },
           error: (err) => {
-            console.error('Failed to load project managers:', err);
-            this.managerOptions = [];
+            // Only log error if it's not a 401 (401 will be handled by interceptor)
+            if (err.status !== 401) {
+              this.managerOptions = [];
+            }
+            this.cdr.detectChanges();
             resolve();
           }
         });
@@ -223,11 +227,15 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
       this.deliveryUnitsService.getAllDeliveryUnits().subscribe({
         next: (deliveryUnits) => {
           this.deliveryUnits = deliveryUnits;
+          this.cdr.detectChanges();
           resolve();
         },
         error: (err) => {
-          console.error('Failed to load delivery units:', err);
-          this.deliveryUnits = [];
+          // Only log error if it's not a 401 (401 will be handled by interceptor)
+          if (err.status !== 401) {
+            this.deliveryUnits = [];
+          }
+          this.cdr.detectChanges();
           resolve();
         }
       });
@@ -291,7 +299,18 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
    * Handle fetch error
    */
   private handleFetchError(err: any) {
-    console.error('Projects API call failed:', err);
+    // Handle authentication errors specifically
+    if (err instanceof HttpErrorResponse && err.status === 401) {
+      this.toastr.error('Your session has expired. Please log in again.', 'Session Expired', {
+        timeOut: 5000,
+        progressBar: true
+      });
+      // The interceptor should handle logout, but let's also clear local state
+      this.loadingError = 'Session expired. Redirecting to login...';
+      this.isLoading = false;
+      this.cdr.markForCheck();
+      return;
+    }
     
     // Provide specific messages for different error types
     let errorMessage = 'Failed to load projects. Please try again.';
@@ -380,7 +399,6 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
   get deliveryUnitOptions(): {id: number, code: string}[] {
     // Return cached delivery units or empty array if not loaded yet
     const options = this.deliveryUnits?.map(du => ({ id: du.id, code: du.code })) || [];
-    console.log('Delivery unit options:', options);
     return options;
   }
 
@@ -652,7 +670,6 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
   }
 
   editProject(projectId: string): void {
-    console.log('Edit project:', projectId);
     this.router.navigate(['/projects', projectId, 'edit']);
   }
 
@@ -703,7 +720,6 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
         }
       },
       error: (err) => {
-        console.error('Export failed:', err);
         this.notificationService.addNotification('error', 'Failed to export projects', 'Export Error');
         this.isLoading = false;
         this.cdr.markForCheck();
@@ -847,7 +863,6 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
           }
         },
         error: (err) => {
-          console.error('Delete failed:', err);
           // Show toaster for error
           this.toastr.error(`Failed to delete project "${deletedName}".`, 'Delete Failed');
           this.showDeleteModal = false;
@@ -904,7 +919,6 @@ export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
             deleteNext(index + 1);
           },
           error: (err) => {
-            console.error(`Failed to delete project ${project.id}:`, err);
             failedCount++;
             deleteNext(index + 1);
           }

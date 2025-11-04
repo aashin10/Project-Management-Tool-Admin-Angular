@@ -406,28 +406,44 @@ describe('Deliveryunitslist Component', () => {
       const initialLength = component.deliveryUnits.length;
       const event = new Event('submit');
       
+<<<<<<< HEAD
       component.saveDeliveryUnit();
+=======
+      component.saveDeliveryUnit();;
+>>>>>>> 22043ab013d578cc07f702c4625d97aa7d44216b
       
       expect(component.deliveryUnits.length).toBe(initialLength + 1);
     });
 
     it('should add new DU to beginning of array', () => {
       const event = new Event('submit');
+<<<<<<< HEAD
       component.saveDeliveryUnit();
+=======
+      component.saveDeliveryUnit();;
+>>>>>>> 22043ab013d578cc07f702c4625d97aa7d44216b
       
       expect(component.deliveryUnits[0].duCode).toBe('NEW-001');
     });
 
     it('should generate correct initials for DU', () => {
       const event = new Event('submit');
+<<<<<<< HEAD
       component.saveDeliveryUnit();
+=======
+      component.saveDeliveryUnit();;
+>>>>>>> 22043ab013d578cc07f702c4625d97aa7d44216b
       
       expect(component.deliveryUnits[0].duInfo.initials).toBe('NE');
     });
 
     it('should generate correct initials for head', () => {
       const event = new Event('submit');
+<<<<<<< HEAD
       component.saveDeliveryUnit();
+=======
+      component.saveDeliveryUnit();;
+>>>>>>> 22043ab013d578cc07f702c4625d97aa7d44216b
       
       expect(component.deliveryUnits[0].duHead.avatar).toBe('JS');
     });
@@ -453,7 +469,11 @@ describe('Deliveryunitslist Component', () => {
       const initialLength = component.filteredDeliveryUnits.length;
       const event = new Event('submit');
       
+<<<<<<< HEAD
       component.saveDeliveryUnit();
+=======
+      component.saveDeliveryUnit();;
+>>>>>>> 22043ab013d578cc07f702c4625d97aa7d44216b
       
       expect(component.filteredDeliveryUnits.length).toBe(initialLength + 1);
     });
@@ -481,7 +501,11 @@ describe('Deliveryunitslist Component', () => {
       const initialLength = component.deliveryUnits.length;
       const event = new Event('submit');
       
+<<<<<<< HEAD
       component.saveDeliveryUnit();
+=======
+      component.saveDeliveryUnit();;
+>>>>>>> 22043ab013d578cc07f702c4625d97aa7d44216b
       
       expect(component.deliveryUnits.length).toBe(initialLength);
     });
@@ -490,7 +514,11 @@ describe('Deliveryunitslist Component', () => {
       const event = new Event('submit');
       spyOn(event, 'preventDefault');
       
+<<<<<<< HEAD
       component.saveDeliveryUnit();
+=======
+      component.saveDeliveryUnit();;
+>>>>>>> 22043ab013d578cc07f702c4625d97aa7d44216b
       
       expect(event.preventDefault).toHaveBeenCalled();
     });

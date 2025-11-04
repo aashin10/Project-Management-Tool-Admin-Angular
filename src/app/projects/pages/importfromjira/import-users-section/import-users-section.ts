@@ -33,11 +33,21 @@ export class ImportUsersSection implements OnInit {
   openMissingUserModal = false;
   missingUsersAvailable = false;
   operationResultsAvailable = false;
+  openCsvGuideModal = false;
 
   isUploading = false;
 
   closeMissingUserModal() {
     this.openMissingUserModal = false;
+  }
+
+  closeCsvGuideModal() {
+    this.openCsvGuideModal = false;
+  }
+
+  openOptionalInfo() {
+    this.openCsvGuideModal = true;
+    this.cdr.detectChanges();
   }
 
   ngOnInit() {
@@ -77,11 +87,9 @@ export class ImportUsersSection implements OnInit {
         skipEmptyLines: true,
         complete: (result: ParseResult<any>) => {
           if (result.errors && result.errors.length > 0) {
-            console.error('CSV parsing errors:', result.errors);
             return;
           }
           this.parsedData = result.data;
-          console.log('Parsed CSV:', this.parsedData);
           this.uploadSuccess = true;
         },
       });
@@ -91,12 +99,10 @@ export class ImportUsersSection implements OnInit {
   }
 
   onSkip() {
-    console.log('Skipping user import...');
     this.router.navigate(['/projects']);
   }
 
   onContinue() {
-    console.log('Importing users...');
     let postdata: any[] = [];
     this.parsedData.forEach((user) => {
       postdata.push({
@@ -106,21 +112,19 @@ export class ImportUsersSection implements OnInit {
         status: user['User status'],
       });
     });
-    console.log('Prepared user data for upload:', postdata);
     this.isUploading = true;
     this.jiraApi.uploadUsersCsv(postdata).subscribe(
       (response) => {
-        console.log('Users uploaded successfully:', response);
         this.isUploading = false;
         this.toastr.success('Users Upload Successful');
         this.router.navigate(['/projects']);
       },
       (error) => {
-        console.error('Error uploading users:', error);
         this.uploadSuccess = false;
         this.isUploading = false;
         this.toastr.error('Error uploading users. Please try again.');
       }
     );
+    sessionStorage.removeItem('import_response');
   }
 }

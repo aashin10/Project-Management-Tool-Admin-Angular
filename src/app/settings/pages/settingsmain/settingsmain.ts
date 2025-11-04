@@ -61,7 +61,6 @@ export class Settingsmain implements OnInit {
   searchQuery = '';
 
   ngOnInit() {
-    console.log('Settings component initialized, fetching super admins...');
     this.loadSuperAdmins();
   }
 
@@ -69,19 +68,14 @@ export class Settingsmain implements OnInit {
    * Load all super admins from API
    */
   loadSuperAdmins() {
-    console.log('Fetching super admins from API...');
     this.isLoading = true;
     this.superAdminService.getAllSuperAdmins().subscribe({
       next: (data) => {
-        console.log('✅ Received data from API:', data);
-        console.log('Number of super admins:', data.length);
         this.superAdmins = data.map(admin => this.mapDTOToSuperAdmin(admin));
-        console.log('Mapped super admins:', this.superAdmins);
         this.isLoading = false;
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('❌ Error loading super admins:', error);
         this.toastr.error('Failed to load super admins', 'Error');
         this.superAdmins = [];
         this.isLoading = false;
@@ -201,7 +195,6 @@ export class Settingsmain implements OnInit {
           );
         },
         error: (error) => {
-          console.error('Error deleting super admin:', error);
           this.toastr.error('Failed to delete super admin', 'Error');
           this.closeDeleteModal();
         }
@@ -301,7 +294,6 @@ export class Settingsmain implements OnInit {
           this.isLoading = false;
         },
         error: (error) => {
-          console.error('Error updating super admin:', error);
           this.toastr.error('Failed to update super admin', 'Error');
           this.isLoading = false;
           this.closeEditModal();
@@ -347,23 +339,36 @@ export class Settingsmain implements OnInit {
           this.cdr.detectChanges();
           
           // Show toast popup notification
-          this.toastr.success('Super Admin Added Successfully', '', {
-            timeOut: 3000,
-            progressBar: true,
-            closeButton: true,
-          });
+          // this.toastr.success('Super Admin Added Successfully', '', {
+          //   timeOut: 3000,
+          //   progressBar: true,
+          //   closeButton: true,
+          // });
+                   this.toastr.success(
+            `Login credentials have been sent to ${this.newAdminEmail.trim()}`, 
+            'Super Admin Added Successfully', 
+            {
+              timeOut: 5000,
+              progressBar: true,
+              closeButton: true,
+            }
+          );
           
           // Add notification to notification service
-          this.notificationService.addNotification(
+          // this.notificationService.addNotification(
+          //   'success',
+          //   `Super admin "${newAdminName}" has been successfully added to the system.`,
+          //   'Admin Added'
+          // );
+                    this.notificationService.addNotification(
             'success',
-            `Super admin "${newAdminName}" has been successfully added to the system.`,
+            `Super admin "${newAdminName}" has been successfully added to the system. Login credentials have been sent.`,
             'Admin Added'
           );
           
           this.isLoading = false;
         },
         error: (error) => {
-          console.error('Error adding super admin:', error);
           this.toastr.error('Failed to add super admin', 'Error');
           this.isLoading = false;
           this.closeAddModal();
@@ -583,7 +588,7 @@ export class Settingsmain implements OnInit {
 //         this.isLoading = false;
 //       },
 //       error: (error) => {
-//         console.error('Error loading super admins:', error);
+//         
 //         this.toastr.error('Failed to load super admins', 'Error');
 //         this.isLoading = false;
 //       }
@@ -672,7 +677,7 @@ export class Settingsmain implements OnInit {
 //           this.closeDeleteModal();
 //         },
 //         error: (error) => {
-//           console.error('Error deleting super admin:', error);
+//           
 //           this.toastr.error('Failed to delete super admin', 'Error');
 //           this.closeDeleteModal();
 //         }
@@ -764,7 +769,7 @@ export class Settingsmain implements OnInit {
 //           this.closeEditModal();
 //         },
 //         error: (error) => {
-//           console.error('Error updating super admin:', error);
+//           
 //           this.toastr.error('Failed to update super admin', 'Error');
 //           this.isLoading = false;
 //         }
@@ -818,7 +823,7 @@ export class Settingsmain implements OnInit {
 //           this.closeAddModal();
 //         },
 //         error: (error) => {
-//           console.error('Error adding super admin:', error);
+//           
 //           this.toastr.error('Failed to add super admin', 'Error');
 //           this.isLoading = false;
 //         }
