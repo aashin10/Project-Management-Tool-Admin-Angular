@@ -1,6 +1,6 @@
 <div class="w-full">
   <!-- Table -->
-  <div class="overflow-x-auto border border-gray-200 rounded-lg">
+  <div class="overflow-x-auto border border-gray-200 rounded-sm">
     <table class="min-w-full divide-y divide-gray-200">
       <thead class="bg-gray-50">
         <tr>
@@ -53,7 +53,7 @@
             <!-- Role Icon type -->
             <div *ngIf="column.type === 'roleIcon'" class="flex items-center gap-3">
               <div
-                class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0"
+                class="w-8 h-8 rounded-sm bg-blue-50 flex items-center justify-center flex-shrink-0"
               >
                 <svg
                   class="w-4 h-4 text-blue-600"
@@ -156,7 +156,7 @@
                 *ngFor="let actionItem of column.actions"
                 (click)="handleAction(actionItem.action, row); $event.stopPropagation()"
                 [class]="getActionButtonClass(actionItem.action)"
-                class="p-1 rounded-md text-sm font-medium transition-colors flex items-center justify-center min-w-[32px] min-h-[32px]"
+                class="p-1 rounded-sm text-sm font-medium transition-colors flex items-center justify-center min-w-[32px] min-h-[32px]"
                 [title]="actionItem.label"
               >
                 <img

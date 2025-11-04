@@ -80,12 +80,10 @@ export class DashboardMainComponent implements OnInit {
    * Load all dashboard data from API - everything loads together
    */
   loadDashboardData(): void {
-    console.log('🔄 Loading dashboard data...');
-    
     // Set loading state and clear any previous errors
     this.isLoading = true;
     this.loadingError = null;
-    this.cdr.markForCheck();
+    this.cdr.detectChanges();
     
     forkJoin({
       summary: this.dashboardService.getDashboardSummary(),
@@ -93,8 +91,6 @@ export class DashboardMainComponent implements OnInit {
     }).subscribe({
       next: (result) => {
         try {
-          console.log('✅ Dashboard data loaded successfully:', result);
-          
           // Map all data at once
           this.metricCards = this.mapSummaryToMetricCards(result.summary);
           this.projectStatusData = this.mapSummaryToProjectStatus(result.summary);
@@ -111,16 +107,14 @@ export class DashboardMainComponent implements OnInit {
           //   });
           // }, 100);
 
-          console.log('📊 Project Status Data (All Delivery Units):', this.projectStatusData);
+          
         } finally {
           // Always clear loading state in finally block
           this.isLoading = false;
-          this.cdr.markForCheck();
+          this.cdr.detectChanges();
         }
       },
       error: (error) => {
-        console.error('❌ Error loading dashboard data:', error);
-        
         // Provide specific error messages
         let errorMessage = 'Failed to load dashboard data. Please try again.';
         
@@ -147,7 +141,7 @@ export class DashboardMainComponent implements OnInit {
         }, 100);
         
         this.initializeDefaultData();
-        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       }
     });
   }

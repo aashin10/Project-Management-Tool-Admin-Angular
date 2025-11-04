@@ -122,19 +122,16 @@ export class Authentication {
       }
 
       if (hasRefreshToken) {
-        console.log('🔄 Access token invalid or missing, attempting session refresh with refresh token');
         this.refreshToken().subscribe({
           next: (response) => {
             if (response.status === 200 && response.data) {
-              console.log('✅ Session refreshed successfully during initialization');
+              this.updateAuthenticatedState(true);
               this.loadCurrentUser();
             } else {
-              console.warn('⚠️ Refresh token response did not return new tokens during initialization');
               this.updateAuthenticatedState(false);
             }
           },
           error: (error) => {
-            console.error('❌ Failed to refresh session during initialization:', error);
             this.updateAuthenticatedState(false);
           }
         });
@@ -168,17 +165,12 @@ export class Authentication {
       email: email.trim().toLowerCase(),
       password: password
     };
-
-    console.log('🔐 Attempting login for:', email);
-
     return this.http.post<ApiResponse<LoginResponse>>(
       `${this.apiUrl}/Auth/login`,
       loginRequest
     ).pipe(
       tap(response => {
-        console.log('📥 Login response received:', response);
         if (response.status === 200 && response.data) {
-          console.log('✅ Login successful, storing tokens');
           this.setTokens(response.data.accessToken, response.data.refreshToken);
           this.updateAuthenticatedState(true);
           this.loadCurrentUser();
@@ -186,7 +178,6 @@ export class Authentication {
         }
       }),
       catchError(error => {
-        console.error('❌ Login API error:', error);
         // Return the error as a response so login component can handle it
         // This allows the component to show proper error messages
         return throwError(() => error);
@@ -201,28 +192,22 @@ export class Authentication {
     const refreshToken = this.getRefreshToken();
 
     if (!refreshToken) {
-      console.error('❌ No refresh token available');
       return throwError(() => new Error('No refresh token available'));
     }
 
     const refreshRequest: RefreshTokenRequest = { refreshToken };
-
-    console.log('🔄 Sending refresh token request to backend...');
     return this.http.post<ApiResponse<LoginResponse>>(
       `${this.apiUrl}/Auth/refresh`,
       refreshRequest
     ).pipe(
       tap(response => {
         if (response.status === 200 && response.data) {
-          console.log('✅ Token successfully refreshed');
           this.setTokens(response.data.accessToken, response.data.refreshToken);
           this.updateAuthenticatedState(true);
         } else {
-          console.warn('⚠️ Refresh response status not 200:', response.status);
         }
       }),
       catchError(error => {
-        console.error('❌ Token refresh failed:', error);
         // Don't logout here - let the interceptor handle it
         return throwError(() => error);
       })
@@ -235,29 +220,23 @@ export class Authentication {
   logout(): Observable<ApiResponse<any>> {
     // If already logging out, return early to prevent duplicate navigation
     if (this.isLoggingOut) {
-      console.log('⚠️ Logout already in progress, skipping duplicate logout call');
       return throwError(() => new Error('Logout already in progress'));
     }
 
     this.isLoggingOut = true;
-    console.log('🔴 Starting logout process...');
-
     return this.http.post<ApiResponse<any>>(
       `${this.apiUrl}/Auth/logout`,
       {}
     ).pipe(
       tap(() => {
-        console.log('🔴 Logout successful from API');
         this.clearAuthDataSilent();
       }),
       catchError(error => {
-        console.error('⚠️ Logout API error, clearing auth data anyway');
         this.clearAuthDataSilent();
         return throwError(() => error);
       }),
       finalize(() => {
         // Cleanup always happens - whether success or error
-        console.log('🔴 Finalizing logout - resetting flag and navigating');
         this.isLoggingOut = false;
         this.router.navigate(['/login']);
       })
@@ -274,7 +253,6 @@ export class Authentication {
       tap(response => {
         if (response.status==200 && response.data) {
           this.currentUserSubject.next(response.data);
-          console.log('Current user loaded:', response.data);          
         }
       }),
       catchError(this.handleError)
@@ -292,7 +270,6 @@ export class Authentication {
         }
       },
       error: (error) => {
-        console.error('Failed to load user info:', error);
         //this.clearAuthData();
       }
     });
@@ -322,7 +299,6 @@ export class Authentication {
   hasValidToken(): boolean {
     const token = this.getAccessToken();
     if (!token) {
-      console.log('⚠️ No token in localStorage');
       return false;
     }
 
@@ -331,21 +307,19 @@ export class Authentication {
       const currentTime = Math.floor(Date.now() / 1000);
 
       if (payload?.exp === undefined) {
-        console.warn('⚠️ Token payload has no exp claim; treating token as opaque and valid');
         return true;
       }
 
       const isValid = payload.exp > currentTime;
 
       if (!isValid) {
-        console.log('⚠️ Token expired. Expires at:', new Date(payload.exp * 1000), 'Current time:', new Date());
+        
       } else {
-        console.log('✅ Token is valid. Expires at:', new Date(payload.exp * 1000));
+        
       }
 
       return isValid;
     } catch (error) {
-      console.warn('⚠️ Unable to decode token payload, assuming opaque token remains valid:', error);
       return true; // Assume opaque tokens are valid if present
     }
   }
@@ -425,8 +399,6 @@ export class Authentication {
         errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
       }
     }
-
-    console.error(errorMessage);
     return throwError(() => new Error(errorMessage));
   }
 }

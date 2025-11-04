@@ -75,37 +75,27 @@ export class TeamOrganizationComponent implements OnInit, OnChanges {
   constructor(private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
-    console.log('TeamOrganizationComponent - ngOnInit - Received deliveryUnits:', this.deliveryUnits);
-    console.log('TeamOrganizationComponent - ngOnInit - Current deliveryUnit:', this.deliveryUnit);
-    console.log('TeamOrganizationComponent - ngOnInit - Current manager:', this.manager);
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    console.log('TeamOrganizationComponent - ngOnChanges triggered:', changes);
-    
     // Update private properties directly without triggering change events during initialization
     if (changes['manager'] && changes['manager'].currentValue !== undefined) {
-      console.log('Manager changed from', changes['manager'].previousValue, 'to', changes['manager'].currentValue);
       this._manager = changes['manager'].currentValue || '';
     }
     
     if (changes['deliveryUnit'] && changes['deliveryUnit'].currentValue !== undefined) {
-      console.log('Delivery Unit changed from', changes['deliveryUnit'].previousValue, 'to', changes['deliveryUnit'].currentValue);
       this._deliveryUnit = changes['deliveryUnit'].currentValue || '';
     }
     
     if (changes['deliveryUnits'] && changes['deliveryUnits'].currentValue !== undefined) {
-      console.log('Delivery Units array changed:', changes['deliveryUnits'].currentValue);
       this.deliveryUnits = changes['deliveryUnits'].currentValue || [];
     }
     
     if (changes['selectedProjectManagerId'] && changes['selectedProjectManagerId'].currentValue !== undefined) {
-      console.log('Selected Project Manager ID changed:', changes['selectedProjectManagerId'].currentValue);
       this._selectedProjectManagerId = changes['selectedProjectManagerId'].currentValue || 0;
     }
     
     if (changes['selectedDeliveryUnitId'] && changes['selectedDeliveryUnitId'].currentValue !== undefined) {
-      console.log('Selected Delivery Unit ID changed:', changes['selectedDeliveryUnitId'].currentValue);
       this._selectedDeliveryUnitId = changes['selectedDeliveryUnitId'].currentValue || 0;
     }
     

@@ -77,7 +77,6 @@ export class JiraService {
           }
         )
         .toPromise();
-      console.log('Fetched Projects:', response);
       return response ?? [];
     } catch (error) {
       throw new Error('Failed to fetch Jira projects');
@@ -90,20 +89,17 @@ export class JiraService {
       const exp = payload.exp;
 
       if (!exp) {
-        console.warn('No expiry field in token');
         return false;
       }
 
       const now = Math.floor(Date.now() / 1000);
       return exp < now;
     } catch (error) {
-      console.error('Invalid JWT format', error);
       return true;
     }
   }
 
   async getMyDetails(accessToken: string): Promise<any> {
-    console.log('Getting user details with token:', accessToken);
     try {
       const response = await this.http
         .get<any>(`https://api.atlassian.com/me`, {

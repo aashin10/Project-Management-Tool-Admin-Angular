@@ -80,7 +80,6 @@ export class Roleslist implements OnInit {
   fetchRoles(): void {
     this.rolesService.fetchRoles().subscribe({
       next: (apiRoles) => {
-        console.log('Raw API roles response:', apiRoles);
         this.roles = apiRoles.map((r, index) => {
           const mappedRole = {
             id: r.id,
@@ -94,7 +93,6 @@ export class Roleslist implements OnInit {
             // Mark first two roles (Admin and Project Manager) as default/non-editable
             isDefault: index < 2
           };
-          console.log(`Mapped role ${r.name}:`, mappedRole);
           return mappedRole;
         });
         this.filteredRoles = [...this.roles];
@@ -335,7 +333,6 @@ export class Roleslist implements OnInit {
     }
 
     // Validate permissions
-    console.log('Validating permissionIds:', this.newRole.permissionIds);
     if (!this.newRole.permissionIds || this.newRole.permissionIds.length === 0) {
       this.toastr.warning('Assign at least one permission', 'Validation Error', {
         timeOut: 3000,
@@ -370,7 +367,7 @@ export class Roleslist implements OnInit {
         description: roleToSave.description,
         permissionIds: roleToSave.permissionIds
       };
-      console.log('Creating role with payload:', JSON.stringify(payload, null, 2));
+      
       this.rolesService.createRole(payload).subscribe({
         next: (response) => {
           const data: any = (response && (response as any).data) ? (response as any).data : response;
@@ -412,7 +409,6 @@ export class Roleslist implements OnInit {
           this.cdr.detectChanges();
         },
         error: (error) => {
-          console.error('Failed to create role:', error);
           this.toastr.error('Failed to create role', '', {
             timeOut: 3000,
             progressBar: true,
@@ -435,43 +431,23 @@ export class Roleslist implements OnInit {
         ? [...this.newRole.permissionIds]
         : []
     };
-
-    console.log('═══════════════════════════════════════════════════════');
-    console.log('🔄 UPDATING ROLE');
-    console.log('═══════════════════════════════════════════════════════');
-    console.log('Role ID:', effectiveRoleId);
-    console.log('Role Name:', payload.name);
-    console.log('📤 BEFORE API CALL:');
-  console.log('  - Original permissionIds:', JSON.stringify(this.originalPermissions));
-  console.log('  - New permissionIds to save:', JSON.stringify(payload.permissionIds));
-  console.log('  - PermissionIds count:', payload.permissionIds.length);
-  console.log('📦 Full payload being sent:', JSON.stringify(payload, null, 2));
+  
+  
+  
 
     this.rolesService.updateRole(effectiveRoleId, payload).subscribe({
       next: (response) => {
-        console.log('═══════════════════════════════════════════════════════');
-        console.log('📥 BACKEND RESPONSE RECEIVED');
-        console.log('═══════════════════════════════════════════════════════');
-        console.log('Full response object:', JSON.stringify(response, null, 2));
+        
         
         const data: any = (response && (response as any).data) ? (response as any).data : response;
         const returnedPermissionIds = Array.isArray(data?.permissions)
           ? data.permissions.map((p: any) => typeof p === 'object' && p.id ? p.id : Number(p))
           : [];
         
-        console.log('📊 PERMISSION IDS COMPARISON:');
-        console.log('  ✅ Sent to backend:', JSON.stringify(payload.permissionIds));
-        console.log('  ❓ Returned from backend:', JSON.stringify(returnedPermissionIds));
-        console.log('  🔢 Sent count:', payload.permissionIds.length);
-        console.log('  🔢 Returned count:', returnedPermissionIds.length);
         
         if (payload.permissionIds.length !== returnedPermissionIds.length) {
-          console.error('🚨 PERMISSION IDS MISMATCH DETECTED!');
-          console.error('Backend did not save/return the permission IDs correctly');
         } else if (JSON.stringify(payload.permissionIds.sort()) !== JSON.stringify(returnedPermissionIds.sort())) {
-          console.warn('⚠️ Permission ID content differs between sent and received');
         } else {
-          console.log('✅ Permission IDs match - backend saved correctly!');
         }
         
         this.toastr.success('Role updated successfully', '', {
@@ -487,7 +463,7 @@ export class Roleslist implements OnInit {
             ? data.permissions.map((p: any) => typeof p === 'object' && p.id ? p.id : Number(p))
             : [];
           
-          console.log('🔄 Updating local role cache with permissionIds:', JSON.stringify(updatedPermissionIds));
+          
           
           this.roles[idx] = {
             ...this.roles[idx],
@@ -499,27 +475,16 @@ export class Roleslist implements OnInit {
           };
           this.filteredRoles = [...this.roles];
           
-          console.log('✅ Local role updated. Current permissionIds in cache:', JSON.stringify(this.roles[idx].permissionIds));
+          
         }
 
         // Also refetch from server to guarantee backend persistence
-        console.log('🔄 Fetching roles from server to verify persistence...');
         this.fetchRoles();
 
         this.closeModal();
         this.cdr.detectChanges();
-        console.log('═══════════════════════════════════════════════════════\n');
       },
       error: (error) => {
-        console.log('═══════════════════════════════════════════════════════');
-        console.error('❌ ERROR UPDATING ROLE');
-        console.log('═══════════════════════════════════════════════════════');
-        console.error('Error details:', error);
-        console.error('Status:', error.status);
-        console.error('Message:', error.message);
-        console.error('Error body:', error.error);
-        console.log('═══════════════════════════════════════════════════════\n');
-        
         this.toastr.error('Failed to update role', '', {
           timeOut: 3000,
           progressBar: true,
@@ -587,7 +552,6 @@ export class Roleslist implements OnInit {
   }
  
   closeModal() {
-    console.log('Closing modal...');
     this.isModalOpen = false;
     this.isEditMode = false;
     this.editingIndex = -1;
@@ -620,12 +584,10 @@ export class Roleslist implements OnInit {
     const index = this.newRole.permissionIds.indexOf(permissionId);
     if (index > -1) {
       this.newRole.permissionIds.splice(index, 1);
-      console.log(`❌ Removed permissionId: ${permissionId}`);
     } else {
       this.newRole.permissionIds.push(permissionId);
-      console.log(`✅ Added permissionId: ${permissionId}`);
     }
-    console.log('📋 Current permissionIds after toggle:', JSON.stringify(this.newRole.permissionIds));
+    
     // Trigger change detection manually to prevent NG0100 error
     setTimeout(() => {
       this.cdr.detectChanges();
@@ -640,7 +602,6 @@ export class Roleslist implements OnInit {
     );
     
     if (index === -1) {
-      console.error('Role not found:', row);
       return;
     }
 

@@ -1,4 +1,4 @@
-<div class="bg-white rounded-lg border min-h-[550px] border-gray-200 p-6 h-full shadow-sm">
+<div class="bg-white rounded-sm border min-h-[550px] border-gray-200 p-6 h-full shadow-sm">
   <!-- Header -->
   <div class="mb-4">
     <div class="flex items-center gap-2 mb-1">
@@ -16,7 +16,7 @@
     <button
       type="button"
       (click)="toggleDropdown()"
-      class="w-full px-3 py-2 text-sm text-left text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex items-center justify-between transition-all duration-200 h-10"
+      class="w-full px-3 py-2 text-sm text-left text-gray-700 bg-white border border-gray-300 rounded-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex items-center justify-between transition-all duration-200 h-10"
     >
       <span class="truncate pr-2 flex-1">{{ selectedDeliveryUnit }}</span>
       <svg 
@@ -34,7 +34,7 @@
     <!-- Dropdown Menu -->
     <div 
       *ngIf="dropdownOpen"
-      class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
+      class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-sm shadow-lg max-h-60 overflow-auto"
     >
       <div
         *ngFor="let unit of deliveryUnits"
@@ -114,7 +114,7 @@
           *ngIf="hoveredSegment"
           class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20 animate-fade-in"
         >
-          <div class="bg-white px-4 py-2 rounded-lg shadow-xl border border-gray-200 text-center backdrop-blur-sm bg-opacity-95">
+          <div class="bg-white px-4 py-2 rounded-sm shadow-xl border border-gray-200 text-center backdrop-blur-sm bg-opacity-95">
             <div class="text-xs font-medium text-gray-500 mb-1">{{ hoveredSegment }}</div>
             <div class="text-lg font-bold text-gray-900">{{ getHoveredSegmentCount() }}</div>
             <div class="text-xs text-gray-400">projects</div>
@@ -127,7 +127,7 @@
     <div class="space-y-2">
       <div 
         *ngFor="let segment of chartSegments"
-        class="flex items-center justify-between cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-200"
+        class="flex items-center justify-between cursor-pointer px-3 py-2.5 rounded-sm transition-all duration-200"
         [class.bg-gray-50]="isButtonHovered(segment.status)"
         (mouseenter)="onSegmentHover(segment.status)"
         (mouseleave)="onSegmentLeave()"

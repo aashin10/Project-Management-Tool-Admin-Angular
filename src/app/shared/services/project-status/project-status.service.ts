@@ -37,7 +37,6 @@ export class ProjectStatusService {
             description: status.description
           }))),
           catchError(err => {
-            console.error('[ProjectStatusService] Failed to fetch statuses:', err);
             return of<ProjectStatus[]>([]);
           }),
           shareReplay(1)

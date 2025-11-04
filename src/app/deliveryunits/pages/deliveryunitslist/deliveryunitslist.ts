@@ -108,7 +108,6 @@ export class Deliveryunitslist implements OnInit {
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('❌ API Error:', error);
         this.showToastNotification('Failed to load delivery units', 'error');
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -332,7 +331,6 @@ export class Deliveryunitslist implements OnInit {
         this.loadDeliveryUnits();
       },
       error: (err) => {
-        console.error('❌ Delete failed:', err);
         this.showToastNotification('Failed to delete. Please try again', 'error');
         this.loadDeliveryUnits();
       }

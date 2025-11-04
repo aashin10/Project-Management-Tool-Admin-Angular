@@ -50,12 +50,10 @@ export class DeliveryUnitService {
     headEmail: du.duHeadEmail
   };
 
-  console.log('📤 CREATE Payload (Fixed):', JSON.stringify(payload, null, 2));
+  
 
   return this.http.post<ApiResponse<DeliveryUnitApi>>(this.apiUrl, payload).pipe(
     map(res => {
-      console.log('✅ CREATE Response:', res);
-      console.log('✅ CREATE Data:', res.data);
       return res.data;
     }),
     catchError(this.handleError)
@@ -75,14 +73,10 @@ export class DeliveryUnitService {
       HeadEmail: du.duHeadEmail
     };
 
-    console.log('📤 UPDATE Payload:', JSON.stringify(payload, null, 2));
+    
 
     return this.http.put<ApiResponse<DeliveryUnitApi>>(`${this.apiUrl}/${id}`, payload).pipe(
       map(res => {
-        console.log('✅ UPDATE Response:', res);
-        console.log('✅ UPDATE Data:', res.data);
-        console.log('👤 Head Name from API:', res.data?.duHeadName);
-        console.log('📧 Head Email from API:', res.data?.duHeadEmail);
         return res.data;
       }),
       catchError(this.handleError)
@@ -93,11 +87,7 @@ export class DeliveryUnitService {
   getAllDeliveryUnits(): Observable<DeliveryUnitApi[]> {
     return this.http.get<ApiResponse<DeliveryUnitApi[]>>(this.apiUrl).pipe(
       map(res => {
-        console.log('✅ GET ALL Response:', res);
-        console.log('✅ GET ALL Data:', res.data);
         if (res.data && res.data.length > 0) {
-          console.log('👤 Sample Head Name:', res.data[0].duHeadName);
-          console.log('📧 Sample Head Email:', res.data[0].duHeadEmail);
         }
         return res.data || [];
       }),
@@ -107,11 +97,8 @@ export class DeliveryUnitService {
 
   // 🔴 DELETE
   deleteDeliveryUnit(id: number): Observable<string> {
-    console.log('📤 DELETE Request for ID:', id);
-    
     return this.http.delete<ApiResponse<string>>(`${this.apiUrl}/${id}`).pipe(
       map(res => {
-        console.log('✅ DELETE Response:', res);
         return res.message;
       }),
       catchError(this.handleError)
@@ -120,14 +107,11 @@ export class DeliveryUnitService {
 
   // ⚠️ ERROR HANDLER
   private handleError(error: HttpErrorResponse) {
-    console.error('[DeliveryUnitService] Error:', error);
-    
     let errorMessage = 'Something went wrong; please try again later.';
     
     // Check if it's a client-side error (network error, etc)
     if (error.status === 0) {
       errorMessage = 'Network error: Unable to connect to the server. Please ensure the backend API is running.';
-      console.error('🚨 Connection Error:', errorMessage);
     } else if (error.status >= 500) {
       // Server-side error
       errorMessage = `Server Error (${error.status}): ${error.statusText}`;
@@ -144,8 +128,6 @@ export class DeliveryUnitService {
         errorMessage = error.error.message;
       }
     }
-    
-    console.error('❌ Error Message:', errorMessage);
     return throwError(() => new Error(errorMessage));
   }
 }

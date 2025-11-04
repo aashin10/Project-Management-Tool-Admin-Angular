@@ -43,7 +43,6 @@ export class CreateProjectModal implements OnInit {
         }
       },
       error: (err) => {
-        console.error('Failed to load projects for modal:', err);
       }
     });
   }
