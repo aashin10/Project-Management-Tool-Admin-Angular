@@ -104,12 +104,12 @@ export class DashboardMainComponent implements OnInit {
           this.loadingError = null;
 
           // Show success toast notification
-          setTimeout(() => {
-            this.toastr.success('Dashboard loaded successfully', 'Success', {
-              timeOut: 2000,
-              progressBar: true
-            });
-          }, 100);
+          // setTimeout(() => {
+          //   this.toastr.success('Dashboard loaded successfully', 'Success', {
+          //     timeOut: 2000,
+          //     progressBar: true
+          //   });
+          // }, 100);
 
           console.log('📊 Project Status Data (All Delivery Units):', this.projectStatusData);
         } finally {
