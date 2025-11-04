@@ -191,17 +191,33 @@ export class DashboardMainComponent implements OnInit {
 
   /**
    * Map summary DTO to project status data
-   * This creates data for individual delivery units
+   * This creates data for "All Delivery Units" and individual delivery units
    */
   private mapSummaryToProjectStatus(summary: DashboardSummaryDTO): ProjectStatusData[] {
-    // Map individual delivery units
-    return summary.projectStatuses.map(status => ({
-      deliveryUnit: status.deliveryUnit,
-      inProgress: status.inProgress,
-      completed: status.completed,
-      onHold: status.onHold,
-      total: status.total
-    }));
+    const result: ProjectStatusData[] = [];
+
+    // Add "All Delivery Units" aggregated data first
+    const allDeliveryUnits: ProjectStatusData = {
+      deliveryUnit: 'All Delivery Units',
+      inProgress: summary.inProgressProjects,
+      completed: summary.completedProjects,
+      onHold: summary.onHoldProjects,
+      total: summary.totalProjects
+    };
+    result.push(allDeliveryUnits);
+
+    // Add individual delivery units
+    summary.projectStatuses.forEach(status => {
+      result.push({
+        deliveryUnit: status.deliveryUnit,
+        inProgress: status.inProgress,
+        completed: status.completed,
+        onHold: status.onHold,
+        total: status.total
+      });
+    });
+
+    return result;
   }
 
   /**
