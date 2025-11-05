@@ -49,11 +49,8 @@ export class Importfromjira implements OnInit {
       this.route.queryParams.subscribe(async (params) => {
         if (params['code']) {
           const authorization_code = params['code'];
-          console.log('Authorization Code:', authorization_code);
-
           try {
             const response = await this.jiraService.exchangeToken(authorization_code);
-            console.log('Token Exchange Response:', response);
             sessionStorage.setItem('jira_access_token', response.access_token);
             sessionStorage.setItem('jira_refresh_token', response.refresh_token);
             this.toStep(2);
@@ -61,7 +58,6 @@ export class Importfromjira implements OnInit {
             //Remove url params
             window.history.replaceState({}, document.title, window.location.pathname);
           } catch (error) {
-            console.error('Error exchanging token:', error);
           }
         }
       });

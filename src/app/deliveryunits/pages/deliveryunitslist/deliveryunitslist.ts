@@ -8,11 +8,12 @@ import { CommonModule } from '@angular/common';
 import { Modal } from "../../../shared/modal/modal";
 import { FormsModule } from '@angular/forms';
 import { DeliveryUnitService, DeliveryUnitApi } from '../../../duservice/deliveryunits.service';
+import { LoadingIndicator } from '../../../shared/loading-indicator/loading-indicator';
 
 @Component({
   selector: 'app-deliveryunitslist',
   standalone: true,
-  imports: [Table, Sectiontitle, CustomButton, SearchBar, CommonModule, Modal, FormsModule],
+  imports: [Table, Sectiontitle, CustomButton, SearchBar, CommonModule, Modal, FormsModule,LoadingIndicator],
   templateUrl: './deliveryunitslist.html',
   styleUrl: './deliveryunitslist.css'
 })
@@ -20,12 +21,20 @@ export class Deliveryunitslist implements OnInit {
   searchQuery: string = '';
   filteredDeliveryUnits: any[] = [];
   isModalOpen: boolean = false;
+  isDeleteModalOpen: boolean = false;
+  isUpdateConfirmModalOpen: boolean = false;
   selectedDeliveryUnits: any[] = [];
   private _resetPagination: boolean = false;
   isEditMode: boolean = false;
   editingDUId: number = 0;
   isLoading: boolean = false;
-  errorMessage: string = '';
+  duToDelete: any = null;
+  deleteConfirmationText: string = '';
+  
+  // Toast notification properties
+  showToast: boolean = false;
+  toastMessage: string = '';
+  toastType: 'success' | 'error' = 'success';
 
   get resetPagination(): boolean {
     return this._resetPagination;
@@ -71,6 +80,23 @@ export class Deliveryunitslist implements OnInit {
     this.loadDeliveryUnits();
   }
 
+  showToastNotification(message: string, type: 'success' | 'error' = 'success'): void {
+    this.toastMessage = message;
+    this.toastType = type;
+    this.showToast = true;
+    this.cdr.detectChanges();
+
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+      this.hideToast();
+    }, 3000);
+  }
+
+  hideToast(): void {
+    this.showToast = false;
+    this.cdr.detectChanges();
+  }
+
   // 🧠 Load delivery units
   loadDeliveryUnits(): void {
     this.isLoading = true;
@@ -80,11 +106,10 @@ export class Deliveryunitslist implements OnInit {
         this.deliveryUnits = this.transformApiDataToTableFormat(data);
         this.updateFilteredDeliveryUnits();
         this.isLoading = false;
-        this.cdr.detectChanges(); // 👈 Instant UI refresh
+        this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('❌ API Error:', error);
-        this.errorMessage = 'Failed to load delivery units.';
+        this.showToastNotification('Failed to load delivery units', 'error');
         this.isLoading = false;
         this.cdr.detectChanges();
       }
@@ -123,7 +148,18 @@ export class Deliveryunitslist implements OnInit {
     this.editingDUId = 0;
     this.isLoading = false;
     this.resetForm();
-    this.cdr.detectChanges(); // 👈 Reflect modal close instantly
+    this.cdr.detectChanges();
+  }
+
+  onCloseDeleteModal(): void {
+    this.isDeleteModalOpen = false;
+    this.duToDelete = null;
+    this.cdr.detectChanges();
+  }
+
+  onCloseUpdateConfirmModal(): void {
+    this.isUpdateConfirmModalOpen = false;
+    this.cdr.detectChanges();
   }
 
   resetForm(): void {
@@ -151,7 +187,7 @@ export class Deliveryunitslist implements OnInit {
   validateForm(): boolean {
     if (!this.newDU.name.trim() || !this.newDU.code.trim() || !this.newDU.description.trim() ||
         !this.newDU.headName.trim() || !this.newDU.headEmail.trim()) {
-      alert('❌ Please fill in all required fields.');
+      this.showToastNotification('Please fill in all required fields', 'error');
       return false;
     }
     return true;
@@ -159,6 +195,16 @@ export class Deliveryunitslist implements OnInit {
 
   onSubmitForm(): void {
     if (!this.validateForm()) return;
+    
+    if (this.isEditMode) {
+      this.isUpdateConfirmModalOpen = true;
+    } else {
+      this.saveDeliveryUnit();
+    }
+  }
+
+  confirmUpdate(): void {
+    this.isUpdateConfirmModalOpen = false;
     this.saveDeliveryUnit();
   }
 
@@ -175,23 +221,29 @@ export class Deliveryunitslist implements OnInit {
     if (this.isEditMode) {
       this.deliveryUnitService.updateDeliveryUnit(this.editingDUId, duData).subscribe({
         next: () => {
-          alert('✅ Delivery Unit updated successfully!');
+          this.showToastNotification('Delivery Unit updated successfully');
           this.loadDeliveryUnits();
           this.onCloseModal();
-          this.cdr.detectChanges(); // 👈 Instant reflection
+          this.cdr.detectChanges();
         },
-        error: (error) => alert(`❌ Failed to update: ${error.message}`),
+        error: (error) => {
+          this.showToastNotification(`Failed to update: ${error.message}`, 'error');
+          this.isLoading = false;
+        },
         complete: () => (this.isLoading = false)
       });
     } else {
       this.deliveryUnitService.createDeliveryUnit(duData).subscribe({
         next: () => {
-          alert('✅ Delivery Unit created successfully!');
+          this.showToastNotification('Delivery Unit created successfully');
           this.loadDeliveryUnits();
           this.onCloseModal();
-          this.cdr.detectChanges(); // 👈 Instant reflection
+          this.cdr.detectChanges();
         },
-        error: (error) => alert(`❌ Failed to create: ${error.message}`),
+        error: (error) => {
+          this.showToastNotification(`Failed to create: ${error.message}`, 'error');
+          this.isLoading = false;
+        },
         complete: () => (this.isLoading = false)
       });
     }
@@ -231,7 +283,7 @@ export class Deliveryunitslist implements OnInit {
   editDeliveryUnit(du: any): void {
     const originalDU = this.deliveryUnitsFromApi.find(apiDU => apiDU.code === du.duCode);
     if (!originalDU) {
-      alert('❌ Error: Could not find delivery unit data');
+      this.showToastNotification('Could not find delivery unit data', 'error');
       return;
     }
 
@@ -245,7 +297,7 @@ export class Deliveryunitslist implements OnInit {
       headEmail: originalDU.duHeadEmail || ''
     };
     this.isModalOpen = true;
-    this.cdr.detectChanges(); // 👈 Immediate modal open render
+    this.cdr.detectChanges();
   }
 
   viewDeliveryUnit(du: any): void {
@@ -257,22 +309,30 @@ export class Deliveryunitslist implements OnInit {
     const duName = du?.duInfo?.name || du?.name || 'this Delivery Unit';
 
     if (!duId) return;
-    if (!confirm(`Are you sure you want to delete "${duName}"?`)) return;
+    
+    this.duToDelete = du;
+    this.deleteConfirmationText = duName;
+    this.isDeleteModalOpen = true;
+    this.cdr.detectChanges();
+  }
 
-    // Optimistic UI update
+  confirmDelete(): void {
+    if (!this.duToDelete) return;
+
+    const duId = this.duToDelete.id;
+
     this.filteredDeliveryUnits = this.filteredDeliveryUnits.filter(item => item.id !== duId);
     this.deliveryUnits = this.deliveryUnits.filter(item => item.id !== duId);
-    this.cdr.detectChanges(); // 👈 Instant UI update
+    this.onCloseDeleteModal();
+    this.cdr.detectChanges();
 
     this.deliveryUnitService.deleteDeliveryUnit(duId).subscribe({
       next: () => {
-        alert('✅ Delivery Unit deleted successfully!');
+        this.showToastNotification('Delivery Unit deleted successfully');
         this.loadDeliveryUnits();
-        this.onCloseModal();
       },
       error: (err) => {
-        console.error('❌ Delete failed:', err);
-        alert('❌ Failed to delete. Please try again.');
+        this.showToastNotification('Failed to delete. Please try again', 'error');
         this.loadDeliveryUnits();
       }
     });

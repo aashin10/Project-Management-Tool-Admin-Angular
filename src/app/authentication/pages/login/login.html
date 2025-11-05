@@ -1,147 +1,172 @@
-<div class="flex min-h-screen">
-  <!-- Left Panel -->
-  <div
-    class="flex-1 bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center relative overflow-hidden p-12"
-  >
-    <!-- Decorative circles -->
+<ng-container *ngIf="authState$ | async as authState">
+  <div *ngIf="authState === 'unauthenticated'; else authLoading" class="flex min-h-screen">
+    <!-- Left Panel -->
     <div
-      class="absolute top-[10%] right-[15%] w-48 h-48 bg-white/10 rounded-full animate-pulse"
-    ></div>
-    <div class="absolute -bottom-12 -left-12 w-72 h-72 bg-white/5 rounded-full"></div>
-    <div class="absolute bottom-[20%] -right-8 w-48 h-48 bg-white/5 rounded-full"></div>
-
-    <!-- Content -->
-    <div class="relative z-10 text-white text-center max-w-md">
-      <!-- Shield Icon -->
+      class="flex-1 bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center relative overflow-hidden p-12"
+    >
+      <!-- Decorative circles -->
       <div
-        class="w-24 h-24 bg-white/15 backdrop-blur-md rounded-3xl flex items-center justify-center mx-auto mb-8"
-      >
-        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
-          ></path>
-        </svg>
-      </div>
+        class="absolute top-[10%] right-[15%] w-48 h-48 bg-white/10 rounded-full animate-pulse"
+      ></div>
+      <div class="absolute -bottom-12 -left-12 w-72 h-72 bg-white/5 rounded-full"></div>
+      <div class="absolute bottom-[20%] -right-8 w-48 h-48 bg-white/5 rounded-full"></div>
 
-      <h1 class="text-5xl font-semibold mb-4 tracking-tight">Admin Dashboard</h1>
-      <p class="text-lg opacity-90 font-light leading-relaxed">
-        Manage projects, teams, and permissions with ease
-      </p>
-    </div>
-  </div>
-
-  <!-- Right Panel -->
-  <div class="flex-1 bg-white flex items-center justify-center p-12">
-    <div class="w-full max-w-md">
-      <!-- Welcome Header -->
-      <h2 class="text-2xl font-bold text-gray-900 mb-2">Welcome back</h2>
-      <p class="text-sm text-gray-600 mb-10 leading-relaxed">
-        Enter your credentials to access your admin dashboard
-      </p>
-
-      <!-- Login Form -->
-      <form (ngSubmit)="onSubmit()" class="space-y-6">
-        <!-- Email Field -->
-        <div>
-          <label for="email" class="block text-sm font-semibold text-gray-900 mb-2">
-            Email address
-          </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            [(ngModel)]="email"
-            class="w-full px-4 py-3 text-sm border border-gray-300 rounded-sm bg-gray-50 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-600 focus:bg-white placeholder:text-gray-400 transition-all duration-200"
-            placeholder="name@company.com"
-            required
-          />
+      <!-- Content -->
+      <div class="relative z-10 text-white text-center max-w-md">
+        <!-- Shield Icon -->
+        <div
+          class="w-24 h-24 bg-white/15 backdrop-blur-md rounded-sm flex items-center justify-center mx-auto mb-8"
+        >
+          <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+            ></path>
+          </svg>
         </div>
 
-        <!-- Password Field -->
-        <div>
-          <label for="password" class="block text-sm font-semibold text-gray-900 mb-2">
-            Password
-          </label>
-          <div class="relative">
+        <h1 class="text-5xl font-semibold mb-4 tracking-tight">Admin Dashboard</h1>
+        <p class="text-lg opacity-90 font-light leading-relaxed">
+          Manage projects, teams, and permissions with ease
+        </p>
+      </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="flex-1 bg-white flex items-center justify-center p-12">
+      <div class="w-full max-w-md">
+        <!-- Welcome Header -->
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">Welcome back</h2>
+        <p class="text-sm text-gray-600 mb-10 leading-relaxed">
+          Enter your credentials to access your admin dashboard
+        </p>
+
+        <!-- Login Form -->
+        <form (ngSubmit)="onSubmit()" class="space-y-6">
+          <!-- Error Message Alert -->
+          <div
+            *ngIf="loginError"
+            class="bg-red-50 border border-red-200 rounded-sm p-4 flex items-start gap-3"
+          >
+            <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+            <div>
+              <p class="text-sm font-semibold text-red-800">{{ loginError }}</p>
+            </div>
+          </div>
+
+          <!-- Email Field -->
+          <div>
+            <label for="email" class="block text-sm font-semibold text-gray-900 mb-2">
+              Email address
+            </label>
             <input
-              [type]="showPassword ? 'text' : 'password'"
-              id="password"
-              name="password"
-              [(ngModel)]="password"
-              class="w-full px-4 py-3 pr-12 text-sm border border-gray-300 rounded-sm bg-gray-50 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-600 focus:bg-white placeholder:text-gray-400 transition-all duration-200"
-              placeholder="Enter your password"
+              type="email"
+              id="email"
+              name="email"
+              [(ngModel)]="email"
+              class="w-full px-4 py-3 text-sm border border-gray-300 rounded-sm bg-gray-50 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-600 focus:bg-white placeholder:text-gray-400 transition-all duration-200"
+              placeholder="name@company.com"
               required
             />
-            <button
-              type="button"
-              (click)="togglePasswordVisibility()"
-              class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900 transition-colors duration-200"
-              aria-label="Toggle password visibility"
-            >
-              <!-- Eye Icon (visible) -->
-              <svg
-                *ngIf="!showPassword"
-                class="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                ></path>
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                ></path>
-              </svg>
-              <!-- Eye Off Icon (hidden) -->
-              <svg
-                *ngIf="showPassword"
-                class="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
-                ></path>
-              </svg>
-            </button>
           </div>
-        </div>
 
-        <!-- Submit Button -->
-        <app-custom-button
-          label="Sign in to dashboard"
-          bgClass="bg-blue-600"
-          textColor="text-white"
-          hoverClass="hover:bg-blue-700"
-          borderClass="border-none"
-          height="h-12"
-          fontSize="text-sm"
-          fontWeight="font-semibold"
-          rounded="rounded-sm"
-          extraClasses="w-full focus:ring-4 focus:ring-blue-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-600/30"
-          (action)="onSubmit()"
-        >
-        </app-custom-button>
-      </form>
+          <!-- Password Field -->
+          <div>
+            <label for="password" class="block text-sm font-semibold text-gray-900 mb-2">
+              Password
+            </label>
+            <div class="relative">
+              <input
+                [type]="showPassword ? 'text' : 'password'"
+                id="password"
+                name="password"
+                [(ngModel)]="password"
+                class="w-full px-4 py-3 pr-12 text-sm border border-gray-300 rounded-sm bg-gray-50 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-600 focus:bg-white placeholder:text-gray-400 transition-all duration-200"
+                placeholder="Enter your password"
+                required
+              />
+              <button
+                type="button"
+                (click)="togglePasswordVisibility()"
+                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900 transition-colors duration-200"
+                aria-label="Toggle password visibility"
+              >
+                <!-- Eye Icon (visible) -->
+                <svg
+                  *ngIf="!showPassword"
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  ></path>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  ></path>
+                </svg>
+                <!-- Eye Off Icon (hidden) -->
+                <svg
+                  *ngIf="showPassword"
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268-2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                  ></path>
+                </svg>
+              </button>
+            </div>
+          </div>
 
-      <!-- Security Text -->
-      <p class="text-center text-sm text-gray-500 mt-8">
-        Secure admin access • Protected dashboard
-      </p>
+          <!-- Submit Button -->
+          <app-custom-button
+            label="Sign in to dashboard"
+            bgClass="bg-blue-600"
+            textColor="text-white"
+            hoverClass="hover:bg-blue-700"
+            borderClass="border-none"
+            height="h-12"
+            fontSize="text-sm"
+            fontWeight="font-semibold"
+            rounded="rounded-sm"
+            extraClasses="w-full focus:ring-4 focus:ring-blue-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-600/30"
+            [loading]="isLoading"
+            [disabled]="isLoading"
+            (action)="onSubmit()"
+          >
+          </app-custom-button>
+        </form>
+
+        <!-- Security Text -->
+        <p class="text-center text-sm text-gray-500 mt-8">
+          Secure admin access • Protected dashboard
+        </p>
+      </div>
     </div>
   </div>
-</div>
+</ng-container>
+
+<ng-template #authLoading>
+  <div class="login-auth-loading" aria-live="polite">
+    <app-loading-indicator></app-loading-indicator>
+    <p class="login-auth-loading-title">Restoring your session...</p>
+    <p class="login-auth-loading-subtitle">Please wait while we get things ready.</p>
+  </div>
+</ng-template>

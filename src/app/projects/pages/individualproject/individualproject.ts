@@ -51,9 +51,6 @@ export class IndividualprojectComponent implements OnInit, OnDestroy {
       .subscribe((params) => {
         const id = params.get('id');
         this.projectId = id !== null ? id : '';
-        
-        console.log('IndividualProjectComponent initialized with projectId:', this.projectId);
-        
         // Initialize project to null to reset state
         this.project = null;
         this.isLoading = true;
@@ -88,18 +85,13 @@ export class IndividualprojectComponent implements OnInit, OnDestroy {
     //   this.customerDetails = data.customerDetails;
     //   this.projectDetails = data.projectDetails;
     // });
-    
-    console.log('Loading project data for ID:', this.projectId);
   }
 
   /**
    * Fetch the project detail from service.
    */
   fetchProject(): void {
-    console.log('fetchProject called for projectId:', this.projectId);
-    
     if (!this.projectId || this.projectId.trim() === '') {
-      console.error('Invalid projectId:', this.projectId);
       this.isLoading = false;
       this.loadingError = 'Invalid project ID';
       return;
@@ -107,9 +99,6 @@ export class IndividualprojectComponent implements OnInit, OnDestroy {
 
     this.isLoading = true;
     this.loadingError = '';
-
-    console.log('Making API call to get project by ID');
-    
     this.projectsService.getProjectById(this.projectId).subscribe({
       next: (response) => {
         // Clear the timeout since we got a response
@@ -117,27 +106,16 @@ export class IndividualprojectComponent implements OnInit, OnDestroy {
           clearTimeout(this.loadTimeout);
           this.loadTimeout = null;
         }
-
-        console.log('API response received:', response);
-        
         // Handle successful response - check for data first
         if (response && response.data) {
-          console.log('Mapping project data:', response.data);
-          console.log('Teams from API:', response.data.teams);
           this.project = this.mapProjectDTOToProject(response.data);
           this.loadingError = '';
-          console.log('Project mapped successfully:', this.project);
-          console.log('Project teams after mapping:', this.project?.teams);
         } else {
-          console.warn('No data in response:', response);
           this.project = null;
           this.loadingError = response?.message || 'Failed to load project';
         }
         
         this.isLoading = false;
-        console.log('Loading completed, isLoading set to false');
-        console.log('Project teams:', this.project?.teams);
-        
         // Manually trigger change detection to update the view
         this.cdr.detectChanges();
       },
@@ -147,16 +125,12 @@ export class IndividualprojectComponent implements OnInit, OnDestroy {
           clearTimeout(this.loadTimeout);
           this.loadTimeout = null;
         }
-
-        console.error('API call failed:', err);
         this.isLoading = false;
         this.project = null;
 
         // Set error message immediately to avoid empty page
         const errorMsg = err?.error?.message || err?.message || 'Failed to load project. Please check your connection.';
         this.loadingError = errorMsg;
-        console.log('Error state set:', this.loadingError);
-
         // Manually trigger change detection to update the view
         this.cdr.detectChanges();
       }
@@ -204,7 +178,6 @@ export class IndividualprojectComponent implements OnInit, OnDestroy {
    */
   editProject(): void {
     // Navigate to the edit page for this project
-    console.log('Edit project:', this.projectId);
     if (this.projectId) {
       this.router.navigate(['/projects', this.projectId, 'edit']);
     }
@@ -252,7 +225,6 @@ export class IndividualprojectComponent implements OnInit, OnDestroy {
         }
       },
       error: (err) => {
-        console.error('Delete failed:', err);
         // Show both toaster and notification for error
         this.toastr.error('Failed to delete the project. Please try again.', 'Delete Failed');
         this.notificationService.addNotification('error', 'Failed to delete the project. Please try again.', 'Delete Failed');
@@ -317,6 +289,9 @@ export class IndividualprojectComponent implements OnInit, OnDestroy {
    */
   formatDate(dateString: string): string {
     // Simple date formatting - enhance as needed
-    return dateString;
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   }
 }
+

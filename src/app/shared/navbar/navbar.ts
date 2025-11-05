@@ -1,16 +1,26 @@
 // navbar.component.ts
-import { Component, OnInit, OnDestroy, HostListener, ElementRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  HostListener,
+  ElementRef,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Subscription } from 'rxjs';
+import { Subscription, Subject, forkJoin } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { SearchBar } from '../components/search-bar/search-bar';
-import { ActionButtons, ActionType } from '../components/action-buttons/action-buttons';
 import { Usermenu } from '../components/usermenu/usermenu';
 import { NotificationDropdown } from '../components/notification-dropdown/notification-dropdown';
 import { NotificationService } from '../services/notification.service';
+import { RouterModule } from '@angular/router';
+import { NavbarService } from './navbar-service';
 
 @Component({
   selector: 'app-navbar',
-  imports: [CommonModule, SearchBar, ActionButtons, Usermenu, NotificationDropdown],
+  standalone: true,
+  imports: [CommonModule, SearchBar, Usermenu, NotificationDropdown, RouterModule],
   templateUrl: './navbar.html',
   styles: [
     `
@@ -25,25 +35,72 @@ export class Navbar implements OnInit, OnDestroy {
   isNotificationDropdownVisible = false;
   isSearchBarVisible = false;
   unreadNotificationCount = 0;
-  private subscription!: Subscription;
+  isSearching = false;
 
-  constructor(private notificationService: NotificationService, private elementRef: ElementRef) {}
+  searchResults: { projects: any[]; users: any[] } = {
+    projects: [],
+    users: [],
+  };
+
+  private subscription = new Subscription();
+  private search$ = new Subject<string>();
+
+  constructor(
+    private notificationService: NotificationService,
+    private elementRef: ElementRef,
+    private navbarService: NavbarService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
-    this.subscription = this.notificationService.notifications$.subscribe(() => {
-      this.unreadNotificationCount = this.notificationService.getUnreadCount();
-    });
+    this.subscription.add(
+      this.notificationService.notifications$.subscribe(() => {
+        this.unreadNotificationCount = this.notificationService.getUnreadCount();
+      })
+    );
+
+    this.subscription.add(
+      this.search$
+        .pipe(
+          debounceTime(300),
+          distinctUntilChanged(),
+          switchMap((query) => {
+            if (!query.trim()) {
+              return forkJoin({
+                projects: [null],
+                users: [null],
+              });
+            }
+            return forkJoin({
+              projects: this.navbarService.getProjects(1, 5, query),
+              users: this.navbarService.getUsers(query),
+            });
+          })
+        )
+        .subscribe((res: any) => {
+          if (!res.projects || !res.users) {
+            this.searchResults = { projects: [], users: [] };
+            this.isSearching = false;
+            return;
+          }
+
+          this.searchResults = {
+            projects: res.projects.data.items || [],
+            users: res.users.data.users || [],
+          };
+          this.isSearching = false;
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
+        })
+    );
   }
 
   ngOnDestroy(): void {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
+    this.subscription.unsubscribe();
   }
 
   toggleUserMenu() {
     this.isUserMenuVisible = !this.isUserMenuVisible;
-    // Close notification dropdown when opening user menu
     if (this.isUserMenuVisible) {
       this.isNotificationDropdownVisible = false;
       this.isSearchBarVisible = false;
@@ -52,7 +109,6 @@ export class Navbar implements OnInit, OnDestroy {
 
   toggleSearchBar() {
     this.isSearchBarVisible = !this.isSearchBarVisible;
-    // Close user menu and notification dropdown when opening search bar
     if (this.isSearchBarVisible) {
       this.isUserMenuVisible = false;
       this.isNotificationDropdownVisible = false;
@@ -61,42 +117,15 @@ export class Navbar implements OnInit, OnDestroy {
 
   toggleNotificationDropdown() {
     this.isNotificationDropdownVisible = !this.isNotificationDropdownVisible;
-    // Close user menu when opening notification dropdown
     if (this.isNotificationDropdownVisible) {
       this.isUserMenuVisible = false;
       this.isSearchBarVisible = false;
     }
   }
 
-  searchResults: {
-    projects: any[];
-    users: any[];
-    reports: any[];
-  } | null = null;
-
   onSearch(query: string) {
     this.isSearchBarVisible = true;
-    // Replace with actual search logic
-    this.searchResults = {
-      projects: this.searchProjects(query),
-      users: this.searchUsers(query),
-      reports: this.searchReports(query),
-    };
-  }
-
-  searchProjects(query: string) {
-    // Mock search logic for projects
-    return query ? [{ name: 'Project A' }, { name: 'Project B' }] : [];
-  }
-
-  searchUsers(query: string) {
-    // Mock search logic for users
-    return query ? [{ name: 'User A' }, { name: 'User B' }] : [];
-  }
-
-  searchReports(query: string) {
-    // Mock search logic for reports
-    return query ? [{ name: 'Report A' }, { name: 'Report B' }] : [];
+    this.search$.next(query);
   }
 
   onActionClick(action: string): void {
@@ -115,20 +144,19 @@ export class Navbar implements OnInit, OnDestroy {
     const target = event.target as HTMLElement;
     const notificationDropdown = target.closest('.notification-dropdown');
     const userMenu = target.closest('.dropdown-menu');
-    const actionButtons = target.closest('app-action-buttons');
+    const userMenuButton = target.closest('[aria-label="User Profile"]');
+    const notificationButton = target.closest('[aria-label="Notifications"]');
     const searchBar = target.closest('app-search-bar');
 
-    // Close notification dropdown if clicking outside
-    if (!notificationDropdown && !actionButtons && this.isNotificationDropdownVisible) {
+    if (!notificationDropdown && !notificationButton && this.isNotificationDropdownVisible) {
       this.isNotificationDropdownVisible = false;
     }
 
-    // Close user menu if clicking outside
-    if (!userMenu && !actionButtons && this.isUserMenuVisible) {
+    if (!userMenu && !userMenuButton && this.isUserMenuVisible) {
       this.isUserMenuVisible = false;
     }
 
-    if (!searchBar && !actionButtons && this.isSearchBarVisible) {
+    if (!searchBar && this.isSearchBarVisible) {
       this.isSearchBarVisible = false;
     }
   }

@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -37,6 +38,7 @@ describe('Deliveryunitslist Component', () => {
 
     await TestBed.configureTestingModule({
       imports: [
+        HttpClientTestingModule,
         Deliveryunitslist,
         Table,
         Sectiontitle,
@@ -406,28 +408,44 @@ describe('Deliveryunitslist Component', () => {
       const initialLength = component.deliveryUnits.length;
       const event = new Event('submit');
       
-      component.onCreateDeliveryUnit(event);
+<<<<<<< HEAD
+      component.saveDeliveryUnit();
+=======
+      component.saveDeliveryUnit();;
+>>>>>>> 22043ab013d578cc07f702c4625d97aa7d44216b
       
       expect(component.deliveryUnits.length).toBe(initialLength + 1);
     });
 
     it('should add new DU to beginning of array', () => {
       const event = new Event('submit');
-      component.onCreateDeliveryUnit(event);
+<<<<<<< HEAD
+      component.saveDeliveryUnit();
+=======
+      component.saveDeliveryUnit();;
+>>>>>>> 22043ab013d578cc07f702c4625d97aa7d44216b
       
       expect(component.deliveryUnits[0].duCode).toBe('NEW-001');
     });
 
     it('should generate correct initials for DU', () => {
       const event = new Event('submit');
-      component.onCreateDeliveryUnit(event);
+<<<<<<< HEAD
+      component.saveDeliveryUnit();
+=======
+      component.saveDeliveryUnit();;
+>>>>>>> 22043ab013d578cc07f702c4625d97aa7d44216b
       
       expect(component.deliveryUnits[0].duInfo.initials).toBe('NE');
     });
 
     it('should generate correct initials for head', () => {
       const event = new Event('submit');
-      component.onCreateDeliveryUnit(event);
+<<<<<<< HEAD
+      component.saveDeliveryUnit();
+=======
+      component.saveDeliveryUnit();;
+>>>>>>> 22043ab013d578cc07f702c4625d97aa7d44216b
       
       expect(component.deliveryUnits[0].duHead.avatar).toBe('JS');
     });
@@ -436,14 +454,14 @@ describe('Deliveryunitslist Component', () => {
       component.newDU.code = 'new-001';
       const event = new Event('submit');
       
-      component.onCreateDeliveryUnit(event);
+      component.saveDeliveryUnit();
       
       expect(component.deliveryUnits[0].duCode).toBe('NEW-001');
     });
 
     it('should initialize with zero members and projects', () => {
       const event = new Event('submit');
-      component.onCreateDeliveryUnit(event);
+      component.saveDeliveryUnit();
       
       expect(component.deliveryUnits[0].activeMembers).toBe('0');
       expect(component.deliveryUnits[0].activeProjects).toBe('0');
@@ -453,7 +471,11 @@ describe('Deliveryunitslist Component', () => {
       const initialLength = component.filteredDeliveryUnits.length;
       const event = new Event('submit');
       
-      component.onCreateDeliveryUnit(event);
+<<<<<<< HEAD
+      component.saveDeliveryUnit();
+=======
+      component.saveDeliveryUnit();;
+>>>>>>> 22043ab013d578cc07f702c4625d97aa7d44216b
       
       expect(component.filteredDeliveryUnits.length).toBe(initialLength + 1);
     });
@@ -462,14 +484,14 @@ describe('Deliveryunitslist Component', () => {
       component.isModalOpen = true;
       const event = new Event('submit');
       
-      component.onCreateDeliveryUnit(event);
+      component.saveDeliveryUnit();
       
       expect(component.isModalOpen).toBe(false);
     });
 
     it('should reset form after creation', () => {
       const event = new Event('submit');
-      component.onCreateDeliveryUnit(event);
+      component.saveDeliveryUnit();
       
       expect(component.newDU.name).toBe('');
       expect(component.newDU.code).toBe('');
@@ -481,7 +503,11 @@ describe('Deliveryunitslist Component', () => {
       const initialLength = component.deliveryUnits.length;
       const event = new Event('submit');
       
-      component.onCreateDeliveryUnit(event);
+<<<<<<< HEAD
+      component.saveDeliveryUnit();
+=======
+      component.saveDeliveryUnit();;
+>>>>>>> 22043ab013d578cc07f702c4625d97aa7d44216b
       
       expect(component.deliveryUnits.length).toBe(initialLength);
     });
@@ -490,7 +516,11 @@ describe('Deliveryunitslist Component', () => {
       const event = new Event('submit');
       spyOn(event, 'preventDefault');
       
-      component.onCreateDeliveryUnit(event);
+<<<<<<< HEAD
+      component.saveDeliveryUnit();
+=======
+      component.saveDeliveryUnit();;
+>>>>>>> 22043ab013d578cc07f702c4625d97aa7d44216b
       
       expect(event.preventDefault).toHaveBeenCalled();
     });

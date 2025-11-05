@@ -248,15 +248,17 @@ export class ProjectsService {
     }
 
     return this.http.get<ApiResponse<PaginatedResponse<ProjectTableDTO>>>(this.apiUrl, { params }).pipe(
-      timeout(10000), // 10 second timeout
+      timeout(30000), // Increased timeout to 30 seconds for initial loads
       retryWhen(errors =>
         errors.pipe(
           mergeMap((error, index) => {
-            // Only retry status 0 errors (CORS/network timing issues)
-            if (error instanceof HttpErrorResponse && error.status === 0 && index < 3) {
-              console.log(`ProjectsService: Status 0 detected, retry attempt ${index + 1} after ${index === 0 ? 0 : 500}ms`);
-              // First retry immediately, subsequent retries with delay
-              return timer(index === 0 ? 0 : 500);
+            // Retry network errors (status 0) and timeouts up to 3 times
+            if ((error instanceof HttpErrorResponse && error.status === 0) || error.name === 'TimeoutError') {
+              if (index < 3) {
+                
+                // Exponential backoff: 1s, 2s, 3s
+                return timer(1000 * (index + 1));
+              }
             }
             // Don't retry other errors
             return throwError(() => error);
@@ -274,7 +276,6 @@ export class ProjectsService {
           mergeMap((error, index) => {
             // Only retry status 0 errors (CORS/network timing issues)
             if (error instanceof HttpErrorResponse && error.status === 0 && index < 3) {
-              console.log(`ProjectsService: Status 0 detected, retry attempt ${index + 1} after ${index === 0 ? 0 : 500}ms`);
               // First retry immediately, subsequent retries with delay
               return timer(index === 0 ? 0 : 500);
             }
@@ -300,7 +301,6 @@ export class ProjectsService {
           mergeMap((error, index) => {
             // Only retry status 0 errors (CORS/network timing issues)
             if (error instanceof HttpErrorResponse && error.status === 0 && index < 3) {
-              console.log(`ProjectsService: Status 0 detected, retry attempt ${index + 1} after ${index === 0 ? 0 : 500}ms`);
               // First retry immediately, subsequent retries with delay
               return timer(index === 0 ? 0 : 500);
             }
@@ -329,12 +329,11 @@ export class ProjectsService {
    * @returns Observable with API response containing created project data
    */
   createProject(projectData: CreateProjectRequest): Observable<ApiResponse<ProjectDTO>> {
-    console.log('ProjectsService: Creating new project');
-    console.log('ProjectsService: Request payload:', JSON.stringify(projectData, null, 2));
+    
     
     return this.http.post<ApiResponse<ProjectDTO>>(this.apiUrl, projectData).pipe(
       map(response => {
-        console.log('ProjectsService: Create response received:', JSON.stringify(response, null, 2));
+        
         return response;
       }),
       timeout(10000), // 10 second timeout
@@ -343,7 +342,6 @@ export class ProjectsService {
           mergeMap((error, index) => {
             // Only retry status 0 errors (CORS/network timing issues)
             if (error instanceof HttpErrorResponse && error.status === 0 && index < 3) {
-              console.log(`ProjectsService: Status 0 detected, retry attempt ${index + 1} after ${index === 0 ? 0 : 500}ms`);
               // First retry immediately, subsequent retries with delay
               return timer(index === 0 ? 0 : 500);
             }
@@ -368,21 +366,16 @@ export class ProjectsService {
    * @returns Observable with API response containing updated project data
    */
   updateProject(id: string, projectData: UpdateProjectRequest): Observable<ApiResponse<ProjectDTO>> {
-    console.log('ProjectsService: Updating project with ID:', id);
-    console.log('ProjectsService: Request payload:', JSON.stringify(projectData, null, 2));
+    
     
     // Ensure ID consistency between URL and body
     if (projectData.id !== id) {
-      console.warn('⚠️ ID mismatch detected:');
-      console.warn('  - URL ID:', id);
-      console.warn('  - Body ID:', projectData.id);
-      console.warn('  - Correcting body ID to match URL');
       projectData.id = id;
     }
     
     return this.http.put<ApiResponse<ProjectDTO>>(`${this.apiUrl}/${id}`, projectData).pipe(
       map(response => {
-        console.log('ProjectsService: Update response received:', JSON.stringify(response, null, 2));
+        
         return response;
       }),
       timeout(10000), // 10 second timeout
@@ -391,7 +384,6 @@ export class ProjectsService {
           mergeMap((error, index) => {
             // Only retry status 0 errors (CORS/network timing issues)
             if (error instanceof HttpErrorResponse && error.status === 0 && index < 3) {
-              console.log(`ProjectsService: Status 0 detected, retry attempt ${index + 1} after ${index === 0 ? 0 : 500}ms`);
               // First retry immediately, subsequent retries with delay
               return timer(index === 0 ? 0 : 500);
             }
@@ -413,14 +405,12 @@ export class ProjectsService {
    * Fetch all users for project manager dropdown (POST, empty body)
    */
   getAllUsers(): Observable<ApiResponse<UserFilterResponse[]>> {
-    console.log('Making POST request to fetch all users:', `${this.userApiUrl}/filter`);
     return this.http.post<ApiResponse<UserFilterResponse[]>>(`${this.userApiUrl}/filter`, {}).pipe(
       timeout(10000),
       retryWhen(errors =>
         errors.pipe(
           mergeMap((error, index) => {
             if (error instanceof HttpErrorResponse && error.status === 0 && index < 3) {
-              console.log(`ProjectsService: Status 0 detected, retry attempt ${index + 1} after ${index === 0 ? 0 : 500}ms`);
               return timer(index === 0 ? 0 : 500);
             }
             return throwError(() => error);
@@ -436,14 +426,12 @@ export class ProjectsService {
    * @param filters Object with optional type and status
    */
   getFilteredUsers(filters: { type?: string; status?: string } = {}): Observable<ApiResponse<UserFilterResponse[]>> {
-    console.log('Making POST request to filter users:', `${this.userApiUrl}/filter`, filters);
     return this.http.post<ApiResponse<UserFilterResponse[]>>(`${this.userApiUrl}/filter`, filters).pipe(
       timeout(10000),
       retryWhen(errors =>
         errors.pipe(
           mergeMap((error, index) => {
             if (error instanceof HttpErrorResponse && error.status === 0 && index < 3) {
-              console.log(`ProjectsService: Status 0 detected, retry attempt ${index + 1} after ${index === 0 ? 0 : 500}ms`);
               return timer(index === 0 ? 0 : 500);
             }
             return throwError(() => error);
@@ -459,10 +447,8 @@ export class ProjectsService {
    * @returns Observable with API response
    */
   testUserFilterEndpoint(): Observable<any> {
-    console.log('Testing user filter endpoint:', `${this.userApiUrl}/filter`);
     return this.http.get<any>(`${this.userApiUrl}/filter`).pipe(
       catchError(error => {
-        console.error('User filter endpoint test failed:', error);
         return throwError(() => error);
       })
     );
@@ -484,7 +470,6 @@ export class ProjectsService {
       timeout(10000),
       catchError(error => {
         // If endpoint doesn't exist, assume key checking is not available
-        console.warn('Project key checking not available:', error);
         return throwError(() => error);
       })
     );
@@ -510,7 +495,6 @@ export class ProjectsService {
           mergeMap((error, index) => {
             // Only retry status 0 errors (CORS/network timing issues)
             if (error instanceof HttpErrorResponse && error.status === 0 && index < 3) {
-              console.log(`ProjectsService: Status 0 detected, retry attempt ${index + 1} after ${index === 0 ? 0 : 500}ms`);
               // First retry immediately, subsequent retries with delay
               return timer(index === 0 ? 0 : 500);
             }
@@ -519,6 +503,37 @@ export class ProjectsService {
           })
         )
       ),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Create a new custom field for a project
+   * @param projectId Project ID (GUID)
+   * @param name Field name
+   * @param value Field value
+   * @returns Observable with the created custom field
+   */
+  createCustomField(projectId: string, name: string, value: string): Observable<ApiResponse<CustomFieldDTO>> {
+    const request = {
+      projectId: projectId,
+      name: name,
+      value: value
+    };
+    return this.http.post<ApiResponse<CustomFieldDTO>>('https://localhost:7178/api/customfields/create', request).pipe(
+      timeout(10000),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Delete a custom field
+   * @param fieldId Custom field ID (GUID)
+   * @returns Observable with deletion result
+   */
+  deleteCustomField(fieldId: string): Observable<ApiResponse<string>> {
+    return this.http.delete<ApiResponse<string>>(`https://localhost:7178/api/customfields/delete/${fieldId}`).pipe(
+      timeout(10000),
       catchError(this.handleError)
     );
   }
@@ -545,14 +560,6 @@ export class ProjectsService {
       errorMessage = `Server Error Code: ${error.status}\nMessage: ${error.message}`;
       
       // Log detailed error information for debugging
-      console.error('=== HTTP ERROR DETAILS ===');
-      console.error('Status:', error.status);
-      console.error('Status Text:', error.statusText);
-      console.error('URL:', error.url);
-      console.error('Error Body:', error.error);
-      console.error('Headers:', error.headers);
-      console.error('=========================');
-      
       if (error.error) {
         let serverResponse = '';
         if (typeof error.error === 'string') {
@@ -578,8 +585,6 @@ export class ProjectsService {
         }
       }
     }
-    
-    console.error('ProjectsService Error:', errorMessage);
     return throwError(() => new Error(errorMessage));
   }
 }

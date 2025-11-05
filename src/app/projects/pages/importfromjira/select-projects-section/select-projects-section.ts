@@ -70,7 +70,6 @@ export class SelectProjectsSection implements OnInit {
             sessionStorage.setItem('jira_refresh_token', response.refresh_token);
           }
         } catch (error) {
-          console.error('Error refreshing access token', error);
         }
       }
     }
@@ -108,7 +107,6 @@ export class SelectProjectsSection implements OnInit {
             sessionStorage.setItem('jira_refresh_token', response.refresh_token);
           }
         } catch (error) {
-          console.error('Error refreshing access token', error);
         }
       }
     }
@@ -131,7 +129,6 @@ export class SelectProjectsSection implements OnInit {
       }));
 
       this.allProjects = this.allProjects.filter((project) => project.style === 'next-gen');
-      console.log('sdfsfd' + this.allProjects);
       this.projects = [...this.allProjects];
       this.loadingProjects = false;
       this.cdr.detectChanges();
@@ -174,7 +171,10 @@ export class SelectProjectsSection implements OnInit {
       this.toastr.warning('Please select at least one project to import.', 'No Projects Selected');
       return;
     }
-    alert(this.selectedCloudId);
+    const result = confirm('Do you want to import ' + selectedProjects.length + ' projects?');
+    if (!result) {
+      return;
+    }
 
     let token = sessionStorage.getItem('jira_access_token');
 
@@ -189,7 +189,6 @@ export class SelectProjectsSection implements OnInit {
             token = response.access_token;
           }
         } catch (error) {
-          console.error('Error refreshing access token', error);
         }
       }
     }
@@ -207,12 +206,12 @@ export class SelectProjectsSection implements OnInit {
       )
       .subscribe({
         next: (response) => {
-          console.log('Import Response:', response);
-          sessionStorage.setItem('users_missing', JSON.stringify(response.data));
+          sessionStorage.setItem('import_response', JSON.stringify(response.data));
           this.isImporting = false;
           sessionStorage.setItem('isImporting', 'false');
+          // sessionStorage.setItem()
+          //this.toastr.success('Projects imported successfully.', 'Import Successful');
           this.cdr.detectChanges();
-          this.toastr.success('Projects imported successfully!', 'Import Successful');
           this.navigationService.onNext();
         },
         error: (error) => {

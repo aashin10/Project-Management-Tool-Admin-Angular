@@ -17,7 +17,6 @@ export class AuthorizeWithJiraSection implements OnInit {
     private cdr: ChangeDetectorRef,
     private jiraService: JiraService
   ) {
-    console.log('JiraService in constructor:', this.importNavigationService);
   }
   validAccessToken: boolean = false;
   isLoadingUserDetails: boolean = true;
@@ -25,8 +24,6 @@ export class AuthorizeWithJiraSection implements OnInit {
   userName: string = '';
   async ngOnInit() {
     const token = sessionStorage.getItem('jira_access_token');
-    console.log('Token on init:', token);
-
     if (token && !this.jiraService.isJwtExpired(token)) {
       let localName = sessionStorage.getItem('jira_name');
 
@@ -48,7 +45,7 @@ export class AuthorizeWithJiraSection implements OnInit {
 
     if (token && this.jiraService.isJwtExpired(token)) {
       this.cdr.detectChanges();
-      // console.log('Token expired, removing from sessionStorage');
+      // 
       // sessionStorage.removeItem('jira_access_token');
       // sessionStorage.removeItem('jira_name');
       const refreshToken = sessionStorage.getItem('jira_refresh_token');
@@ -60,7 +57,6 @@ export class AuthorizeWithJiraSection implements OnInit {
             sessionStorage.setItem('jira_refresh_token', response.refresh_token);
           }
         } catch (error) {
-          console.error('Error refreshing access token', error);
         }
       }
     }

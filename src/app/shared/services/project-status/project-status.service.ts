@@ -20,7 +20,7 @@ interface ProjectStatusApiResponse {
 })
 export class ProjectStatusService {
   // Use the same backend base URL as other services (e.g., ProjectsService)
-  private apiUrl = 'http://localhost:5291/api/status/project-statuses';
+  private apiUrl = 'https://localhost:7178/api/status/project-statuses';
   private cachedStatuses$?: Observable<ProjectStatus[]>;
 
   constructor(private http: HttpClient) {}
@@ -37,7 +37,6 @@ export class ProjectStatusService {
             description: status.description
           }))),
           catchError(err => {
-            console.error('[ProjectStatusService] Failed to fetch statuses:', err);
             return of<ProjectStatus[]>([]);
           }),
           shareReplay(1)

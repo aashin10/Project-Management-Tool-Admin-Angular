@@ -81,11 +81,12 @@
         <div class="text-center">
           <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#0052CC]"></div>
           <p class="mt-4 text-sm text-gray-600">Loading projects...</p>
+          <p class="mt-2 text-xs text-gray-500">This may take a moment for the initial load</p>
         </div>
       </div>
 
       <!-- Error State -->
-      <div *ngIf="!isLoading && loadingError" class="bg-red-50 border border-red-200 rounded-md p-6 text-center">
+      <div *ngIf="!isLoading && loadingError" class="bg-red-50 border border-red-200 rounded-sm p-6 text-center">
         <svg class="mx-auto h-12 w-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
         </svg>
@@ -105,7 +106,7 @@
       <div *ngIf="!isLoading && !loadingError">
         <!-- count duplicated above intentionally removed from here -->
 
-        <div *ngIf="filteredProjects.length === 0" class="bg-[rgba(220,224,231,0.04)] border border-gray-200 rounded-md p-8 text-center">
+        <div *ngIf="filteredProjects.length === 0" class="bg-[rgba(220,224,231,0.04)] border border-gray-200 rounded-sm p-8 text-center">
           <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 0 0 2 2h14"></path>
           </svg>
@@ -117,7 +118,7 @@
         <div *ngIf="filteredProjects.length > 0" class="overflow-x-auto">
 
           <!-- Bulk action toolbar (visible when one or more rows selected) -->
-          <div *ngIf="selectedProjects.length > 0" class="mb-4 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
+          <div *ngIf="selectedProjects.length > 0" class="mb-4 bg-blue-50 border border-blue-200 rounded-sm px-4 py-3">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -162,7 +163,7 @@
     </div>
 
     <!-- Selection Summary -->
-    <div *ngIf="selectedProjects.length > 0" class="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 mb-4">
+    <div *ngIf="selectedProjects.length > 0" class="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-sm px-4 py-3 mb-4">
       <div class="flex items-center gap-2">
         <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>

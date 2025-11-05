@@ -13,6 +13,7 @@ import { CustomButton } from '../../../../shared/custom-button/custom-button';
 export class ProjectPreviewComponent {
   @Input() projectName: string = '';
   @Input() projectKey: string = '';
+  @Input() status: string = '';
   @Input() organisationName: string = '';
   @Input() pocEmail: string = '';
   @Input() phoneNumber: string = '';
@@ -33,25 +34,46 @@ export class ProjectPreviewComponent {
   }
 
   get canCreate(): boolean {
-    // required fields across Basic, Team and Customer sections:
-    // Basic: projectName, projectKey
-    // Team: manager, deliveryUnit
-    // Customer: organisationName, pocEmail, phoneNumber
-    const basic = !!(this.projectName && this.projectName.trim() && this.projectKey && this.projectKey.trim());
-    const team = !!(this.manager && this.manager.trim() && this.deliveryUnit && this.deliveryUnit.trim());
-    const customer = !!(this.organisationName && this.organisationName.trim() && this.pocEmail && this.pocEmail.trim() && this.phoneNumber && this.phoneNumber.trim());
-    return basic && team && customer;
+    // Check core fields: projectName, projectKey, status, manager, deliveryUnit
+    const coreFieldsValid = !!(
+      this.projectName && this.projectName.trim() &&
+      this.projectKey && this.projectKey.trim() &&
+      this.status && this.status.trim() &&
+      this.manager && this.manager.trim() &&
+      this.deliveryUnit && this.deliveryUnit.trim()
+    );
+
+    if (!coreFieldsValid) {
+      return false;
+    }
+
+    // Validate email if provided (must be valid or empty)
+    if (this.pocEmail && this.pocEmail.trim() !== '') {
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(this.pocEmail)) {
+        return false;
+      }
+    }
+
+    // Validate phone if provided (must be valid or empty)
+    if (this.phoneNumber && this.phoneNumber.trim() !== '') {
+      const phonePattern = /^\+?[\d\s\-()]{7,}$/;
+      if (!phonePattern.test(this.phoneNumber)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   get missingFields(): string[] {
     const missing: string[] = [];
     if (!this.projectName || !this.projectName.trim()) missing.push('Project Name');
     if (!this.projectKey || !this.projectKey.trim()) missing.push('Project Key');
+    if (!this.status || !this.status.trim()) missing.push('Status');
     if (!this.manager || !this.manager.trim()) missing.push('Project Manager');
     if (!this.deliveryUnit || !this.deliveryUnit.trim()) missing.push('Delivery Unit');
-    if (!this.organisationName || !this.organisationName.trim()) missing.push('Organisation Name');
-    if (!this.pocEmail || !this.pocEmail.trim()) missing.push('POC Email');
-    if (!this.phoneNumber || !this.phoneNumber.trim()) missing.push('Phone Number');
+    // Customer information is now optional - not included in missing fields
     return missing;
   }
 

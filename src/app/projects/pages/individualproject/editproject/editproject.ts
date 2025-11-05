@@ -11,6 +11,7 @@ import { ProjectsService, Project, UpdateProjectRequest, UserFilterResponse, Del
 import { ToastrService } from 'ngx-toastr';
 import { Observable, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, map, catchError } from 'rxjs/operators';
+import { ProjectStatusService, ProjectStatus } from '../../../../shared/services/project-status/project-status.service';
 
 @Component({
   selector: 'app-editproject',
@@ -28,6 +29,7 @@ import { debounceTime, distinctUntilChanged, switchMap, map, catchError } from '
   styleUrl: './editproject.css'
 })
 export class Editproject implements OnInit {
+  status: string = '';
   get managerInitials(): string {
     if (!this.manager) return '';
     const names = this.manager.trim().split(' ');
@@ -44,6 +46,8 @@ export class Editproject implements OnInit {
   
   // Customer info
   organisationName: string = '';
+  customerDescription: string = '';
+  domainLink: string = '';
   pocEmail: string = '';
   phoneNumber: string = '';
   
@@ -55,10 +59,12 @@ export class Editproject implements OnInit {
   
   // Additional fields
   additionalFields: Array<{id?: string, name: string, value: string}> = [];
+  originalAdditionalFields: Array<{id?: string, name: string, value: string}> = []; // Store original for comparison
 
   // Dropdown data
   filteredUsers$: Observable<UserFilterResponse[]> = of([]);
   deliveryUnits: DeliveryUnit[] = [];
+  projectStatuses: ProjectStatus[] = [];
   
   // Loading states
   isLoadingUsers = false;
@@ -71,38 +77,34 @@ export class Editproject implements OnInit {
     private router: Router,
     private projectsService: ProjectsService,
     private toastr: ToastrService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private projectStatusService: ProjectStatusService
   ) {}
 
   ngOnInit() {
     // Get project ID from route
     this.projectId = this.route.snapshot.params['id'];
-    console.log('Edit Project - Project ID from route:', this.projectId);
-    
     // Load data immediately
     this.loadDeliveryUnits();
+    this.loadProjectStatuses();
     this.loadProjectData();
     this.setupProjectManagerSearch();
     
     // Fallback: Force change detection after a short delay to ensure everything is rendered
     setTimeout(() => {
-      console.log('Fallback change detection triggered');
       this.cdr.detectChanges();
     }, 100);
   }
 
   loadProjectData() {
-    console.log('Loading project data for ID:', this.projectId);
-    
     if (!this.projectId) {
-      console.error('No project ID provided');
       this.toastr.error('Invalid project ID', 'Error');
       return;
     }
 
     this.projectsService.getProjectById(this.projectId).subscribe({
       next: (response) => {
-        console.log('Project data received:', response);
+        
         
         if (response.status === 200 && response.data) {
           const project = response.data;
@@ -113,49 +115,57 @@ export class Editproject implements OnInit {
           this.originalProjectKey = project.key || ''; // Store original for comparison
           this.description = project.description || '';
           this.organisationName = project.customerOrgName || '';
+          this.customerDescription = project.customerDescription || '';
+          this.domainLink = project.customerDomainUrl || '';
           this.pocEmail = project.pocEmail || '';
           this.phoneNumber = project.pocPhone || '';
           this.manager = project.projectManagerName || '';
           this.deliveryUnit = project.deliveryUnitCode || '';
           this.selectedProjectManagerId = project.projectManagerId || 0;
           this.selectedDeliveryUnitId = project.deliveryUnitId || 0;
+          this.status = project.statusName || 'Active';
           this.additionalFields = project.additionalInformation || [];
-          
-          console.log('Form populated with:', {
-            projectName: this.projectName,
-            deliveryUnit: this.deliveryUnit,
-            selectedDeliveryUnitId: this.selectedDeliveryUnitId
-          });
-
+          // Store original fields for detecting changes
+          this.originalAdditionalFields = JSON.parse(JSON.stringify(project.additionalInformation || []));
           // Force change detection to update child components immediately
           this.cdr.detectChanges();
+          
+          // Also force update after a short delay to ensure child components are updated
+          setTimeout(() => {
+            this.cdr.detectChanges();
+          }, 100);
         } else {
-          console.error('Invalid response format:', response);
           this.toastr.error('Invalid project data received', 'Error');
         }
       },
       error: (err) => {
-        console.error('Failed to load project for editing:', err);
         this.toastr.error('Failed to load project data. Please try refreshing the page.', 'Error');
       }
     });
   }
 
   private loadDeliveryUnits() {
-    console.log('Loading delivery units...');
-    
     this.projectsService.getDeliveryUnits().subscribe({
       next: (response) => {
-        console.log('Delivery units received:', response);
         this.deliveryUnits = response.data || [];
-        console.log('Delivery units set to:', this.deliveryUnits);
-        
         // Force change detection to update child components
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('Failed to load delivery units:', error);
         this.toastr.error('Failed to load delivery units', 'Error');
+      }
+    });
+  }
+
+  private loadProjectStatuses() {
+    this.projectStatusService.getStatuses().subscribe({
+      next: (statuses) => {
+        this.projectStatuses = statuses || [];
+        // Force change detection to update child components
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        this.toastr.error('Failed to load project statuses', 'Error');
       }
     });
   }
@@ -177,7 +187,6 @@ export class Editproject implements OnInit {
     // Validate search term - only allow alphanumeric, spaces, and common name characters
     const cleanSearchTerm = searchTerm.trim().replace(/[^a-zA-Z0-9\s\-\.]/g, '');
     if (cleanSearchTerm !== searchTerm.trim()) {
-      console.warn('Invalid characters removed from search term:', searchTerm, '->', cleanSearchTerm);
     }
     
     if (cleanSearchTerm.length < 3) {
@@ -187,12 +196,9 @@ export class Editproject implements OnInit {
     }
     
     this.isLoadingUsers = true;
-    console.log('Searching for users with term:', cleanSearchTerm);
-    
     this.filteredUsers$ = this.projectsService.getFilteredUsers({}).pipe(
       map((response: any) => {
         this.isLoadingUsers = false;
-        console.log('User search results:', response);
         // Filter users by search term on the client side
         const allUsers = response.data || [];
         const searchLower = cleanSearchTerm.toLowerCase();
@@ -203,8 +209,6 @@ export class Editproject implements OnInit {
       }),
       catchError((error) => {
         this.isLoadingUsers = false;
-        console.error('Failed to search for users:', error);
-        
         // Show user-friendly error message
         if (error.message?.includes('400')) {
           this.toastr.error('Invalid search term. Please use only letters, numbers, and spaces.', 'Search Error');
@@ -257,19 +261,25 @@ export class Editproject implements OnInit {
     this.phoneNumber = phone;
   }
 
+  onCustomerDescriptionChange(description: string) {
+    this.customerDescription = description;
+  }
+
+  onDomainLinkChange(link: string) {
+    this.domainLink = link;
+  }
+
   onManagerChange(manager: string) {
     this.manager = manager;
   }
 
   onDeliveryUnitChange(unit: string) {
-    console.log('Delivery unit changed to:', unit);
     this.deliveryUnit = unit;
     
     // Find the corresponding delivery unit ID
     const selectedDU = this.deliveryUnits.find(du => du.code === unit);
     if (selectedDU) {
       this.selectedDeliveryUnitId = selectedDU.id;
-      console.log('Selected delivery unit ID:', this.selectedDeliveryUnitId);
     }
   }
 
@@ -277,20 +287,108 @@ export class Editproject implements OnInit {
     this.additionalFields = fields;
   }
 
+  private getStatusIdByName(statusName: string): number {
+    const status = this.projectStatuses.find(s => s.name === statusName || s.code === statusName);
+    return status ? status.id : 1; // Default to 1 (Active) if not found
+  }
+
+  // Sync custom fields to backend: delete removed, create new, update modified
+  private async syncCustomFields(): Promise<void> {
+    try {
+      // Track fields to delete, create, and update
+      const fieldsToDelete: Array<{id?: string, name: string, value: string}> = [];
+      const fieldsToCreate: Array<{id?: string, name: string, value: string}> = [];
+      const fieldsToUpdate: Array<{id?: string, name: string, value: string}> = [];
+
+      // Find deleted fields (in original but not in current by ID)
+      this.originalAdditionalFields.forEach(originalField => {
+        const exists = this.additionalFields.some(
+          field => field.id === originalField.id  // Only check by ID, not name
+        );
+        if (!exists && originalField.id) {
+          fieldsToDelete.push(originalField);
+        }
+      });
+
+      // Find new and modified fields
+      this.additionalFields.forEach(currentField => {
+        const originalField = this.originalAdditionalFields.find(f => f.id === currentField.id);
+        
+        if (!originalField) {
+          // New field - no ID yet
+          if (!currentField.id) {
+            fieldsToCreate.push(currentField);
+          }
+        } else if (originalField.name !== currentField.name || originalField.value !== currentField.value) {
+          // Modified field
+          fieldsToUpdate.push(currentField);
+        }
+      });
+      // Delete removed fields
+      for (const field of fieldsToDelete) {
+        if (field.id) {
+          try {
+            await this.deleteCustomField(field.id).toPromise();
+          } catch (error) {
+          }
+        }
+      }
+
+      // Create new fields
+      for (const field of fieldsToCreate) {
+        try {
+          await this.createCustomField(field).toPromise();
+        } catch (error) {
+        }
+      }
+
+      // Handle updated fields by deleting old and creating new with updated values
+      if (fieldsToUpdate.length > 0) {
+        for (const field of fieldsToUpdate) {
+          if (field.id) {
+            try {
+              await this.deleteCustomField(field.id).toPromise();
+              // Recreate with new values
+              try {
+                await this.createCustomField(field).toPromise();
+              } catch (createError) {
+              }
+            } catch (deleteError) {
+            }
+          }
+        }
+      }
+    } catch (error) {
+      this.toastr.error('Failed to sync custom fields', 'Error');
+    }
+  }
+
+  private deleteCustomField(fieldId: string) {
+    return this.projectsService.deleteCustomField(fieldId);
+  }
+
+  private createCustomField(field: {id?: string, name: string, value: string}) {
+    return this.projectsService.createCustomField(this.projectId, field.name, field.value);
+  }
+
   onUpdateProject() {
-    console.log('=== Starting Project Update ===');
-    console.log('Project ID:', this.projectId);
-    console.log('Form Data:', {
-      projectName: this.projectName,
-      projectKey: this.projectKey,
-      manager: this.manager,
-      deliveryUnit: this.deliveryUnit,
-      organisationName: this.organisationName,
-      pocEmail: this.pocEmail,
-      phoneNumber: this.phoneNumber,
-      selectedProjectManagerId: this.selectedProjectManagerId,
-      selectedDeliveryUnitId: this.selectedDeliveryUnitId
-    });
+    // Validate email format if provided
+    if (this.pocEmail && this.pocEmail.trim() !== '') {
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(this.pocEmail)) {
+        this.toastr.error('Please enter a valid email address', 'Validation Error');
+        return;
+      }
+    }
+
+    // Validate phone format if provided
+    if (this.phoneNumber && this.phoneNumber.trim() !== '') {
+      const phonePattern = /^\+?[\d\s\-()]{7,}$/;
+      if (!phonePattern.test(this.phoneNumber)) {
+        this.toastr.error('Please enter a valid phone number (at least 7 digits)', 'Validation Error');
+        return;
+      }
+    }
 
     // Validate required fields before sending
     if (!this.projectId) {
@@ -303,108 +401,102 @@ export class Editproject implements OnInit {
       return;
     }
 
-    // Create the update request with the correct structure (matching backend UpdateProjectCommand)
-    const updateRequest: UpdateProjectRequest = {
-      id: this.projectId, // Required - GUID format
-      name: this.projectName.trim(),
-      key: this.projectKey.trim(),
-      description: this.description.trim() || undefined, // Optional in backend
-      customerOrgName: this.organisationName.trim() || undefined, // Optional in backend
-      customerDomainUrl: undefined, // Skip if not needed
-      customerDescription: undefined, // Skip if not needed
-      pocEmail: this.pocEmail.trim() || undefined, // Optional in backend
-      pocPhone: this.phoneNumber?.trim() || undefined,
-      projectManagerId: this.selectedProjectManagerId || undefined, // Optional in backend
-      projectManagerRoleId: this.selectedProjectManagerId > 0 ? 2 : undefined,
-      statusId: 1, // Keep status ID if needed
-      deliveryUnitId: this.selectedDeliveryUnitId || undefined, // Optional in backend
-      metadata: undefined, // JSON string - can be used for additional data
-      templateId: undefined, // Optional template ID
-      createdBy: undefined // Optional created by user ID
-    };
-
-    // Handle custom fields (replaces additionalInformation)
-    if (this.additionalFields && this.additionalFields.length > 0) {
-      updateRequest.customFields = this.additionalFields.map(field => ({
-        id: field.id || undefined, // GUID or undefined for new fields
-        name: field.name.trim(),
-        value: field.value.trim()
-      }));
-    } else {
-      // Empty array clears all custom fields per backend logic
-      updateRequest.customFields = [];
-    }
-
-    // Validate required fields before API call
-    console.log('=== PRE-API VALIDATION ===');
-    console.log('Project ID:', this.projectId);
-    console.log('Name:', updateRequest.name);
-    console.log('Key:', updateRequest.key);
-    console.log('Description:', updateRequest.description);
-    console.log('Customer Org:', updateRequest.customerOrgName);
-    console.log('POC Email:', updateRequest.pocEmail);
-    console.log('Project Manager ID:', updateRequest.projectManagerId);
-    console.log('Delivery Unit ID:', updateRequest.deliveryUnitId);
-    console.log('Custom Fields Count:', updateRequest.customFields?.length || 0);
-
-    // Basic validation
-    if (!this.projectId || this.projectId.trim() === '') {
-      console.error('Project ID is missing or empty');
-      this.toastr.error('Project ID is required', 'Validation Error');
-      return;
-    }
-
-    if (this.selectedDeliveryUnitId <= 0) {
-      console.error('Invalid delivery unit ID:', this.selectedDeliveryUnitId);
-      this.toastr.error('Please select a delivery unit', 'Validation Error');
-      return;
-    }
-
-    if (this.selectedProjectManagerId <= 0) {
-      console.error('Invalid project manager ID:', this.selectedProjectManagerId);
+    if (this.selectedProjectManagerId === 0) {
       this.toastr.error('Please select a project manager', 'Validation Error');
       return;
     }
 
-    console.log('Update Request Payload:', JSON.stringify(updateRequest, null, 2));
+    // Create the update request with the correct structure (matching backend UpdateProjectCommand)
+    const updateRequest: UpdateProjectRequest = {
+      id: this.projectId, // Required - GUID format
+      name: this.projectName?.trim() || '',
+      key: this.projectKey?.trim() || '',
+      description: this.description?.trim() || undefined,
+      customerOrgName: this.organisationName?.trim() || undefined,
+      customerDomainUrl: this.domainLink?.trim() || undefined,
+      customerDescription: this.customerDescription?.trim() || undefined,
+      pocEmail: this.pocEmail?.trim() || undefined,
+      pocPhone: this.phoneNumber?.trim() || undefined,
+      projectManagerId: this.selectedProjectManagerId > 0 ? this.selectedProjectManagerId : undefined,
+      projectManagerRoleId: this.selectedProjectManagerId > 0 ? 2 : undefined,
+      statusId: this.getStatusIdByName(this.status),
+      deliveryUnitId: this.selectedDeliveryUnitId > 0 ? this.selectedDeliveryUnitId : undefined
+      // NOTE: Custom fields are NOT sent with project update
+      // They are managed separately through custom field API endpoints
+    };
+
+    // Validate required fields before API call
+    // Final validation before sending
+    if (!this.projectId || this.projectId.trim() === '') {
+      this.toastr.error('Project ID is required', 'Validation Error');
+      return;
+    }
+
+    if (!updateRequest.name || updateRequest.name.trim() === '') {
+      this.toastr.error('Project name is required', 'Validation Error');
+      return;
+    }
+
+    if (!updateRequest.key || updateRequest.key.trim() === '') {
+      this.toastr.error('Project key is required', 'Validation Error');
+      return;
+    }
+
+    if (!updateRequest.statusId || updateRequest.statusId <= 0) {
+      this.toastr.error('Valid status is required', 'Validation Error');
+      return;
+    }
+
+    if (!updateRequest.deliveryUnitId || updateRequest.deliveryUnitId <= 0) {
+      this.toastr.error('Valid delivery unit is required', 'Validation Error');
+      return;
+    }
+
+    
 
     // Update the project using the service (now returns Observable)
     this.isUpdatingProject = true;
-    
-    console.log('Calling projectsService.updateProject...');
     this.projectsService.updateProject(this.projectId, updateRequest).subscribe({
       next: (response) => {
         this.isUpdatingProject = false;
-        console.log('=== Project Update SUCCESS ===');
-        console.log('API Response:', response);
-        
-        // Show success message
-        this.showSuccess = true;
-        this.toastr.success(
-          `${this.projectName} updated successfully`,
-          'Success',
-          {
-            timeOut: 3000,
-            progressBar: true,
-            closeButton: true
-          }
-        );
-        
-        console.log('Success notification shown');
-        
-        setTimeout(() => {
-          this.showSuccess = false;
-          console.log('Navigating to projects list...');
-          this.router.navigate(['/projects']);
-        }, 1800);
+        // After successful project update, sync custom fields
+        this.syncCustomFields().then(() => {
+          // Show success message
+          this.showSuccess = true;
+          this.toastr.success(
+            `${this.projectName} updated successfully`,
+            'Success',
+            {
+              timeOut: 3000,
+              progressBar: true,
+              closeButton: true
+            }
+          );
+          setTimeout(() => {
+            this.showSuccess = false;
+            this.router.navigate(['/projects']);
+          }, 1800);
+        }).catch((syncError) => {
+          // Show partial success (project updated but fields sync failed)
+          this.showSuccess = true;
+          this.toastr.warning(
+            `${this.projectName} updated, but some custom fields may not have been synchronized properly`,
+            'Partial Success',
+            {
+              timeOut: 4000,
+              progressBar: true,
+              closeButton: true
+            }
+          );
+          
+          setTimeout(() => {
+            this.showSuccess = false;
+            this.router.navigate(['/projects']);
+          }, 2000);
+        });
       },
       error: (error) => {
         this.isUpdatingProject = false;
-        console.error('=== Project Update FAILED ===');
-        console.error('Full Error Object:', error);
-        console.error('Error Message:', error.message);
-        console.error('Error Status:', error.status);
-        
         // The enhanced error handling from service will provide detailed logs
         let errorMessage = 'Failed to update project. Please check your input and try again.';
         let errorTitle = 'Update Failed';
@@ -416,14 +508,12 @@ export class Editproject implements OnInit {
             : ' Please choose a different project key.';
           errorMessage = `The project key "${this.projectKey}" is already used by another project.${suggestion}`;
           errorTitle = 'Duplicate Project Key';
-          console.warn('Project key conflict detected:', this.projectKey);
         } else if (error.message && error.message.includes('Data Conflict')) {
           errorMessage = 'Some of the data conflicts with existing records. Please check for duplicate values and try again.';
           errorTitle = 'Data Conflict';
         } else if (error.message && error.message.includes('400')) {
           errorMessage = 'Invalid data provided. Please verify all required fields are correctly filled and try again.';
           errorTitle = 'Validation Error';
-          console.warn('400 Error - Check request payload format and required fields');
         } else if (error.message && error.message.includes('401')) {
           errorMessage = 'You are not authorized to update this project.';
           errorTitle = 'Authorization Error';
@@ -460,24 +550,10 @@ export class Editproject implements OnInit {
 
   // Debug method - remove after fixing
   debugDataStatus() {
-    console.log('=== DEBUG DATA STATUS ===');
-    console.log('Project ID:', this.projectId);
-    console.log('Project Name:', this.projectName);
-    console.log('Project Key:', this.projectKey);
-    console.log('Manager:', this.manager);
-    console.log('Delivery Unit:', this.deliveryUnit);
-    console.log('Selected Delivery Unit ID:', this.selectedDeliveryUnitId);
-    console.log('Available Delivery Units:', this.deliveryUnits);
-    console.log('Delivery Units Length:', this.deliveryUnits?.length);
-    console.log('Organisation Name:', this.organisationName);
-    console.log('POC Email:', this.pocEmail);
-    console.log('Phone Number:', this.phoneNumber);
-    console.log('========================');
   }
 
   // Force refresh method - remove after fixing
   forceRefresh() {
-    console.log('Force refreshing data and change detection...');
     this.loadProjectData();
     this.loadDeliveryUnits();
     
@@ -492,15 +568,7 @@ export class Editproject implements OnInit {
 
   // Debug update data method - remove after fixing
   debugUpdateData() {
-    console.log('=== DEBUG UPDATE DATA ===');
-    console.log('Can Update:', this.canCreate);
-    console.log('Missing Fields:', this.missingFields);
-    console.log('Project ID:', this.projectId);
-    console.log('Is Updating:', this.isUpdatingProject);
-    
     // Test if the button is actually calling the method
-    console.log('Update Project button was clicked');
-    
     // Show current form validation status
     if (!this.canCreate) {
       this.toastr.warning(
@@ -513,8 +581,6 @@ export class Editproject implements OnInit {
         'Validation Check'
       );
     }
-    
-    console.log('=========================');
   }
 
   // Test minimal update - for debugging API issues
@@ -523,8 +589,6 @@ export class Editproject implements OnInit {
       this.toastr.error('Project ID is required for testing', 'Test Error');
       return;
     }
-
-    console.log('=== TESTING MINIMAL UPDATE ===');
     const minimalRequest: UpdateProjectRequest = {
       id: this.projectId,
       name: this.projectName?.trim() || 'Test Project Name',
@@ -537,15 +601,13 @@ export class Editproject implements OnInit {
       deliveryUnitId: this.selectedDeliveryUnitId || 1
     };
 
-    console.log('Minimal Request:', JSON.stringify(minimalRequest, null, 2));
+    
 
     this.projectsService.updateProject(this.projectId, minimalRequest).subscribe({
       next: (response) => {
-        console.log('✅ Minimal update succeeded:', response);
         this.toastr.success('Minimal update test passed!', 'Test Success');
       },
       error: (error) => {
-        console.error('❌ Minimal update failed:', error);
         this.toastr.error('Minimal update test failed', 'Test Failed');
       }
     });
@@ -553,34 +615,56 @@ export class Editproject implements OnInit {
 
   // Test user filter endpoint - remove after fixing
   testUserEndpoint() {
-    console.log('Testing user filter endpoint...');
     this.projectsService.testUserFilterEndpoint().subscribe({
       next: (response) => {
-        console.log('User filter endpoint test success:', response);
         this.toastr.success('User endpoint is working!', 'Test Result');
       },
       error: (error) => {
-        console.error('User filter endpoint test failed:', error);
         this.toastr.error(`User endpoint failed: ${error.status} - ${error.message}`, 'Test Result');
       }
     });
   }
 
   get canCreate(): boolean {
-    const basic = !!(this.projectName && this.projectName.trim() && this.projectKey && this.projectKey.trim());
-    const team = !!(this.manager && this.manager.trim() && this.deliveryUnit && this.deliveryUnit.trim());
-    const customer = !!(this.organisationName && this.organisationName.trim() && this.pocEmail && this.pocEmail.trim());
-    return basic && team && customer;
+    // Check core fields: project name, project key, status, project manager, and delivery unit
+    const coreFieldsValid = !!(
+      this.projectName?.trim() &&
+      this.projectKey?.trim() &&
+      this.status &&
+      this.selectedProjectManagerId &&
+      this.selectedDeliveryUnitId
+    );
+
+    if (!coreFieldsValid) {
+      return false;
+    }
+
+    // Validate email if provided (must be valid or empty)
+    if (this.pocEmail && this.pocEmail.trim() !== '') {
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(this.pocEmail)) {
+        return false;
+      }
+    }
+
+    // Validate phone if provided (must be valid or empty)
+    if (this.phoneNumber && this.phoneNumber.trim() !== '') {
+      const phonePattern = /^\+?[\d\s\-()]{7,}$/;
+      if (!phonePattern.test(this.phoneNumber)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   get missingFields(): string[] {
     const missing: string[] = [];
     if (!this.projectName || !this.projectName.trim()) missing.push('Project Name');
     if (!this.projectKey || !this.projectKey.trim()) missing.push('Project Key');
-    if (!this.manager || !this.manager.trim()) missing.push('Project Manager');
-    if (!this.deliveryUnit || !this.deliveryUnit.trim()) missing.push('Delivery Unit');
-    if (!this.organisationName || !this.organisationName.trim()) missing.push('Organisation Name');
-    if (!this.pocEmail || !this.pocEmail.trim()) missing.push('POC Email');
+    if (!this.status) missing.push('Status');
+    if (!this.selectedProjectManagerId) missing.push('Project Manager');
+    if (!this.selectedDeliveryUnitId) missing.push('Delivery Unit');
     return missing;
   }
 
@@ -607,8 +691,6 @@ export class Editproject implements OnInit {
       this.toastr.warning('Please enter a project key to check', 'Validation');
       return;
     }
-
-    console.log('Checking project key availability:', this.projectKey);
     this.projectsService.checkProjectKeyAvailability(this.projectKey.trim(), this.projectId).subscribe({
       next: (response) => {
         if (response.data.available) {
@@ -618,7 +700,6 @@ export class Editproject implements OnInit {
         }
       },
       error: (error) => {
-        console.warn('Key checking not available:', error);
         this.toastr.info('Project key validation is not available. The key will be checked when saving.', 'Info');
       }
     });
@@ -630,9 +711,6 @@ export class Editproject implements OnInit {
       this.toastr.error('Project ID is required for testing', 'Test Error');
       return;
     }
-
-    console.log('=== TESTING EXACT API FORMAT ===');
-    
     // Use the exact structure from your successful API example
     // Generate a unique key to avoid conflicts
     const uniqueKey = `TEST-${Date.now()}`;
@@ -664,15 +742,13 @@ export class Editproject implements OnInit {
       ]
     };
 
-    console.log('Exact Format Request:', JSON.stringify(exactFormatRequest, null, 2));
+    
 
     this.projectsService.updateProject(this.projectId, exactFormatRequest).subscribe({
       next: (response) => {
-        console.log('✅ Exact format update succeeded:', response);
         this.toastr.success('Exact format test passed!', 'Test Success');
       },
       error: (error) => {
-        console.error('❌ Exact format update failed:', error);
         this.toastr.error('Exact format test failed - check console for details', 'Test Failed');
       }
     });

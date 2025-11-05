@@ -1,6 +1,7 @@
-<div class="bg-white rounded-xl min-h-[550px] border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+<!-- FIX: Changed min-h-[550px] to fixed h-[550px] for consistent container height -->
+<div class="bg-white rounded-sm h-[550px] border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col">
   <!-- Header -->
-  <div class="flex items-start justify-between mb-6">
+  <div class="flex items-start justify-between mb-6 flex-shrink-0">
     <div>
       <div class="flex items-center gap-2 mb-1">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -11,11 +12,11 @@
       <p class="text-sm text-gray-500">Track project creation trends over time</p>
     </div>
     
-    <!-- Period Dropdown -->
-    <div class="relative">
+    <!-- Period Dropdown - Add timeline-dropdown-container class -->
+    <div class="relative timeline-dropdown-container">
       <button 
         (click)="toggleDropdown()"
-        class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 shadow-sm">
+        class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-sm hover:bg-gray-50 transition-colors duration-200 shadow-sm">
         {{ selectedPeriod }}
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transition-transform duration-200" 
              [class.rotate-180]="showDropdown" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -24,7 +25,7 @@
       </button>
       
       <div *ngIf="showDropdown" 
-           class="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-10 animate-fade-in">
+           class="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-sm shadow-lg z-10 animate-fade-in">
         <div class="py-1">
           <button
             *ngFor="let period of periods"
@@ -40,26 +41,28 @@
     </div>
   </div>
 
-  <!-- Chart Container -->
-  <div class="chart-container">
-    <apx-chart
-      [series]="chart?.series"
-      [chart]="chart?.chart"
-      [dataLabels]="chart?.dataLabels"
-      [stroke]="chart?.stroke"
-      [grid]="chart?.grid"
-      [markers]="chart?.markers"
-      [xaxis]="chart?.xaxis"
-      [yaxis]="chart?.yaxis"
-      [tooltip]="chart?.tooltip"
-      [colors]="chart?.colors"
-      [fill]="chart?.fill"
-      height="350">
-    </apx-chart>
+  <!-- Chart Container - FIX: Added flex-1 to take remaining space consistently -->
+  <div class="chart-container flex-1 flex items-center justify-center overflow-hidden">
+    <div class="w-full" style="height: 350px;">
+      <apx-chart
+        *ngIf="chart"
+        [series]="chart.series"
+        [chart]="chart.chart"
+        [dataLabels]="chart.dataLabels"
+        [stroke]="chart.stroke"
+        [grid]="chart.grid"
+        [markers]="chart.markers"
+        [xaxis]="chart.xaxis"
+        [yaxis]="chart.yaxis"
+        [tooltip]="chart.tooltip"
+        [colors]="chart.colors"
+        [fill]="chart.fill">
+      </apx-chart>
+    </div>
   </div>
 
   <!-- Summary Stats -->
-  <div class="mt-4 pt-4 border-t border-gray-100">
+  <div class="mt-4 pt-4 border-t border-gray-100 flex-shrink-0">
     <div class="flex items-center justify-between text-sm text-gray-600">
       <span>Current Period: {{ selectedPeriod }}</span>
       <span class="font-medium text-blue-600">
