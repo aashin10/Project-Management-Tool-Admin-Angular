@@ -8,11 +8,12 @@ import { CommonModule } from '@angular/common';
 import { Modal } from "../../../shared/modal/modal";
 import { FormsModule } from '@angular/forms';
 import { DeliveryUnitService, DeliveryUnitApi } from '../../../duservice/deliveryunits.service';
+import { LoadingIndicator } from '../../../shared/loading-indicator/loading-indicator';
 
 @Component({
   selector: 'app-deliveryunitslist',
   standalone: true,
-  imports: [Table, Sectiontitle, CustomButton, SearchBar, CommonModule, Modal, FormsModule],
+  imports: [Table, Sectiontitle, CustomButton, SearchBar, CommonModule, Modal, FormsModule,LoadingIndicator],
   templateUrl: './deliveryunitslist.html',
   styleUrl: './deliveryunitslist.css'
 })
