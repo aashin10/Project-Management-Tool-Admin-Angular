@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { CommonModule } from '@angular/common';
 import { NotFound } from './not-found';
 
 describe('NotFound', () => {
@@ -11,7 +13,7 @@ describe('NotFound', () => {
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
-      imports: [NotFound],
+      imports: [NotFound, HttpClientTestingModule, CommonModule],
       providers: [
         { provide: Router, useValue: routerSpy }
       ]
@@ -38,13 +40,11 @@ describe('NotFound', () => {
   });
 
   describe('goBack', () => {
-    it('should call window.history.back', () => {
-      spyOn(window.history, 'back');
-
+    it('should call location.back', () => {
+      spyOn(component['location'], 'back');
       component.goBack();
-
-      expect(window.history.back).toHaveBeenCalled();
-      expect(window.history.back).toHaveBeenCalledTimes(1);
+      expect(component['location'].back).toHaveBeenCalled();
+      expect(component['location'].back).toHaveBeenCalledTimes(1);
     });
   });
 

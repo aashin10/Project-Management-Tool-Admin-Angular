@@ -177,13 +177,22 @@ describe('DashboardMainComponent', () => {
   });
 
   describe('Project Status Data', () => {
-    it('should initialize projectStatusData array with 5 delivery units', () => {
+    it('should initialize projectStatusData array with 6 entries (All Delivery Units + 5 individual units)', () => {
       expect(component.projectStatusData).toBeDefined();
-      expect(component.projectStatusData.length).toBe(5);
+      expect(component.projectStatusData.length).toBe(6);
+    });
+
+    it('should have correct All Delivery Units aggregated data at index 0', () => {
+      const allUnits = component.projectStatusData[0];
+      expect(allUnits.deliveryUnit).toBe('All Delivery Units');
+      expect(allUnits.inProgress).toBe(54);
+      expect(allUnits.completed).toBe(42);
+      expect(allUnits.onHold).toBe(15);
+      expect(allUnits.total).toBe(111);
     });
 
     it('should have correct Engineering delivery unit data', () => {
-      const engineering = component.projectStatusData[0];
+      const engineering = component.projectStatusData[1];
       expect(engineering.deliveryUnit).toBe('Engineering');
       expect(engineering.inProgress).toBe(20);
       expect(engineering.completed).toBe(15);
@@ -192,7 +201,7 @@ describe('DashboardMainComponent', () => {
     });
 
     it('should have correct Design delivery unit data', () => {
-      const design = component.projectStatusData[1];
+      const design = component.projectStatusData[2];
       expect(design.deliveryUnit).toBe('Design');
       expect(design.inProgress).toBe(10);
       expect(design.completed).toBe(10);
@@ -201,7 +210,7 @@ describe('DashboardMainComponent', () => {
     });
 
     it('should have correct Product delivery unit data', () => {
-      const product = component.projectStatusData[2];
+      const product = component.projectStatusData[3];
       expect(product.deliveryUnit).toBe('Product');
       expect(product.inProgress).toBe(8);
       expect(product.completed).toBe(6);
@@ -210,7 +219,7 @@ describe('DashboardMainComponent', () => {
     });
 
     it('should have correct Quality Assurance delivery unit data', () => {
-      const qa = component.projectStatusData[3];
+      const qa = component.projectStatusData[4];
       expect(qa.deliveryUnit).toBe('Quality Assurance');
       expect(qa.inProgress).toBe(8);
       expect(qa.completed).toBe(6);
@@ -219,7 +228,7 @@ describe('DashboardMainComponent', () => {
     });
 
     it('should have correct DevOps delivery unit data', () => {
-      const devops = component.projectStatusData[4];
+      const devops = component.projectStatusData[5];
       expect(devops.deliveryUnit).toBe('DevOps');
       expect(devops.inProgress).toBe(8);
       expect(devops.completed).toBe(5);
@@ -400,31 +409,35 @@ it('should pass correct data to metric card components', () => {
   describe('Data Integrity', () => {
     it('should have consistent total projects across all data sources', () => {
       const totalProjectsFromCard = component.metricCards[0].value;
-      const totalProjectsFromStatus = component.projectStatusData.reduce(
-        (sum, unit) => sum + unit.total, 0
-      );
+      // Exclude index 0 (All Delivery Units aggregate) to avoid double counting
+      const totalProjectsFromStatus = component.projectStatusData
+        .slice(1)
+        .reduce((sum, unit) => sum + unit.total, 0);
       expect(totalProjectsFromCard).toBe(totalProjectsFromStatus);
     });
 
     it('should have consistent in-progress count', () => {
       const inProgressFromCard = component.metricCards[1].value;
-      const inProgressFromStatus = component.projectStatusData.reduce(
-        (sum, unit) => sum + unit.inProgress, 0
-      );
+      // Exclude index 0 (All Delivery Units aggregate) to avoid double counting
+      const inProgressFromStatus = component.projectStatusData
+        .slice(1)
+        .reduce((sum, unit) => sum + unit.inProgress, 0);
       expect(inProgressFromCard).toBe(inProgressFromStatus);
     });
 
     it('should have consistent on-hold count', () => {
       const onHoldFromCard = component.metricCards[2].value;
-      const onHoldFromStatus = component.projectStatusData.reduce(
-        (sum, unit) => sum + unit.onHold, 0
-      );
+      // Exclude index 0 (All Delivery Units aggregate) to avoid double counting
+      const onHoldFromStatus = component.projectStatusData
+        .slice(1)
+        .reduce((sum, unit) => sum + unit.onHold, 0);
       expect(onHoldFromCard).toBe(onHoldFromStatus);
     });
 
     it('should have correct number of delivery units', () => {
       const deliveryUnitsFromCard = component.metricCards[3].value;
-      const deliveryUnitsCount = component.projectStatusData.length;
+      // The card shows count of individual delivery units (excluding the "All" aggregate)
+      const deliveryUnitsCount = component.projectStatusData.length - 1;
       expect(deliveryUnitsFromCard).toBe(deliveryUnitsCount);
     });
 

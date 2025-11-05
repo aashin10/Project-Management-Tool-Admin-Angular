@@ -54,7 +54,7 @@ describe('ProjectStatusService', () => {
       });
     });
 
-  const req = httpMock.expectOne('http://localhost:5291/api/status/project-statuses');
+  const req = httpMock.expectOne('https://localhost:7178/api/status/project-statuses');
     expect(req.request.method).toBe('GET');
     req.flush(mockApiResponse);
     tick();
@@ -79,7 +79,7 @@ describe('ProjectStatusService', () => {
       expect(status).toBeUndefined();
     });
 
-  const req = httpMock.expectOne('http://localhost:5291/api/status/project-statuses');
+  const req = httpMock.expectOne('https://localhost:7178/api/status/project-statuses');
     req.flush(mockApiResponse);
     tick();
   }));
@@ -102,7 +102,7 @@ describe('ProjectStatusService', () => {
       expect(status).toBeUndefined();
     });
 
-  const req = httpMock.expectOne('http://localhost:5291/api/status/project-statuses');
+  const req = httpMock.expectOne('https://localhost:7178/api/status/project-statuses');
     req.flush(mockApiResponse);
     tick();
   }));
@@ -112,7 +112,7 @@ describe('ProjectStatusService', () => {
       expect(codes).toEqual(['Active', 'Inactive', 'Completed']);
     });
 
-  const req = httpMock.expectOne('http://localhost:5291/api/status/project-statuses');
+  const req = httpMock.expectOne('https://localhost:7178/api/status/project-statuses');
     req.flush(mockApiResponse);
     tick();
   }));
@@ -122,7 +122,7 @@ describe('ProjectStatusService', () => {
       expect(ids).toEqual([1, 2, 3]);
     });
 
-  const req = httpMock.expectOne('http://localhost:5291/api/status/project-statuses');
+  const req = httpMock.expectOne('https://localhost:7178/api/status/project-statuses');
     req.flush(mockApiResponse);
     tick();
   }));
@@ -134,18 +134,20 @@ describe('ProjectStatusService', () => {
       expect(statuses).toEqual([]);
     });
 
-  const req = httpMock.expectOne('http://localhost:5291/api/status/project-statuses');
+  const req = httpMock.expectOne('https://localhost:7178/api/status/project-statuses');
     req.flush(emptyResponse);
     tick();
   }));
 
-  it('should handle error response', fakeAsync(() => {
-    service.getStatuses().subscribe(
-      () => fail('Should have failed'),
-      error => expect(error).toBeTruthy()
-    );
+  it('should return empty array on error response', fakeAsync(() => {
+    service.getStatuses().subscribe({
+      next: statuses => {
+        expect(statuses).toEqual([]);
+      },
+      error: () => fail('Should not have errored')
+    });
 
-  const req = httpMock.expectOne('http://localhost:5291/api/status/project-statuses');
+    const req = httpMock.expectOne('https://localhost:7178/api/status/project-statuses');
     req.error(new ErrorEvent('network error'));
     tick();
   }));

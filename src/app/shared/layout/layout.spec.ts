@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { Layout } from './layout';
 import { RouterTestingModule } from '@angular/router/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 describe('Layout', () => {
   let component: Layout;
@@ -9,7 +10,7 @@ describe('Layout', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Layout, RouterTestingModule],
+      imports: [Layout, RouterTestingModule, HttpClientTestingModule],
       providers: [],
     }).compileComponents();
 

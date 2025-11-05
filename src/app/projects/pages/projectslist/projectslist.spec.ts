@@ -229,15 +229,14 @@ describe('Projectslist', () => {
     
     setTimeout(() => {
       expect(projectsServiceMock.deleteProject).toHaveBeenCalledWith(mockProjects[0].id);
-      expect(notificationServiceMock.addNotification).toHaveBeenCalledWith(
-        'warning',
+      expect(toastrServiceMock.success).toHaveBeenCalledWith(
         jasmine.stringContaining('deleted successfully'),
         'Project Deleted'
       );
       
       // Reset and test multiple project delete
       projectsServiceMock.deleteProject.calls.reset();
-      notificationServiceMock.addNotification.calls.reset();
+      toastrServiceMock.success.calls.reset();
       component.projects = [...mockProjects];
       
       component.projects[0].selected = true;
@@ -267,8 +266,7 @@ describe('Projectslist', () => {
     component.confirmDelete();
     
     setTimeout(() => {
-      expect(notificationServiceMock.addNotification).toHaveBeenCalledWith(
-        'error',
+      expect(toastrServiceMock.error).toHaveBeenCalledWith(
         jasmine.any(String),
         'Delete Failed'
       );
