@@ -1,0 +1,674 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { RouterTestingModule } from '@angular/router/testing';
+import { Deliveryunitslist } from '../../deliveryunits/pages/deliveryunitslist/deliveryunitslist';
+import { DeliveryUnitService, DeliveryUnitApi } from './deliveryunits.service';
+import { ChangeDetectorRef } from '@angular/core';
+
+describe('Deliveryunitslist Component', () => {
+  let component: Deliveryunitslist;
+  let fixture: ComponentFixture<Deliveryunitslist>;
+  let httpMock: HttpTestingController;
+  let deliveryUnitService: DeliveryUnitService;
+  let changeDetectorRef: ChangeDetectorRef;
+
+  const mockDeliveryUnits: DeliveryUnitApi[] = [
+    {
+      id: 1,
+      name: 'Engineering',
+      code: 'ENG-001',
+      description: 'Software Engineering Team',
+      duHeadName: 'John Doe',
+      duHeadEmail: 'john@company.com',
+      isActive: true,
+      projectCount: 5
+    },
+    {
+      id: 2,
+      name: 'Marketing',
+      code: 'MKT-002',
+      description: 'Marketing Team',
+      duHeadName: 'Jane Smith',
+      duHeadEmail: 'jane@company.com',
+      isActive: true,
+      projectCount: 3
+    }
+  ];
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [
+        Deliveryunitslist,
+        HttpClientTestingModule,
+        RouterTestingModule
+      ],
+      providers: [DeliveryUnitService]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(Deliveryunitslist);
+    component = fixture.componentInstance;
+    httpMock = TestBed.inject(HttpTestingController);
+    deliveryUnitService = TestBed.inject(DeliveryUnitService);
+    changeDetectorRef = fixture.componentRef.injector.get(ChangeDetectorRef);
+
+    spyOn(component.cdr, 'detectChanges');
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+  });
+
+  // ===== INITIALIZATION TESTS =====
+  describe('Component Initialization', () => {
+    it('should create the component', () => {
+      expect(component).toBeTruthy();
+    });
+
+    it('should initialize with default values', () => {
+      expect(component.searchQuery).toBe('');
+      expect(component.filteredDeliveryUnits).toEqual([]);
+      expect(component.isModalOpen).toBe(false);
+      expect(component.isDeleteModalOpen).toBe(false);
+      expect(component.isUpdateConfirmModalOpen).toBe(false);
+      expect(component.isEditMode).toBe(false);
+      expect(component.isLoading).toBe(false);
+      expect(component.showToast).toBe(false);
+    });
+
+    it('should have columns configured correctly', () => {
+      expect(component.columns.length).toBe(5);
+      expect(component.columns[0].header).toBe('Delivery Unit Info');
+      expect(component.columns[1].header).toBe('DU Code');
+      expect(component.columns[2].header).toBe('DU Head');
+      expect(component.columns[3].header).toBe('Active Projects');
+      expect(component.columns[4].header).toBe('Actions');
+    });
+
+    it('should load delivery units on ngOnInit', () => {
+      spyOn(component, 'loadDeliveryUnits');
+      component.ngOnInit();
+      expect(component.loadDeliveryUnits).toHaveBeenCalled();
+    });
+  });
+
+  // ===== LOADING DELIVERY UNITS =====
+  describe('Load Delivery Units', () => {
+    it('should load delivery units successfully', () => {
+      component.loadDeliveryUnits();
+
+      const req = httpMock.expectOne('https://localhost:7178/api/delivery-unit');
+      expect(req.request.method).toBe('GET');
+      req.flush({
+        status: 200,
+        data: mockDeliveryUnits,
+        message: 'Success'
+      });
+
+      expect(component.deliveryUnits.length).toBe(2);
+      expect(component.filteredDeliveryUnits.length).toBe(2);
+      expect(component.isLoading).toBe(false);
+    });
+
+    it('should handle loading error', () => {
+      spyOn(component, 'showToastNotification');
+      component.loadDeliveryUnits();
+
+      const req = httpMock.expectOne('https://localhost:7178/api/delivery-unit');
+      req.error(new ErrorEvent('Network error'));
+
+      expect(component.showToastNotification).toHaveBeenCalledWith(
+        'Failed to load delivery units',
+        'error'
+      );
+      expect(component.isLoading).toBe(false);
+    });
+
+    it('should set isLoading to true when loading', () => {
+      component.isLoading = false;
+      component.loadDeliveryUnits();
+      expect(component.isLoading).toBe(true);
+
+      const req = httpMock.expectOne('https://localhost:7178/api/delivery-unit');
+      req.flush({
+        status: 200,
+        data: mockDeliveryUnits,
+        message: 'Success'
+      });
+    });
+  });
+
+  // ===== DATA TRANSFORMATION =====
+  describe('Transform API Data to Table Format', () => {
+    it('should transform API data correctly', () => {
+      const result = component.transformApiDataToTableFormat(mockDeliveryUnits);
+
+      expect(result.length).toBe(2);
+      expect(result[0].id).toBe(1);
+      expect(result[0].duInfo.name).toBe('Engineering');
+      expect(result[0].duCode).toBe('ENG-001');
+      expect(result[0].duHead.name).toBe('John Doe');
+      expect(result[0].duHead.email).toBe('john@company.com');
+      expect(result[0].activeProjects).toBe(5);
+    });
+
+    it('should handle missing data gracefully', () => {
+      const incompleteData: DeliveryUnitApi[] = [
+        {
+          id: 1,
+          name: '',
+          code: 'ENG-001',
+          description: null,
+          duHeadName: null,
+          duHeadEmail: null,
+          isActive: true,
+          projectCount: 0
+        }
+      ];
+
+      const result = component.transformApiDataToTableFormat(incompleteData);
+      expect(result[0].duInfo.name).toBe('Unnamed DU');
+      expect(result[0].duInfo.subtitle).toBe('No description');
+      expect(result[0].duHead.name).toBe('Unassigned');
+      expect(result[0].duHead.email).toBe('no-email@example.com');
+    });
+  });
+
+  // ===== MODAL OPERATIONS =====
+  describe('Modal Operations', () => {
+    it('should open add new DU modal', () => {
+      component.onAddNewDU();
+      expect(component.isModalOpen).toBe(true);
+      expect(component.isEditMode).toBe(false);
+      expect(component.newDU).toEqual({
+        name: '',
+        code: '',
+        description: '',
+        headName: '',
+        headEmail: ''
+      });
+    });
+
+    it('should close modal', () => {
+      component.isModalOpen = true;
+      component.isEditMode = true;
+      component.editingDUId = 1;
+
+      component.onCloseModal();
+
+      expect(component.isModalOpen).toBe(false);
+      expect(component.isEditMode).toBe(false);
+      expect(component.editingDUId).toBe(0);
+      expect(component.isLoading).toBe(false);
+    });
+
+    it('should open delete confirmation modal', () => {
+      const duRow = {
+        id: 1,
+        duInfo: { name: 'Engineering', subtitle: 'desc', initials: 'ENG', bgColor: 'blue' },
+        duCode: 'ENG-001',
+        duHead: { name: 'John', email: 'john@test.com', avatar: 'J' }
+      };
+
+      component.deleteDeliveryUnit(duRow);
+
+      expect(component.isDeleteModalOpen).toBe(true);
+      expect(component.duToDelete).toEqual(duRow);
+      expect(component.deleteConfirmationText).toBe('Engineering');
+    });
+
+    it('should close delete modal', () => {
+      component.isDeleteModalOpen = true;
+      component.duToDelete = { id: 1 };
+
+      component.onCloseDeleteModal();
+
+      expect(component.isDeleteModalOpen).toBe(false);
+      expect(component.duToDelete).toBeNull();
+    });
+  });
+
+  // ===== FORM OPERATIONS =====
+  describe('Form Operations', () => {
+    it('should generate DU code automatically when DU name changes', () => {
+      component.isEditMode = false;
+      component.newDU.name = 'Engineering Team';
+
+      component.onDUNameChange();
+
+      expect(component.newDU.code).toContain('ENG-');
+      expect(component.newDU.code.match(/\d{3}/)).toBeTruthy();
+    });
+
+    it('should not generate code if in edit mode', () => {
+      component.isEditMode = true;
+      component.newDU.code = 'ENG-001';
+      component.newDU.name = 'Engineering';
+
+      component.onDUNameChange();
+
+      expect(component.newDU.code).toBe('ENG-001');
+    });
+
+    it('should reset form fields', () => {
+      component.newDU = {
+        name: 'Test',
+        code: 'TST-001',
+        description: 'Test DU',
+        headName: 'John',
+        headEmail: 'john@test.com'
+      };
+
+      component.resetForm();
+
+      expect(component.newDU).toEqual({
+        name: '',
+        code: '',
+        description: '',
+        headName: '',
+        headEmail: ''
+      });
+    });
+
+    it('should validate form - all fields required', () => {
+      spyOn(component, 'showToastNotification');
+      component.newDU = {
+        name: '',
+        code: '',
+        description: '',
+        headName: '',
+        headEmail: ''
+      };
+
+      const result = component.validateForm();
+
+      expect(result).toBe(false);
+      expect(component.showToastNotification).toHaveBeenCalledWith(
+        'Please fill in all required fields',
+        'error'
+      );
+    });
+
+    it('should validate form - all fields filled', () => {
+      component.newDU = {
+        name: 'Engineering',
+        code: 'ENG-001',
+        description: 'Engineering Team',
+        headName: 'John Doe',
+        headEmail: 'john@test.com'
+      };
+
+      const result = component.validateForm();
+
+      expect(result).toBe(true);
+    });
+  });
+
+  // ===== CREATE/UPDATE OPERATIONS =====
+  describe('Create and Update Delivery Units', () => {
+    it('should submit form and create new DU', () => {
+      component.isEditMode = false;
+      component.newDU = {
+        name: 'New Team',
+        code: 'NEW-001',
+        description: 'New Team Description',
+        headName: 'Jane Smith',
+        headEmail: 'jane@test.com'
+      };
+
+      component.onSubmitForm();
+
+      expect(component.isUpdateConfirmModalOpen).toBe(false);
+    });
+
+    it('should submit form and open update confirmation modal in edit mode', () => {
+      component.isEditMode = true;
+      component.newDU = {
+        name: 'Engineering',
+        code: 'ENG-001',
+        description: 'Engineering Team',
+        headName: 'John Doe',
+        headEmail: 'john@test.com'
+      };
+
+      component.onSubmitForm();
+
+      expect(component.isUpdateConfirmModalOpen).toBe(true);
+    });
+
+    it('should create delivery unit successfully', (done) => {
+      spyOn(component, 'showToastNotification');
+      spyOn(component, 'loadDeliveryUnits');
+      spyOn(component, 'onCloseModal');
+
+      component.isEditMode = false;
+      component.newDU = {
+        name: 'New Team',
+        code: 'NEW-001',
+        description: 'New Team Description',
+        headName: 'Jane Smith',
+        headEmail: 'jane@test.com'
+      };
+
+      component.saveDeliveryUnit();
+
+      const req = httpMock.expectOne('https://localhost:7178/api/delivery-unit');
+      expect(req.request.method).toBe('POST');
+
+      req.flush({
+        status: 200,
+        data: { id: 3, ...mockDeliveryUnits[0] },
+        message: 'Created'
+      });
+
+      setTimeout(() => {
+        expect(component.showToastNotification).toHaveBeenCalledWith(
+          'Delivery Unit created successfully'
+        );
+        expect(component.loadDeliveryUnits).toHaveBeenCalled();
+        expect(component.onCloseModal).toHaveBeenCalled();
+        done();
+      }, 0);
+    });
+
+    it('should update delivery unit successfully', (done) => {
+      spyOn(component, 'showToastNotification');
+      spyOn(component, 'loadDeliveryUnits');
+      spyOn(component, 'onCloseModal');
+
+      component.isEditMode = true;
+      component.editingDUId = 1;
+      component.newDU = {
+        name: 'Engineering Updated',
+        code: 'ENG-001',
+        description: 'Updated description',
+        headName: 'John Updated',
+        headEmail: 'john.updated@test.com'
+      };
+
+      component.saveDeliveryUnit();
+
+      const req = httpMock.expectOne('https://localhost:7178/api/delivery-unit/1');
+      expect(req.request.method).toBe('PUT');
+
+      req.flush({
+        status: 200,
+        data: { id: 1, ...component.newDU },
+        message: 'Updated'
+      });
+
+      setTimeout(() => {
+        expect(component.showToastNotification).toHaveBeenCalledWith(
+          'Delivery Unit updated successfully'
+        );
+        expect(component.loadDeliveryUnits).toHaveBeenCalled();
+        expect(component.onCloseModal).toHaveBeenCalled();
+        done();
+      }, 0);
+    });
+
+    it('should handle save error', (done) => {
+      spyOn(component, 'showToastNotification');
+
+      component.isEditMode = false;
+      component.newDU = {
+        name: 'New Team',
+        code: 'NEW-001',
+        description: 'New Team Description',
+        headName: 'Jane Smith',
+        headEmail: 'jane@test.com'
+      };
+
+      component.saveDeliveryUnit();
+
+      const req = httpMock.expectOne('https://localhost:7178/api/delivery-unit');
+      req.error(new ErrorEvent('Network error'));
+
+      setTimeout(() => {
+        expect(component.showToastNotification).toHaveBeenCalledWith(
+          jasmine.stringContaining('Failed to create'),
+          'error'
+        );
+        done();
+      }, 0);
+    });
+
+    it('should confirm update', (done) => {
+      spyOn(component, 'saveDeliveryUnit');
+      component.isUpdateConfirmModalOpen = true;
+
+      component.confirmUpdate();
+
+      expect(component.isUpdateConfirmModalOpen).toBe(false);
+      setTimeout(() => {
+        expect(component.saveDeliveryUnit).toHaveBeenCalled();
+        done();
+      }, 0);
+    });
+  });
+
+  // ===== DELETE OPERATIONS =====
+  describe('Delete Delivery Units', () => {
+    it('should delete delivery unit successfully', (done) => {
+      spyOn(component, 'showToastNotification');
+      spyOn(component, 'loadDeliveryUnits');
+
+      component.deliveryUnits = [...mockDeliveryUnits.map(du => ({
+        id: du.id,
+        duInfo: { name: du.name, subtitle: du.description },
+        duCode: du.code,
+        duHead: { name: du.duHeadName, email: du.duHeadEmail }
+      }))];
+      component.filteredDeliveryUnits = [...component.deliveryUnits];
+      component.duToDelete = component.deliveryUnits[0];
+
+      component.confirmDelete();
+
+      const req = httpMock.expectOne('https://localhost:7178/api/delivery-unit/1');
+      expect(req.request.method).toBe('DELETE');
+
+      req.flush({
+        status: 200,
+        data: 'Deleted',
+        message: 'Deleted successfully'
+      });
+
+      setTimeout(() => {
+        expect(component.showToastNotification).toHaveBeenCalledWith(
+          'Delivery Unit deleted successfully'
+        );
+        expect(component.loadDeliveryUnits).toHaveBeenCalled();
+        done();
+      }, 0);
+    });
+
+    it('should handle delete error', (done) => {
+      spyOn(component, 'showToastNotification');
+      spyOn(component, 'loadDeliveryUnits');
+
+      component.duToDelete = { id: 1 };
+      component.confirmDelete();
+
+      const req = httpMock.expectOne('https://localhost:7178/api/delivery-unit/1');
+      req.error(new ErrorEvent('Network error'));
+
+      setTimeout(() => {
+        expect(component.showToastNotification).toHaveBeenCalledWith(
+          'Failed to delete. Please try again',
+          'error'
+        );
+        expect(component.loadDeliveryUnits).toHaveBeenCalled();
+        done();
+      }, 0);
+    });
+  });
+
+  // ===== SEARCH AND FILTER =====
+  describe('Search and Filter', () => {
+    beforeEach(() => {
+      component.deliveryUnits = [
+        {
+          id: 1,
+          duInfo: { name: 'Engineering', subtitle: 'Software Engineering', initials: 'ENG', bgColor: 'blue' },
+          duCode: 'ENG-001',
+          duHead: { name: 'John Doe', email: 'john@test.com', avatar: 'JD' },
+          activeProjects: 5
+        },
+        {
+          id: 2,
+          duInfo: { name: 'Marketing', subtitle: 'Marketing Team', initials: 'MKT', bgColor: 'purple' },
+          duCode: 'MKT-002',
+          duHead: { name: 'Jane Smith', email: 'jane@test.com', avatar: 'JS' },
+          activeProjects: 3
+        }
+      ];
+    });
+
+    it('should filter delivery units by name', () => {
+      component.onSearchChange('engineering');
+
+      expect(component.filteredDeliveryUnits.length).toBe(1);
+      expect(component.filteredDeliveryUnits[0].duInfo.name).toBe('Engineering');
+    });
+
+    it('should filter delivery units by code', () => {
+      component.onSearchChange('mkt-002');
+
+      expect(component.filteredDeliveryUnits.length).toBe(1);
+      expect(component.filteredDeliveryUnits[0].duCode).toBe('MKT-002');
+    });
+
+    it('should filter delivery units by head name', () => {
+      component.onSearchChange('jane smith');
+
+      expect(component.filteredDeliveryUnits.length).toBe(1);
+      expect(component.filteredDeliveryUnits[0].duHead.name).toBe('Jane Smith');
+    });
+
+    it('should return all delivery units when search is empty', () => {
+      component.onSearchChange('');
+
+      expect(component.filteredDeliveryUnits.length).toBe(2);
+    });
+
+    it('should be case insensitive', () => {
+      component.onSearchChange('ENGINEERING');
+
+      expect(component.filteredDeliveryUnits.length).toBe(1);
+    });
+
+    it('should reset pagination on search change', () => {
+      component._resetPagination = false;
+      component.onSearchChange('engineering');
+
+      expect(component.resetPagination).toBe(true);
+    });
+  });
+
+  // ===== TOAST NOTIFICATIONS =====
+  describe('Toast Notifications', () => {
+    it('should show success toast', (done) => {
+      component.showToastNotification('Operation successful');
+
+      expect(component.showToast).toBe(true);
+      expect(component.toastMessage).toBe('Operation successful');
+      expect(component.toastType).toBe('success');
+
+      setTimeout(() => {
+        expect(component.showToast).toBe(false);
+        done();
+      }, 3100);
+    });
+
+    it('should show error toast', (done) => {
+      component.showToastNotification('Operation failed', 'error');
+
+      expect(component.showToast).toBe(true);
+      expect(component.toastMessage).toBe('Operation failed');
+      expect(component.toastType).toBe('error');
+
+      setTimeout(() => {
+        expect(component.showToast).toBe(false);
+        done();
+      }, 3100);
+    });
+
+    it('should hide toast manually', () => {
+      component.showToast = true;
+      component.hideToast();
+
+      expect(component.showToast).toBe(false);
+    });
+  });
+
+  // ===== UTILITY FUNCTIONS =====
+  describe('Utility Functions', () => {
+    it('should get initials from full name', () => {
+      expect(component.getInitials('John Doe')).toBe('JD');
+      expect(component.getInitials('Jane')).toBe('JA');
+      expect(component.getInitials('J')).toBe('J');
+      expect(component.getInitials('')).toBe('');
+    });
+
+    it('should get random color from predefined colors', () => {
+      const color = component.getRandomColor();
+
+      expect(['bg-blue-500', 'bg-purple-500', 'bg-teal-500', 'bg-orange-500', 'bg-green-500', 'bg-pink-500'])
+        .toContain(color);
+    });
+  });
+
+  // ===== ACTION HANDLERS =====
+  describe('Action Handlers', () => {
+    it('should handle edit action', () => {
+      spyOn(component, 'editDeliveryUnit');
+
+      const duRow = {
+        id: 1,
+        duCode: 'ENG-001',
+        duInfo: { name: 'Engineering' }
+      };
+
+      component.onActionClick({ action: 'edit', row: duRow });
+
+      expect(component.editDeliveryUnit).toHaveBeenCalledWith(duRow);
+    });
+
+    it('should handle delete action', () => {
+      spyOn(component, 'deleteDeliveryUnit');
+
+      const duRow = { id: 1, duCode: 'ENG-001' };
+      component.onActionClick({ action: 'delete', row: duRow });
+
+      expect(component.deleteDeliveryUnit).toHaveBeenCalledWith(duRow);
+    });
+
+    it('should edit delivery unit', () => {
+      component.deliveryUnitsFromApi = mockDeliveryUnits;
+
+      const duRow = {
+        id: 1,
+        duCode: 'ENG-001',
+        duInfo: { name: 'Engineering' }
+      };
+
+      component.editDeliveryUnit(duRow);
+
+      expect(component.isEditMode).toBe(true);
+      expect(component.editingDUId).toBe(1);
+      expect(component.isModalOpen).toBe(true);
+      expect(component.newDU.name).toBe('Engineering');
+    });
+
+    it('should handle edit delivery unit error', () => {
+      spyOn(component, 'showToastNotification');
+      component.deliveryUnitsFromApi = [];
+
+      component.editDeliveryUnit({ duCode: 'UNKNOWN' });
+
+      expect(component.showToastNotification).toHaveBeenCalledWith(
+        'Could not find delivery unit data',
+        'error'
+      );
+    });
+  });
+});
