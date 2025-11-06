@@ -7,6 +7,7 @@ import { Projectslist } from './projectslist';
 import { ProjectsService, Project, ProjectTableDTO } from '../../services/projects.service';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { ToastrService } from 'ngx-toastr';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('Projectslist', () => {
   let component: Projectslist;
@@ -94,7 +95,7 @@ describe('Projectslist', () => {
     routerMock = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
-      imports: [Projectslist, HttpClientTestingModule],
+      imports: [Projectslist, HttpClientTestingModule, NoopAnimationsModule],
       providers: [
         { provide: ProjectsService, useValue: projectsServiceMock },
         { provide: NotificationService, useValue: notificationServiceMock },
@@ -195,6 +196,38 @@ describe('Projectslist', () => {
     createElementSpy.calls.reset();
     component.exportToCSV(mockProjects.filter(p => p.name.includes('Active')));
     expect(createElementSpy).toHaveBeenCalledWith('a');
+  });
+
+  it('should set download filename with projects_export, count and .csv when exporting', () => {
+    component.projects = mockProjects;
+    projectsServiceMock.getProjects.and.returnValue(of({
+      status: 200,
+      data: { 
+        items: mockProjectTableDTOs, 
+        totalCount: mockProjectTableDTOs.length, 
+        page: 1, 
+        pageSize: 10, 
+        totalPages: 1 
+      },
+      message: 'Success'
+    }));
+
+    spyOn(window.URL, 'createObjectURL').and.returnValue('blob:mock-url');
+
+    const realLink: HTMLElement = document.createElement('a');
+    spyOn(document, 'createElement').and.returnValue(realLink);
+    spyOn(realLink, 'setAttribute').and.callThrough();
+    spyOn(realLink, 'click').and.callThrough();
+
+    component.exportAll();
+
+    expect((realLink as any).setAttribute).toHaveBeenCalled();
+    const downloadCall = (realLink as any).setAttribute.calls.allArgs().find((a: any) => a[0] === 'download');
+    expect(downloadCall).toBeDefined();
+    const filename = downloadCall![1] as string;
+    expect(filename).toContain('projects_export');
+    expect(filename).toContain(`_${mockProjectTableDTOs.length}_`);
+    expect(filename).toMatch(/\.csv$/);
   });
 
   it('should manage project selection across single and bulk operations', () => {

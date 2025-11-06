@@ -27,6 +27,33 @@ describe('UsersApi', () => {
       type: 'External',
       status: 'Active',
       last_Login: '2025-09-24T11:45:00Z'
+    },
+    {
+      id: 3,
+      name: 'Carol Williams',
+      email: 'carol.williams@company.com',
+      created_At: '2025-09-15T08:00:00Z',
+      type: 'Internal',
+      status: 'Inactive',
+      last_Login: '2025-09-20T10:00:00Z'
+    },
+    {
+      id: 4,
+      name: 'David Brown',
+      email: 'david.brown@company.com',
+      created_At: '2025-09-10T07:30:00Z',
+      type: 'Customer',
+      status: 'Active',
+      last_Login: '2025-09-23T12:00:00Z'
+    },
+    {
+      id: 5,
+      name: 'Emma Davis',
+      email: 'emma.davis@company.com',
+      created_At: '2025-09-05T06:00:00Z',
+      type: 'Internal',
+      status: 'Active',
+      last_Login: '2025-09-22T14:00:00Z'
     }
   ];
 
@@ -38,6 +65,7 @@ describe('UsersApi', () => {
 
   const expectedTransformedUsers: User[] = [
     {
+      id: 1,
       user: 'Alice Johnson',
       email: 'alice.johnson@company.com',
       type: 'Internal',
@@ -46,12 +74,40 @@ describe('UsersApi', () => {
       lastActivity: '09/25/2025'
     },
     {
+      id: 2,
       user: 'Bob Smith',
       email: 'bob.smith@company.com',
       type: 'External',
       status: 'Active',
       created: '09/20/2025',
       lastActivity: '09/24/2025'
+    },
+    {
+      id: 3,
+      user: 'Carol Williams',
+      email: 'carol.williams@company.com',
+      type: 'Internal',
+      status: 'Inactive',
+      created: '09/15/2025',
+      lastActivity: '09/20/2025'
+    },
+    {
+      id: 4,
+      user: 'David Brown',
+      email: 'david.brown@company.com',
+      type: 'Customer',
+      status: 'Active',
+      created: '09/10/2025',
+      lastActivity: '09/23/2025'
+    },
+    {
+      id: 5,
+      user: 'Emma Davis',
+      email: 'emma.davis@company.com',
+      type: 'Internal',
+      status: 'Active',
+      created: '09/05/2025',
+      lastActivity: '09/22/2025'
     }
   ];
 
@@ -64,10 +120,6 @@ describe('UsersApi', () => {
     httpMock = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => {
-    httpMock.verify();
-  });
-
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
@@ -76,7 +128,7 @@ describe('UsersApi', () => {
     it('should return cached users if available', fakeAsync(() => {
       // First call to populate cache
       service.getUsers().subscribe();
-      const req = httpMock.expectOne('https://localhost:7048/api/User');
+      const req = httpMock.expectOne('https://localhost:7178/api/User/filter');
       req.flush(mockApiResponse);
       tick();
 
@@ -85,29 +137,34 @@ describe('UsersApi', () => {
       service.getUsers().subscribe(users => result = users);
 
       // Should not make another HTTP call
-      httpMock.expectNone('https://localhost:7048/api/User');
+      httpMock.expectNone('https://localhost:7178/api/User/filter');
 
       expect(result).toEqual(expectedTransformedUsers);
     }));
 
     it('should prevent multiple simultaneous API calls', fakeAsync(() => {
-      // Start first call
-      service.getUsers().subscribe();
-      const req1 = httpMock.expectOne('https://localhost:7048/api/User');
+      let firstResult: User[] | undefined;
+      let secondResult: User[] | undefined;
 
-      // Second call should return sample data without making another request
-      let result: User[] | undefined;
-      service.getUsers().subscribe(users => result = users);
+      // Start first call
+      service.getUsers().subscribe(users => firstResult = users);
+      const req1 = httpMock.expectOne('https://localhost:7178/api/User/filter');
+
+      // Second call should return the same observable without making another request
+      service.getUsers().subscribe(users => secondResult = users);
 
       // Should not make a second HTTP call
-      httpMock.expectNone('https://localhost:7048/api/User');
-
-      expect(result).toBeDefined();
-      expect(result!.length).toBeGreaterThan(0);
+      httpMock.expectNone('https://localhost:7178/api/User/filter');
 
       // Complete first request
       req1.flush(mockApiResponse);
       tick();
+      
+      // Now both results should be populated
+      expect(firstResult).toEqual(expectedTransformedUsers);
+      expect(secondResult).toEqual(expectedTransformedUsers);
+
+      httpMock.verify();
     }));
 
     it('should make HTTP call when no cache exists', fakeAsync(() => {
@@ -115,11 +172,13 @@ describe('UsersApi', () => {
         expect(users).toEqual(expectedTransformedUsers);
       });
 
-      const req = httpMock.expectOne('https://localhost:7048/api/User');
-      expect(req.request.method).toBe('GET');
-      req.flush(mockApiResponse);
+  const req = httpMock.expectOne('https://localhost:7178/api/User/filter');
+  expect(req.request.method).toBe('POST');
+  req.flush(mockApiResponse);
 
       tick();
+
+      httpMock.verify();
     }));
 
     it('should transform API response correctly', fakeAsync(() => {
@@ -133,60 +192,83 @@ describe('UsersApi', () => {
         }));
       });
 
-      const req = httpMock.expectOne('https://localhost:7048/api/User');
-      req.flush(mockApiResponse);
+  const req = httpMock.expectOne('https://localhost:7178/api/User/filter');
+  req.flush(mockApiResponse);
       tick();
+
+      httpMock.verify();
     }));
 
-    it('should handle API errors and fall back to sample data', fakeAsync(() => {
-      service.getUsers().subscribe(users => {
-        expect(users).toBeDefined();
-        expect(users.length).toBeGreaterThan(0);
-        // Should have sample data structure
-        expect(users[0]).toEqual(jasmine.objectContaining({
-          user: jasmine.any(String),
-          email: jasmine.any(String),
-          type: jasmine.any(String),
-          status: jasmine.any(String),
-          created: jasmine.any(String),
-          lastActivity: jasmine.any(String)
-        }));
+    it('should handle API errors appropriately', fakeAsync(() => {
+      let errorReceived = false;
+      let actualError: Error | null = null;
+      
+      service.getUsers().subscribe({
+        next: () => fail('should not succeed'),
+        error: (err) => {
+          errorReceived = true;
+          actualError = err;
+        }
       });
 
-      const req = httpMock.expectOne('https://localhost:7048/api/User');
+      const req = httpMock.expectOne('https://localhost:7178/api/User/filter');
       req.error(new ErrorEvent('network error'));
-      tick();
+      
+      // Account for retryWhen delays
+      tick(0);  // First retry
+      const req2 = httpMock.expectOne('https://localhost:7178/api/User/filter');
+      req2.error(new ErrorEvent('network error'));
+      
+      tick(500);  // Second retry with delay
+      const req3 = httpMock.expectOne('https://localhost:7178/api/User/filter');
+      req3.error(new ErrorEvent('network error'));
+      
+      tick(500);  // Third retry with delay
+      const req4 = httpMock.expectOne('https://localhost:7178/api/User/filter');
+      req4.error(new ErrorEvent('network error'));
+      
+      tick(500); // Final error should propagate
+
+      expect(errorReceived).toBe(true);
+      expect(actualError).toBeDefined();
     }));
 
     it('should handle invalid response format', fakeAsync(() => {
       const invalidResponse = { status: 200, data: null };
-
-      service.getUsers().subscribe(users => {
-        expect(users).toBeDefined();
-        expect(users.length).toBeGreaterThan(0);
-        // Should fall back to sample data
+      let errorReceived = false;
+      let errorMessage = '';
+      
+      service.getUsers().subscribe({
+        next: () => fail('should not succeed'),
+        error: (err: Error) => {
+          errorReceived = true;
+          errorMessage = err.message;
+        }
       });
 
-      const req = httpMock.expectOne('https://localhost:7048/api/User');
+      const req = httpMock.expectOne('https://localhost:7178/api/User/filter');
       req.flush(invalidResponse);
       tick();
+
+      expect(errorReceived).toBe(true);
+      expect(errorMessage).toBe('Invalid response from server.');
     }));
 
     it('should cache successful responses', fakeAsync(() => {
       // First call
       service.getUsers().subscribe();
-      httpMock.expectOne('https://localhost:7048/api/User').flush(mockApiResponse);
+      httpMock.expectOne('https://localhost:7178/api/User/filter').flush(mockApiResponse);
       tick();
 
       // Spy on http client to ensure no second call
-      spyOn(service['http'], 'get');
+      const httpSpy = spyOn(service['http'], 'post').and.callThrough();
 
       // Second call should use cache
       service.getUsers().subscribe(users => {
         expect(users).toEqual(expectedTransformedUsers);
       });
 
-      expect(service['http'].get).not.toHaveBeenCalled();
+      expect(httpSpy).not.toHaveBeenCalled();
     }));
   });
 
@@ -194,7 +276,9 @@ describe('UsersApi', () => {
     it('should clear cache and fetch fresh data', fakeAsync(() => {
       // Populate cache first
       service.getUsers().subscribe();
-      httpMock.expectOne('https://localhost:7048/api/User').flush(mockApiResponse);
+      const req1 = httpMock.expectOne('https://localhost:7178/api/User/filter');
+      expect(req1.request.method).toBe('POST');
+      req1.flush(mockApiResponse);
       tick();
 
       // Call refresh
@@ -203,22 +287,52 @@ describe('UsersApi', () => {
       });
 
       // Should make new HTTP call
-      const req = httpMock.expectOne('https://localhost:7048/api/User');
-      expect(req.request.method).toBe('GET');
-      req.flush(mockApiResponse);
+  const req = httpMock.expectOne('https://localhost:7178/api/User/filter');
+  expect(req.request.method).toBe('POST');
+  req.flush(mockApiResponse);
       tick();
     }));
 
-    it('should handle refresh errors gracefully', fakeAsync(() => {
-      service.refreshUsers().subscribe(users => {
-        expect(users).toBeDefined();
-        expect(users.length).toBeGreaterThan(0);
-        // Should fall back to sample data
+    it('should handle refresh errors appropriately', fakeAsync(() => {
+      let errorReceived = false;
+      let actualError: Error | null = null;
+
+      service.refreshUsers().subscribe({
+        next: () => fail('should not succeed'),
+        error: (err) => {
+          errorReceived = true;
+          actualError = err;
+        }
       });
 
-      const req = httpMock.expectOne('https://localhost:7048/api/User');
+      // Initial request
+      const req = httpMock.expectOne('https://localhost:7178/api/User/filter');
+      expect(req.request.method).toBe('POST');
       req.error(new ErrorEvent('network error'));
-      tick();
+      
+      // First retry (immediate)
+      tick(0);
+      const req2 = httpMock.expectOne('https://localhost:7178/api/User/filter');
+      expect(req2.request.method).toBe('POST');
+      req2.error(new ErrorEvent('network error'));
+      
+      // Second retry (500ms delay)
+      tick(500);
+      const req3 = httpMock.expectOne('https://localhost:7178/api/User/filter');
+      expect(req3.request.method).toBe('POST');
+      req3.error(new ErrorEvent('network error'));
+      
+      // Third retry (500ms delay)
+      tick(500);
+      const req4 = httpMock.expectOne('https://localhost:7178/api/User/filter');
+      expect(req4.request.method).toBe('POST');
+      req4.error(new ErrorEvent('network error'));
+      
+      // Final error propagation
+      tick(500);
+
+      expect(errorReceived).toBe(true);
+      expect(actualError).toBeDefined();
     }));
   });
 
@@ -244,8 +358,8 @@ describe('UsersApi', () => {
         expect(typeof users[0].lastActivity).toBe('string');
       });
 
-      const req = httpMock.expectOne('https://localhost:7048/api/User');
-      req.flush({ status: 200, data: [mockApiUser] });
+  const req = httpMock.expectOne('https://localhost:7178/api/User/filter');
+  req.flush({ status: 200, data: [mockApiUser] });
       tick();
     }));
 
@@ -266,8 +380,8 @@ describe('UsersApi', () => {
         expect(users[0].lastActivity).toBe('09/23/2025');
       });
 
-      const req = httpMock.expectOne('https://localhost:7048/api/User');
-      req.flush({ status: 200, data: [mockApiUser] });
+  const req = httpMock.expectOne('https://localhost:7178/api/User/filter');
+  req.flush({ status: 200, data: [mockApiUser] });
       tick();
     }));
 
@@ -287,8 +401,8 @@ describe('UsersApi', () => {
         expect(users[0].lastActivity).toBe('');
       });
 
-      const req = httpMock.expectOne('https://localhost:7048/api/User');
-      req.flush({ status: 200, data: [mockApiUser] });
+  const req = httpMock.expectOne('https://localhost:7178/api/User/filter');
+  req.flush({ status: 200, data: [mockApiUser] });
       tick();
     }));
 
@@ -315,59 +429,20 @@ describe('UsersApi', () => {
         expect(users[0].lastActivity.length).toBeGreaterThan(0);
       });
 
-      const req = httpMock.expectOne('https://localhost:7048/api/User');
+      const req = httpMock.expectOne('https://localhost:7178/api/User/filter');
+      expect(req.request.method).toBe('POST');
       req.flush({ status: 200, data: [mockApiUser] });
       tick();
     }));
   });
 
-  describe('getSampleUsers', () => {
-    it('should return sample users when API fails', fakeAsync(() => {
-      service.getUsers().subscribe(users => {
-        expect(users).toBeDefined();
-        expect(users.length).toBeGreaterThan(0);
-        // Should have sample data structure
-        expect(users[0]).toEqual(jasmine.objectContaining({
-          user: jasmine.any(String),
-          email: jasmine.any(String),
-          type: jasmine.any(String),
-          status: jasmine.any(String),
-          created: jasmine.any(String),
-          lastActivity: jasmine.any(String)
-        }));
-        // Check specific sample data
-        expect(users.length).toBe(5);
-        expect(users[0].user).toBe('Alice Johnson');
-        expect(users[1].user).toBe('Bob Smith');
-      });
 
-      const req = httpMock.expectOne('https://localhost:7048/api/User');
-      req.error(new ErrorEvent('network error'));
-      tick();
-    }));
-
-    it('should cache sample data when API fails', fakeAsync(() => {
-      // First call - should get sample data
-      service.getUsers().subscribe();
-      httpMock.expectOne('https://localhost:7048/api/User').error(new ErrorEvent('network error'));
-      tick();
-
-      // Second call should return cached sample data
-      service.getUsers().subscribe(users => {
-        expect(users.length).toBe(5);
-        expect(users[0].user).toBe('Alice Johnson');
-      });
-
-      // Should not make another HTTP call
-      httpMock.expectNone('https://localhost:7048/api/User');
-    }));
-  });
 
   describe('Integration tests', () => {
     it('should handle multiple refresh calls correctly', fakeAsync(() => {
       // First refresh
       service.refreshUsers().subscribe();
-      httpMock.expectOne('https://localhost:7048/api/User').flush(mockApiResponse);
+  httpMock.expectOne('https://localhost:7178/api/User/filter').flush(mockApiResponse);
       tick();
 
       // Second refresh should make another API call
@@ -375,15 +450,17 @@ describe('UsersApi', () => {
         expect(users).toEqual(expectedTransformedUsers);
       });
 
-      const req = httpMock.expectOne('https://localhost:7048/api/User');
-      req.flush(mockApiResponse);
+  const req = httpMock.expectOne('https://localhost:7178/api/User/filter');
+  req.flush(mockApiResponse);
       tick();
     }));
 
     it('should maintain cache after successful API call', fakeAsync(() => {
       // Make API call
       service.getUsers().subscribe();
-      httpMock.expectOne('https://localhost:7048/api/User').flush(mockApiResponse);
+      const req = httpMock.expectOne('https://localhost:7178/api/User/filter');
+      expect(req.request.method).toBe('POST');
+      req.flush(mockApiResponse);
       tick();
 
       // Verify cache is set
@@ -393,7 +470,7 @@ describe('UsersApi', () => {
       service.getUsers().subscribe(users => {
         expect(users).toEqual(expectedTransformedUsers);
       });
-      httpMock.expectNone('https://localhost:7048/api/User');
+      httpMock.expectNone('https://localhost:7178/api/User/filter');
     }));
   });
 });

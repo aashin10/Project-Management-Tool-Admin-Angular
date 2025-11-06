@@ -91,11 +91,13 @@ export class ImportUsersSection implements OnInit {
           }
           this.parsedData = result.data;
           this.uploadSuccess = true;
+          this.cdr.detectChanges();
         },
       });
+    } else {
+      this.uploadSuccess = false;
+      this.cdr.detectChanges();
     }
-    this.uploadSuccess = true;
-    this.cdr.detectChanges();
   }
 
   onSkip() {

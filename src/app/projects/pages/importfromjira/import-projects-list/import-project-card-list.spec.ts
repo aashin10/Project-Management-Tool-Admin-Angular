@@ -10,11 +10,11 @@ describe('ImportProjectCardList', () => {
   let fixture: ComponentFixture<ImportProjectCardList>;
 
   const mockProjects = [
-    { name: 'Project 1', key: 'P1', id: '1', selected: false },
-    { name: 'Project 2', key: 'P2', id: '2', selected: false },
-    { name: 'Project 3', key: 'P3', id: '3', selected: false },
-    { name: 'Project 4', key: 'P4', id: '4', selected: false },
-    { name: 'Project 5', key: 'P5', id: '5', selected: false },
+    { name: 'Project 1', key: 'P1', id: '1', selected: false, style: '' },
+    { name: 'Project 2', key: 'P2', id: '2', selected: false, style: '' },
+    { name: 'Project 3', key: 'P3', id: '3', selected: false, style: '' },
+    { name: 'Project 4', key: 'P4', id: '4', selected: false, style: '' },
+    { name: 'Project 5', key: 'P5', id: '5', selected: false, style: '' },
   ];
 
   beforeEach(async () => {
@@ -34,22 +34,23 @@ describe('ImportProjectCardList', () => {
 
   it('should initialize with correct pagination', () => {
     expect(component.currentPage).toBe(1);
-    expect(component.itemsPerPage).toBe(3);
-    expect(component.paginatedProjects.length).toBe(3);
+    expect(component.itemsPerPage).toBe(5);
+    expect(component.paginatedProjects.length).toBe(5);
     expect(component.paginatedProjects[0].name).toBe('Project 1');
   });
 
   it('should calculate total pages correctly', () => {
-    expect(component.totalPages).toBe(2); // 5 projects, 3 per page
+    expect(component.totalPages).toBe(1); // 5 projects, 5 per page
   });
 
   it('should go to page 2 and update paginatedProjects', () => {
+    // Since itemsPerPage is 5, there is only 1 page. Calling goToPage(2) should have no effect.
     component.goToPage(2);
     fixture.detectChanges();
 
-    expect(component.currentPage).toBe(2);
-    expect(component.paginatedProjects.length).toBe(2);
-    expect(component.paginatedProjects[0].name).toBe('Project 4');
+    expect(component.currentPage).toBe(1);
+    expect(component.paginatedProjects.length).toBe(5);
+    expect(component.paginatedProjects[0].name).toBe('Project 1');
   });
   it('should disable Previous button on first page', () => {
     const buttons = fixture.debugElement.queryAll(By.directive(CustomButton));

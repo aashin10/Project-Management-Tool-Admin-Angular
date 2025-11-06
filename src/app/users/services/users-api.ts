@@ -205,23 +205,8 @@ export class UsersApi {
       catchError(error => {
         this.isLoading = false; // Ensure loading flag is always reset
         
-        // Check if it's a network error vs HTTP error response
-        if (error instanceof HttpErrorResponse) {
-          // HTTP error response (server returned error status)
-          if (error.status === 0) {
-            // Status 0 after retries means persistent network issue
-            return throwError(() => new Error('Network issue. Check your internet connection'));
-          } else {
-            // Server returned error status (404, 500, etc.)
-            return throwError(() => new Error(`Server error: ${error.status} ${error.statusText}`));
-          }
-        } else if (error.name === 'TimeoutError') {
-          // Timeout error
-          return throwError(() => new Error('Request timeout. Please try again'));
-        } else {
-          // Other errors (parsing errors, etc.)
-          return throwError(() => new Error(error.message || 'Failed to fetch users'));
-        }
+        // Handle error normally
+        return throwError(() => error);
       })
     );
   }

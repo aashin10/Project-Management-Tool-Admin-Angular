@@ -223,6 +223,14 @@ export class Userslist implements OnInit, OnDestroy {
       }
     }
 
+    if (!this.newUser.type) {
+      this.validationErrors.push('Type is required');
+    }
+
+    if (!this.newUser.status) {
+      this.validationErrors.push('Status is required');
+    }
+
     // If there are validation errors, don't submit
     if (this.validationErrors.length > 0) {
       return;
@@ -306,7 +314,7 @@ export class Userslist implements OnInit, OnDestroy {
    * Opens edit modal and fetches user details
    */
   onEditUser(user: any) {
-    if (!user.id) {
+    if (!user || user.id === undefined) {
       this.toastr.error('Cannot edit user: ID is missing', 'Error');
       return;
     }

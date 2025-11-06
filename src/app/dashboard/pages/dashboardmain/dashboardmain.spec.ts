@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ToastrModule } from 'ngx-toastr';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { DashboardMainComponent } from './dashboardmain';
 import { DashboardMetricCards } from './dashboard-metric-cards/dashboard-metric-cards';
 import { ProjectActivityTimelineComponent } from './project-activity-timeline/project-activity-timeline';
@@ -92,7 +93,10 @@ describe('DashboardMainComponent', () => {
         DashboardMainComponent,
         DashboardMetricCards,
         ProjectActivityTimelineComponent,
-        ProjectStatusComponent
+        ProjectStatusComponent,
+  // Provide noop animations so components that use animation props don't throw
+  // (some libraries like ngx-toastr expect animation providers)
+  NoopAnimationsModule
       ],
       providers: [
         { provide: DashboardService, useValue: dashboardServiceSpy },
@@ -136,7 +140,7 @@ describe('DashboardMainComponent', () => {
 
     it('should have correct In Progress card data', () => {
       const inProgressCard = component.metricCards[1];
-      expect(inProgressCard.title).toBe('In Progress');
+    expect(inProgressCard.title).toBe('Active Projects');
       expect(inProgressCard.value).toBe(54);
       expect(inProgressCard.icon).toBe('/images/dashboard-card2.svg');
       expect(inProgressCard.iconBgColor).toBe('bg-emerald-50');
@@ -146,7 +150,7 @@ describe('DashboardMainComponent', () => {
 
     it('should have correct On Hold Projects card data', () => {
       const onHoldCard = component.metricCards[2];
-      expect(onHoldCard.title).toBe('On Hold Projects');
+    expect(onHoldCard.title).toBe('Inactive Projects');
       expect(onHoldCard.value).toBe(15);
       expect(onHoldCard.icon).toBe('/images/dashboard-card3.svg');
       expect(onHoldCard.iconBgColor).toBe('bg-amber-50');

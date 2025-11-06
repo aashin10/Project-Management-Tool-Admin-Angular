@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { AuthorizeWithJiraSection } from './authorize-with-jira-section';
 import { ImportNavigationService } from '../services/import-navigation-service';
 
@@ -11,7 +12,7 @@ describe('AuthorizeWithJiraSection', () => {
     const importNavigationServiceSpy = {};
 
     await TestBed.configureTestingModule({
-      imports: [AuthorizeWithJiraSection],
+      imports: [HttpClientTestingModule, AuthorizeWithJiraSection],
       providers: [{ provide: ImportNavigationService, useValue: importNavigationServiceSpy }],
     }).compileComponents();
 

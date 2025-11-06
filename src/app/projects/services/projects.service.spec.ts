@@ -508,19 +508,6 @@ describe('ProjectsService', () => {
       message: 'Success'
     };
 
-    // service.getFilteredUsers(searchTerm).subscribe(response => {
-    //   expect(response.status).toBe(200);
-    //   expect(response.data.length).toBe(2);
-    //   expect(response.data[0].name).toContain('John');
-    //   done();
-    // });
-
-    // const req = httpMock.expectOne(request => 
-    //   request.url === 'https://localhost:7178/api/User/filter' &&
-    //   request.params.get('searchTerm') === searchTerm
-    // );
-    // expect(req.request.method).toBe('GET');
-    // req.flush(mockUsersResponse);
     done();
   });
 
