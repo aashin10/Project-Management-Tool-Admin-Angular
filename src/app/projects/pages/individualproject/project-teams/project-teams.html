@@ -98,7 +98,7 @@
         
         <!-- Member Name -->
         <div class="mb-3">
-          <h3 class="text-base font-semibold text-gray-900">{{ member.name }}</h3>
+          <h3 class="text-base font-semibold text-gray-900">{{ member.name && member.name.trim() ? member.name : 'Not specified' }}</h3>
         </div>
 
         <!-- Member Details - 2 columns -->
@@ -110,23 +110,23 @@
               <p class="text-xs text-gray-500 mb-1">Role</p>
               <span
                 [ngClass]="{
-                  'bg-purple-50 text-purple-700 border-purple-200': member.role.includes('Lead'),
-                  'bg-blue-50 text-blue-700 border-blue-200': member.role.includes('Developer'),
-                  'bg-pink-50 text-pink-700 border-pink-200': member.role.includes('UX'),
+                  'bg-purple-50 text-purple-700 border-purple-200': member.role && member.role.includes('Lead'),
+                  'bg-blue-50 text-blue-700 border-blue-200': member.role && member.role.includes('Developer'),
+                  'bg-pink-50 text-pink-700 border-pink-200': member.role && member.role.includes('UX'),
                   'bg-orange-50 text-orange-700 border-orange-200': member.role === 'UI Designer',
-                  'bg-green-50 text-green-700 border-green-200': member.role.includes('DevOps'),
-                  'bg-amber-50 text-amber-700 border-amber-200': member.role.includes('QA'),
-                  'bg-gray-50 text-gray-700 border-gray-200': member.role === 'Client'
+                  'bg-green-50 text-green-700 border-green-200': member.role && member.role.includes('DevOps'),
+                  'bg-amber-50 text-amber-700 border-amber-200': member.role && member.role.includes('QA'),
+                  'bg-gray-50 text-gray-700 border-gray-200': !member.role || member.role === 'Client' || !member.role.trim()
                 }"
                 class="inline-flex items-center px-2 py-1 rounded text-xs font-medium border">
-                {{ member.role }}
+                {{ member.role && member.role.trim() ? member.role : 'Not specified' }}
               </span>
             </div>
 
             <!-- Team -->
             <div>
               <p class="text-xs text-gray-500 mb-1">Team</p>
-              <p class="text-sm text-gray-900">{{ getTeamName(member.team) }}</p>
+              <p class="text-sm text-gray-900">{{ getTeamName(member.team) && getTeamName(member.team).trim() ? getTeamName(member.team) : 'Not specified' }}</p>
             </div>
           </div>
 
@@ -135,13 +135,13 @@
             <!-- Email -->
             <div>
               <p class="text-xs text-gray-500 mb-1">Email</p>
-              <p class="text-sm text-gray-900 truncate" [title]="member.email">{{ member.email }}</p>
+              <p class="text-sm text-gray-900 truncate" [title]="member.email">{{ member.email && member.email.trim() ? member.email : 'Not specified' }}</p>
             </div>
 
             <!-- ID -->
             <div>
               <p class="text-xs text-gray-500 mb-1">Member ID</p>
-              <p class="text-sm text-gray-900">{{ member.id }}</p>
+              <p class="text-sm text-gray-900">{{ member.id && member.id.trim() ? member.id : 'Not specified' }}</p>
             </div>
           </div>
         </div>

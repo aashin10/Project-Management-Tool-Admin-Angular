@@ -183,7 +183,7 @@ describe('Roleslist Component Suite', () => {
         permissionIds: [1]
       };
       component.saveRole();
-      expect(mockToastrService.warning).toHaveBeenCalledWith('Role name is required', 'Validation Error');
+      expect(mockToastrService.warning).toHaveBeenCalledWith('Role name is required', 'Validation Error', jasmine.objectContaining({ timeOut: 3000 }));
       expect(mockRolesService.createRole).not.toHaveBeenCalled();
     });
 
@@ -196,7 +196,7 @@ describe('Roleslist Component Suite', () => {
         permissionIds: []
       };
       component.saveRole();
-      expect(mockToastrService.warning).toHaveBeenCalledWith('Please assign at least one permission.', 'Validation Error');
+      expect(mockToastrService.warning).toHaveBeenCalledWith('Assign at least one permission', 'Validation Error', jasmine.objectContaining({ timeOut: 3000 }));
       expect(mockRolesService.createRole).not.toHaveBeenCalled();
     });
 
@@ -210,7 +210,7 @@ describe('Roleslist Component Suite', () => {
         permissionIds: [1]
       };
       component.saveRole();
-      expect(mockToastrService.warning).toHaveBeenCalledWith('A role with this name already exists.', 'Validation Error');
+      expect(mockToastrService.error).toHaveBeenCalledWith('This role already exists', 'Duplicate Role', jasmine.objectContaining({ timeOut: 3000 }));
       expect(mockRolesService.createRole).not.toHaveBeenCalled();
     });
   });
@@ -227,7 +227,7 @@ describe('Roleslist Component Suite', () => {
         component.newRole.roleInfo.name = '';
       }
       component.saveRole();
-      expect(mockToastrService.warning).toHaveBeenCalledWith('Role name is required', 'Validation Error');
+      expect(mockToastrService.warning).toHaveBeenCalledWith('Role name is required', 'Validation Error', jasmine.objectContaining({ timeOut: 3000 }));
       expect(mockRolesService.updateRole).not.toHaveBeenCalled();
     });
   });

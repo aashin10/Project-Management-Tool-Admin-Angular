@@ -7,6 +7,7 @@ describe('ProjectStatusComponent', () => {
   let fixture: ComponentFixture<ProjectStatusComponent>;
 
   const mockData: ProjectStatusData[] = [
+    { deliveryUnit: 'All Delivery Units', inProgress: 9, completed: 7, onHold: 4, total: 20 },
     { deliveryUnit: 'DU1', inProgress: 5, completed: 3, onHold: 2, total: 10 },
     { deliveryUnit: 'DU2', inProgress: 4, completed: 4, onHold: 2, total: 10 }
   ];
@@ -51,7 +52,9 @@ describe('ProjectStatusComponent', () => {
 
     it('should close dropdown when clicking outside', () => {
       component.dropdownOpen = true;
-      // component.closeDropdown();
+      const event = new MouseEvent('click');
+      Object.defineProperty(event, 'target', { value: document.body, enumerable: true });
+      component['handleClickOutside'](event);
       expect(component.dropdownOpen).toBeFalse();
     });
 

@@ -260,7 +260,7 @@ describe('ProjectActivityTimelineComponent', () => {
     });
 
     it('should have correct yaxis title', () => {
-      expect(component.chart.yaxis.title.text).toBe('Active Projects');
+      expect(component.chart.yaxis.title.text).toBe('Projects Created');
     });
   });
 
@@ -369,7 +369,7 @@ describe('ProjectActivityTimelineComponent', () => {
 
   describe('Chart Series Data', () => {
     it('should have correct series name', () => {
-      expect(component.chart.series[0].name).toBe('Active Projects');
+      expect(component.chart.series[0].name).toBe('Projects');
     });
 
     it('should update series data when period changes', () => {

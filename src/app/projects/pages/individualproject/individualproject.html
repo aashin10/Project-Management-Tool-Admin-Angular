@@ -92,13 +92,13 @@
                   class="inline-flex items-center px-3 py-1 rounded-sm text-xs font-semibold border">
                   {{ project.status }}
                 </span>
-                <p class="text-sm text-gray-600">Delivery Unit: <span class="font-semibold text-gray-900">{{ project.deliveryUnit || 'Not specified' }}</span></p>
+                <p class="text-sm text-gray-600">Delivery Unit: <span class="font-semibold text-gray-900">{{ project.deliveryUnit && project.deliveryUnit.trim() ? project.deliveryUnit : 'Not specified' }}</span></p>
                 <div>
-                  <p class="text-sm font-semibold text-gray-900"><span class="text-xs font-medium text-gray-500">Project Manager:</span> {{ project.projectManager || 'Not assigned' }}</p>
+                  <p class="text-sm font-semibold text-gray-900"><span class="text-xs font-medium text-gray-500">Project Manager:</span> {{ project.projectManager && project.projectManager.trim() ? project.projectManager : 'Not specified' }}</p>
                 </div>
               </div>
               
-              <p class="text-sm text-gray-600 mt-1 leading-relaxed">{{ project.description || 'No description available' }}</p>
+              <p class="text-sm text-gray-600 mt-1 leading-relaxed">{{ project.description && project.description.trim() ? project.description : 'Not specified' }}</p>
             </div>
           </div>
 
@@ -151,7 +151,7 @@
             </svg>
           </div>
         </div>
-        <p class="text-4xl font-bold text-gray-900">{{ project.totalSprintCount || 0 }}</p>
+        <p class="text-4xl font-bold text-gray-900">{{ project.totalSprintCount !== null && project.totalSprintCount !== undefined ? project.totalSprintCount : 'Not specified' }}</p>
       </div>
 
       <!-- Team Members Card -->
@@ -168,7 +168,7 @@
             </svg>
           </div>
         </div>
-        <p class="text-4xl font-bold text-gray-900">{{ project.teamSize || 0 }}</p>
+        <p class="text-4xl font-bold text-gray-900">{{ project.teamSize !== null && project.teamSize !== undefined ? project.teamSize : 'Not specified' }}</p>
       </div>
 
     </div>
@@ -193,7 +193,7 @@
           <!-- Organisation Name -->
           <div>
             <p class="text-xs font-medium text-gray-500 mb-2">Organisation Name</p>
-            <p class="text-sm font-semibold text-gray-900">{{ project.organisationName || 'Not specified' }}</p>
+            <p class="text-sm font-semibold text-gray-900">{{ project.organisationName && project.organisationName.trim() ? project.organisationName : 'Not specified' }}</p>
           </div>
           
           <!-- Customer POC Email -->
@@ -242,7 +242,7 @@
         <!-- Organisation Description - Full Width Below -->
         <div class="mt-6 pt-6 border-t border-gray-100">
           <p class="text-xs font-medium text-gray-500 mb-2">Description</p>
-          <p class="text-sm text-gray-700 leading-relaxed">{{ project.organisationDescription || 'No description available' }}</p>
+          <p class="text-sm text-gray-700 leading-relaxed">{{ project.organisationDescription && project.organisationDescription.trim() ? project.organisationDescription : 'Not specified' }}</p>
         </div>
       </div>
     </div>
@@ -269,7 +269,7 @@
         <div class="grid grid-cols-2 gap-6">
           <div *ngFor="let info of project!.additionalInformation" class="bg-gray-50 border border-gray-200 rounded-sm p-4">
             <p class="text-xs font-medium text-gray-500 mb-2">{{ info.name | titlecase }}</p>
-            <p class="text-sm font-semibold text-gray-900">{{ info.value | titlecase }}</p>
+            <p class="text-sm font-semibold text-gray-900">{{ info.value && info.value.toString().trim() ? (info.value | titlecase) : 'Not specified' }}</p>
           </div>
         </div>
       </div>

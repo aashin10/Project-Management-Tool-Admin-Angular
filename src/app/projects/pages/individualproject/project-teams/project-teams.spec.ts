@@ -112,14 +112,15 @@ describe('ProjectTeams', () => {
 
   it('should handle API errors gracefully', () => {
     projectsServiceMock.getTeamMembers.and.returnValue(
-      new Observable(subscriber => subscriber.error(new Error('API Error')))
+      new Observable(subscriber => subscriber.error({ message: 'API Error' }))
     );
-    spyOn(console, 'error');
 
     component.teams = mockTeams;
     component.selectTeam('1');
     fixture.detectChanges();
 
-    expect(console.error).toHaveBeenCalled();
+    expect(component.errorMessage).toContain('API Error');
+    expect(component.isLoading).toBe(false);
+    expect(component.selectedTeamMembers.length).toBe(0);
   });
 });

@@ -49,9 +49,10 @@ describe('JiraService', () => {
       const errorMessage = 'Invalid grant';
 
       const promise = service.exchangeToken(authCode).catch((error) => {
-        expect(error.status).toBe(400);
-        expect(error.statusText).toBe('Bad Request');
-      });
+          // Service wraps errors and throws a simple Error with message
+          expect(error).toBeInstanceOf(Error);
+          expect(error.message).toBe('Token exchange failed');
+        });
 
       const req = httpMock.expectOne(tokenUrl);
       req.flush({ error: errorMessage }, { status: 400, statusText: 'Bad Request' });
@@ -82,8 +83,8 @@ describe('JiraService', () => {
       const errorMessage = 'Forbidden';
 
       const promise = service.getAccessibleResources(token).catch((error) => {
-        expect(error.status).toBe(403);
-        expect(error.statusText).toBe(errorMessage);
+        expect(error).toBeInstanceOf(Error);
+        expect(error.message).toBe('Failed to fetch accessible resources');
       });
 
       const req = httpMock.expectOne(resourcesUrl);
@@ -107,7 +108,7 @@ describe('JiraService', () => {
 
   describe('fetchJiraProjects', () => {
     it('should fetch Jira projects successfully', async () => {
-      const mockProjects = [{ id: '1', name: 'Project A', key: 'PA', selected: false }];
+      const mockProjects = [{ id: '1', name: 'Project A', key: 'PA', selected: false, style: '' }];
 
       const promise = service.fetchJiraProjects(token, cloudId);
 
@@ -125,9 +126,8 @@ describe('JiraService', () => {
       const errorMessage = 'Unauthorized';
 
       const promise = service.fetchJiraProjects(token, cloudId).catch((error) => {
-        console.log(error);
-        expect(error.status).toBe(401);
-        expect(error.statusText).toBe(errorMessage);
+        expect(error).toBeInstanceOf(Error);
+        expect(error.message).toBe('Failed to fetch Jira projects');
       });
 
       const req = httpMock.expectOne(apiUrl);
@@ -140,8 +140,8 @@ describe('JiraService', () => {
       const errorMessage = 'Internal Server Error';
 
       const promise = service.fetchJiraProjects(token, cloudId).catch((error) => {
-        expect(error.status).toBe(500);
-        expect(error.statusText).toBe(errorMessage);
+        expect(error).toBeInstanceOf(Error);
+        expect(error.message).toBe('Failed to fetch Jira projects');
       });
 
       const req = httpMock.expectOne(apiUrl);

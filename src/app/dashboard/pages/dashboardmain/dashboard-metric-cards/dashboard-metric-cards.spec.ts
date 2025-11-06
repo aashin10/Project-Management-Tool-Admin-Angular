@@ -107,7 +107,7 @@ describe('DashboardMetricCards', () => {
     });
 
     it('should render the card container with correct classes', () => {
-      const card = compiled.querySelector('.bg-white.rounded-xl');
+      const card = compiled.querySelector('.bg-white.rounded-sm');
       expect(card).toBeTruthy();
       expect(card?.classList.contains('cursor-pointer')).toBe(true);
       expect(card?.classList.contains('group')).toBe(true);
@@ -144,14 +144,14 @@ describe('DashboardMetricCards', () => {
     });
 
     it('should apply borderColor to card container', () => {
-      const card = compiled.querySelector('.bg-white.rounded-xl');
+      const card = compiled.querySelector('.bg-white.rounded-sm');
       expect(card?.classList.contains('border-blue-100')).toBe(true);
     });
 
     it('should render with default borderColor when not provided', () => {
       component.borderColor = 'border-gray-200';
       fixture.detectChanges();
-      const card = compiled.querySelector('.bg-white.rounded-xl');
+      const card = compiled.querySelector('.bg-white.rounded-sm');
       expect(card?.classList.contains('border-gray-200')).toBe(true);
     });
 
@@ -377,7 +377,7 @@ describe('DashboardMetricCards', () => {
 
     it('should have correct border radius', () => {
       const card = compiled.querySelector('.bg-white');
-      expect(card?.classList.contains('rounded-xl')).toBe(true);
+      expect(card?.classList.contains('rounded-sm')).toBe(true);
     });
 
     it('should have correct background color', () => {

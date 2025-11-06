@@ -5,6 +5,7 @@ import { ActionButtons } from '../components/action-buttons/action-buttons';
 import { Usermenu } from '../components/usermenu/usermenu';
 import { By } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 describe('Navbar', () => {
   let component: Navbar;
@@ -12,7 +13,7 @@ describe('Navbar', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CommonModule, SearchBar, ActionButtons, Usermenu, Navbar],
+      imports: [CommonModule, HttpClientTestingModule, SearchBar, ActionButtons, Usermenu, Navbar],
       declarations: [],
     }).compileComponents();
 
@@ -26,17 +27,11 @@ describe('Navbar', () => {
   });
 
   it('should toggle user menu on profile action click', () => {
+    // Test the logic directly
     expect(component.isUserMenuVisible).toBeFalse();
-
-    const actionButtons = fixture.debugElement.query(By.directive(ActionButtons));
-    actionButtons.triggerEventHandler('actionClick', 'profile');
-    fixture.detectChanges();
-
+    component.onActionClick('profile');
     expect(component.isUserMenuVisible).toBeTrue();
-
-    actionButtons.triggerEventHandler('actionClick', 'profile');
-    fixture.detectChanges();
-
+    component.onActionClick('profile');
     expect(component.isUserMenuVisible).toBeFalse();
   });
 

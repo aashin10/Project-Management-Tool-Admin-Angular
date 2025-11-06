@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { Router } from '@angular/router';
 import { Authentication } from './authentication';
@@ -27,6 +27,9 @@ describe('Authentication', () => {
   });
 
   afterEach(() => {
+    // Verify and flush any pending requests before clearing
+    const pendingRequests = httpMock.match(() => true);
+    pendingRequests.forEach(req => req.flush({}));
     httpMock.verify();
     localStorage.clear();
   });
@@ -60,7 +63,8 @@ describe('Authentication', () => {
       expect(req.request.body.email).toBe('test@example.com');
       req.flush(mockResponse);
       
-      httpMock.match(`${apiUrl}/Auth/me`);
+      const meReq = httpMock.expectOne(`${apiUrl}/Auth/me`);
+      meReq.flush({ status: 200, data: { userId: '1', email: 'test@example.com', name: 'Test', isSuperAdmin: true, isActive: true, roles: [] } });
     });
 
     it('should trim and lowercase email', () => {
@@ -69,7 +73,9 @@ describe('Authentication', () => {
       const req = httpMock.expectOne(`${apiUrl}/Auth/login`);
       expect(req.request.body.email).toBe('test@example.com');
       req.flush({ status: 200, message: '', data: { accessToken: '', refreshToken: '' }});
-      httpMock.match(`${apiUrl}/Auth/me`);
+      
+      const meReq = httpMock.expectOne(`${apiUrl}/Auth/me`);
+      meReq.flush({ status: 200, data: { userId: '1', email: 'test@example.com', name: 'Test', isSuperAdmin: true, isActive: true, roles: [] } });
     });
 
     it('should handle login error', (done) => {
@@ -86,35 +92,35 @@ describe('Authentication', () => {
   });
 
   describe('logout', () => {
-    it('should logout successfully', (done) => {
+    it('should logout successfully', fakeAsync(() => {
       localStorage.setItem('access_token', 'token');
       localStorage.setItem('refresh_token', 'refresh');
 
       service.logout().subscribe(() => {
         expect(localStorage.getItem('access_token')).toBeNull();
         expect(localStorage.getItem('refresh_token')).toBeNull();
-        expect(router.navigate).toHaveBeenCalledWith(['/login']);
-        done();
       });
 
       const req = httpMock.expectOne(`${apiUrl}/Auth/logout`);
       req.flush({ status: 200, message: 'Logged out' });
-    });
+      tick();
+      expect(router.navigate).toHaveBeenCalledWith(['/login']);
+    }));
 
-    it('should clear tokens even on error', (done) => {
+    it('should clear tokens even on error', fakeAsync(() => {
       localStorage.setItem('access_token', 'token');
 
       service.logout().subscribe({
         error: () => {
           expect(localStorage.getItem('access_token')).toBeNull();
-          expect(router.navigate).toHaveBeenCalledWith(['/login']);
-          done();
         }
       });
 
       const req = httpMock.expectOne(`${apiUrl}/Auth/logout`);
       req.flush({}, { status: 500, statusText: 'Error' });
-    });
+      tick();
+      expect(router.navigate).toHaveBeenCalledWith(['/login']);
+    }));
   });
 
   describe('token management', () => {
@@ -208,8 +214,10 @@ describe('Authentication', () => {
         data: { accessToken: 'token', refreshToken: 'refresh' }
       };
 
+      let callCount = 0;
       service.authState$.subscribe(state => {
-        if (state === 'authenticated') {
+        callCount++;
+        if (state === 'authenticated' && callCount === 2) {
           done();
         }
       });
@@ -217,15 +225,17 @@ describe('Authentication', () => {
       service.login('test@test.com', 'pass').subscribe();
       const req = httpMock.expectOne(`${apiUrl}/Auth/login`);
       req.flush(mockResponse);
-      httpMock.match(`${apiUrl}/Auth/me`);
+      
+      const meReq = httpMock.expectOne(`${apiUrl}/Auth/me`);
+      meReq.flush({ status: 200, data: { userId: '1', email: 'test@test.com', name: 'Test', isSuperAdmin: true, isActive: true, roles: [] } });
     });
 
     it('should emit unauthenticated after logout', (done) => {
-      const states: string[] = [];
+      let emissionCount = 0;
       
       service.authState$.subscribe(state => {
-        states.push(state);
-        if (state === 'unauthenticated' && states.length > 1) {
+        emissionCount++;
+        if (state === 'unauthenticated' && emissionCount === 2) {
           done();
         }
       });

@@ -209,6 +209,10 @@ export class Deliveryunitslist implements OnInit {
   }
 
   saveDeliveryUnit(): void {
+    if (!this.validateForm()) {
+      return;
+    }
+    
     this.isLoading = true;
     const duData = {
       duName: this.newDU.name.trim(),
