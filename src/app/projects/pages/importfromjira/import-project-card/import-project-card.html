@@ -1,0 +1,11 @@
+<div
+  class="flex gap-4 p-4 border border-gray-200 w-full mt-2 mb-2"
+  [ngClass]="{ 'bg-blue-50 border-blue-400': selected }"
+>
+  <input type="checkbox" (change)="onSelect()" [checked]="selected" class="mt-1 accent-blue-600" />
+
+  <div class="flex flex-row justify-start gap-4 w-full">
+    <h3 class="text-lg font-semibold text-gray-800">{{ title }}</h3>
+    <p class="text-sm text-gray-600 mt-1">{{ key }}</p>
+  </div>
+</div>

@@ -1,1 +1,11 @@
-<router-outlet></router-outlet>
+<ng-container *ngIf="isReady$ | async; else loading">
+	<router-outlet></router-outlet>
+</ng-container>
+
+<ng-template #loading>
+	<div class="auth-loading-wrapper" aria-live="polite">
+		<app-loading-indicator></app-loading-indicator>
+		<p class="auth-loading-title">Loading...</p>
+	</div>
+</ng-template>
+

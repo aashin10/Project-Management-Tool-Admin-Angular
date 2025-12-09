@@ -6,12 +6,12 @@
   ></div>
   
   <!-- Modal Content -->
-  <div class="relative bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 z-10" tabindex="-1">
+  <div class="relative bg-white rounded-sm shadow-xl max-w-lg w-full mx-4 z-10" tabindex="-1">
     <!-- Close Button -->
     <button
       (click)="onClose()"
       type="button"
-      class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors z-20 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+      class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors z-20 focus:outline-none cursor-pointer"
       aria-label="Close modal"
     >
       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -23,3 +23,4 @@
     <ng-content></ng-content>
   </div>
 </div>
+

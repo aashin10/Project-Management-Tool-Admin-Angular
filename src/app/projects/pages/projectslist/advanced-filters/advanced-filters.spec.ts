@@ -1,383 +1,178 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { AdvancedFilters } from './advanced-filters';
+import { Project } from '../../../services/projects.service';
 
 describe('AdvancedFilters', () => {
   let component: AdvancedFilters;
   let fixture: ComponentFixture<AdvancedFilters>;
 
+  const mockStatusOptions = [
+    { id: 1, code: 'Active' },
+    { id: 2, code: 'Inactive' },
+    { id: 3, code: 'Completed' }
+  ];
+
+  const mockDeliveryUnitOptions = [
+    { id: 1, code: 'DU1' },
+    { id: 2, code: 'DU2' }
+  ];
+
+  const mockManagerOptions = [
+    { id: 1, name: 'Alice Johnson' },
+    { id: 2, name: 'Bob Smith' },
+    { id: 3, name: 'Charlie Brown' }
+  ];
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AdvancedFilters]
-    })
-    .compileComponents();
+    }).compileComponents();
 
     fixture = TestBed.createComponent(AdvancedFilters);
     component = fixture.componentInstance;
-
-    // Reset component state
-    component.selectedStatuses = [];
-    component.selectedPriorities = [];
-    component.selectedManagers = [];
-    component.managerSearchQuery = '';
-    component.showAllManagers = false;
-
+    component.statusOptions = mockStatusOptions;
+    component.deliveryUnitOptions = mockDeliveryUnitOptions;
+    component.managerOptions = mockManagerOptions;
     fixture.detectChanges();
   });
 
-  it('should create the component', () => {
+  it('should create and initialize with empty filters', () => {
     expect(component).toBeTruthy();
-  });
-
-  it('should initialize with default values', () => {
-    expect(component.showFilters).toBe(false);
-    expect(component.projects).toEqual([]);
-    expect(component.statusOptions).toEqual([]);
-    expect(component.priorityOptions).toEqual([]);
-    expect(component.selectedStatuses).toEqual([]);
-    expect(component.selectedPriorities).toEqual([]);
-    expect(component.selectedManagers).toEqual([]);
-    expect(component.managerSearchQuery).toBe('');
-    expect(component.showAllManagers).toBe(false);
-  });
-
-  it('should accept input properties correctly', () => {
-    component.showFilters = true;
-    component.projects = [{ id: '1', name: 'Test', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'John Doe', teamSize: 5 }];
-    component.statusOptions = ['Ongoing', 'Completed'];
-    component.priorityOptions = ['High', 'Medium'];
-
-    expect(component.showFilters).toBe(true);
-    expect(component.projects.length).toBe(1);
-    expect(component.statusOptions).toEqual(['Ongoing', 'Completed']);
-    expect(component.priorityOptions).toEqual(['High', 'Medium']);
-  });
-
-  it('should return false for hasActiveFilters when no filters selected', () => {
+    expect(component.selectedStatusIds.length).toBe(0);
+    expect(component.selectedDeliveryUnitIds.length).toBe(0);
+    expect(component.selectedManagerIds.length).toBe(0);
     expect(component.hasActiveFilters).toBe(false);
   });
 
-  it('should return true for hasActiveFilters when statuses are selected', () => {
-    component.selectedStatuses = ['Ongoing'];
-    expect(component.hasActiveFilters).toBe(true);
+  it('should toggle status, delivery unit, and manager filters', () => {
+    spyOn(component.filtersChanged, 'emit');
+    
+    component.toggleStatusFilter('Active');
+    expect(component.selectedStatusIds).toContain(1);
+    
+    component.toggleDeliveryUnitFilter('DU1');
+    expect(component.selectedDeliveryUnitIds).toContain(1);
+    
+    component.toggleManagerFilter(1);
+    expect(component.selectedManagerIds).toContain(1);
+    
+    expect(component.filtersChanged.emit).toHaveBeenCalled();
   });
 
-  it('should return true for hasActiveFilters when priorities are selected', () => {
-    component.selectedPriorities = ['High'];
-    expect(component.hasActiveFilters).toBe(true);
+  it('should check if filters are selected', () => {
+    component.selectedStatusIds = [1, 2];
+    expect(component.isStatusSelected('Active')).toBe(true);
+    expect(component.isStatusSelected('Completed')).toBe(false);
+    
+    component.selectedDeliveryUnitIds = [1];
+    expect(component.isDeliveryUnitSelected('DU1')).toBe(true);
+    expect(component.isDeliveryUnitSelected('DU2')).toBe(false);
+    
+    component.selectedManagerIds = [1];
+    expect(component.isManagerSelected(1)).toBe(true);
+    expect(component.isManagerSelected(2)).toBe(false);
   });
 
-  it('should return true for hasActiveFilters when managers are selected', () => {
-    component.selectedManagers = ['John Doe'];
-    expect(component.hasActiveFilters).toBe(true);
+  it('should remove specific filters and emit event', () => {
+    spyOn(component.filtersChanged, 'emit');
+    component.selectedStatusIds = [1, 2];
+    component.selectedDeliveryUnitIds = [1];
+    component.selectedManagerIds = [1, 2];
+    
+    component.removeStatusFilter('Active');
+    expect(component.selectedStatusIds).not.toContain(1);
+    
+    component.removeDeliveryUnitFilter('DU1');
+    expect(component.selectedDeliveryUnitIds).not.toContain(1);
+    
+    component.removeManagerFilter(1);
+    expect(component.selectedManagerIds).not.toContain(1);
+    
+    expect(component.filtersChanged.emit).toHaveBeenCalledTimes(3);
   });
 
-  it('should compute unique managers from projects data', () => {
-    component.projects = [
-      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'John Doe', teamSize: 5 },
-      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'John Doe', teamSize: 3 },
-      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Jane Smith', teamSize: 8 }
-    ];
-
-    expect(component.uniqueManagers).toEqual(['Jane Smith', 'John Doe']);
+  it('should return correct filter objects and count', () => {
+    component.selectedStatusIds = [1, 2];
+    const selectedStatus = component.selectedStatusObjects;
+    expect(selectedStatus.length).toBe(2);
+    expect(selectedStatus.map(s => s.code)).toContain('Active');
+    
+    component.selectedDeliveryUnitIds = [1];
+    const selectedUnits = component.selectedDeliveryUnitObjects;
+    expect(selectedUnits.length).toBe(1);
+    
+    component.selectedManagerIds = [1, 2];
+    const selectedManagers = component.selectedManagerObjects;
+    expect(selectedManagers.length).toBe(2);
+    
+    expect(component.getActiveFilterCount()).toBe(5);
   });
 
-  it('should filter managers based on search query', () => {
-    component.projects = [
-      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'John Doe', teamSize: 5 },
-      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'Jane Smith', teamSize: 3 },
-      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Bob Wilson', teamSize: 8 }
-    ];
-
-    component.managerSearchQuery = 'John';
-    expect(component.filteredManagers).toEqual(['John Doe']);
-
-    component.managerSearchQuery = 'smith';
-    expect(component.filteredManagers).toEqual(['Jane Smith']);
-
-    component.managerSearchQuery = 'nonexistent';
-    expect(component.filteredManagers).toEqual([]);
-  });
-
-  it('should limit filtered managers to first 4 when showAllManagers is false', () => {
-    component.projects = [
-      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'Alice', teamSize: 5 },
-      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'Bob', teamSize: 3 },
-      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Charlie', teamSize: 8 },
-      { id: '4', name: 'Test4', projectCode: 'TST-004', status: 'On Hold', priority: 'High', projectManager: 'Diana', teamSize: 6 },
-      { id: '5', name: 'Test5', projectCode: 'TST-005', status: 'Archived', priority: 'Medium', projectManager: 'Eve', teamSize: 4 }
-    ];
-
-    expect(component.showAllManagers).toBe(false);
-    expect(component.filteredManagers).toEqual(['Alice', 'Bob', 'Charlie', 'Diana']);
-  });
-
-  it('should show all managers when showAllManagers is true', () => {
-    component.projects = [
-      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'Alice', teamSize: 5 },
-      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'Bob', teamSize: 3 },
-      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Charlie', teamSize: 8 }
-    ];
-
+  it('should manage manager search and display', () => {
+    component.managerSearchQuery = 'Alice';
+    expect(component.filteredManagers.length).toBe(1);
+    expect(component.filteredManagers[0].name).toBe('Alice Johnson');
+    
+    expect(component.displayedManagerCount).toBeLessThanOrEqual(3);
+    expect(component.totalManagerCount).toBe(1);
+    
     component.toggleShowAllManagers();
     expect(component.showAllManagers).toBe(true);
-    expect(component.filteredManagers).toEqual(['Alice', 'Bob', 'Charlie']);
-  });
-
-  it('should return correct displayed manager count', () => {
-    component.projects = [
-      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'Alice', teamSize: 5 },
-      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'Bob', teamSize: 3 },
-      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Charlie', teamSize: 8 }
-    ];
-
-    expect(component.displayedManagerCount).toBe(3);
-  });
-
-  it('should return correct total manager count', () => {
-    component.projects = [
-      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'Alice', teamSize: 5 },
-      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'Bob', teamSize: 3 },
-      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Charlie', teamSize: 8 }
-    ];
-
+    
+    component.managerSearchQuery = '';
     expect(component.totalManagerCount).toBe(3);
   });
 
-  it('should return correct active filter count', () => {
-    component.selectedStatuses = ['Ongoing', 'Completed'];
-    component.selectedPriorities = ['High'];
-    component.selectedManagers = ['John Doe', 'Jane Smith'];
-
-    expect(component.getActiveFilterCount()).toBe(5);
+  it('should handle manager modal operations', () => {
+    component.openManagerModal();
+    expect(component.showManagerModal).toBe(true);
+    expect(component.modalFilteredManagers.length).toBeGreaterThan(0);
+    
+    component.modalSearchQuery = 'Bob';
+    component.updateModalManagersList();
+    expect(component.modalFilteredManagers.length).toBe(1);
+    
+    component.closeManagerModal();
+    expect(component.showManagerModal).toBe(false);
+    expect(component.modalSearchQuery).toBe('');
   });
 
-  it('should check if status is selected correctly', () => {
-    component.selectedStatuses = ['Ongoing', 'Completed'];
-
-    expect(component.isStatusSelected('Ongoing')).toBe(true);
-    expect(component.isStatusSelected('Planning')).toBe(false);
-  });
-
-  it('should check if priority is selected correctly', () => {
-    component.selectedPriorities = ['High', 'Medium'];
-
-    expect(component.isPrioritySelected('High')).toBe(true);
-    expect(component.isPrioritySelected('Low')).toBe(false);
-  });
-
-  it('should check if manager is selected correctly', () => {
-    component.selectedManagers = ['John Doe', 'Jane Smith'];
-
-    expect(component.isManagerSelected('John Doe')).toBe(true);
-    expect(component.isManagerSelected('Bob Wilson')).toBe(false);
-  });
-
-  it('should toggle status filter correctly', () => {
+  it('should clear all filters', () => {
     spyOn(component.filtersChanged, 'emit');
-
-    component.toggleStatusFilter('Ongoing');
-    expect(component.selectedStatuses).toEqual(['Ongoing']);
-    expect(component.filtersChanged.emit).toHaveBeenCalledWith({
-      selectedStatuses: ['Ongoing'],
-      selectedPriorities: [],
-      selectedManagers: []
-    });
-
-    component.toggleStatusFilter('Ongoing'); // Remove
-    expect(component.selectedStatuses).toEqual([]);
-    expect(component.filtersChanged.emit).toHaveBeenCalledTimes(2);
-  });
-
-  it('should toggle priority filter correctly', () => {
-    spyOn(component.filtersChanged, 'emit');
-
-    component.togglePriorityFilter('High');
-    expect(component.selectedPriorities).toEqual(['High']);
-    expect(component.filtersChanged.emit).toHaveBeenCalledWith({
-      selectedStatuses: [],
-      selectedPriorities: ['High'],
-      selectedManagers: []
-    });
-
-    component.togglePriorityFilter('High'); // Remove
-    expect(component.selectedPriorities).toEqual([]);
-    expect(component.filtersChanged.emit).toHaveBeenCalledTimes(2);
-  });
-
-  it('should toggle manager filter correctly', () => {
-    spyOn(component.filtersChanged, 'emit');
-
-    component.toggleManagerFilter('John Doe');
-    expect(component.selectedManagers).toEqual(['John Doe']);
-    expect(component.filtersChanged.emit).toHaveBeenCalledWith({
-      selectedStatuses: [],
-      selectedPriorities: [],
-      selectedManagers: ['John Doe']
-    });
-
-    component.toggleManagerFilter('John Doe'); // Remove
-    expect(component.selectedManagers).toEqual([]);
-    expect(component.filtersChanged.emit).toHaveBeenCalledTimes(2);
-  });
-
-  it('should remove status filter correctly', () => {
-    spyOn(component.filtersChanged, 'emit');
-    component.selectedStatuses = ['Ongoing', 'Completed'];
-
-    component.removeStatusFilter('Ongoing');
-    expect(component.selectedStatuses).toEqual(['Completed']);
-    expect(component.filtersChanged.emit).toHaveBeenCalledWith({
-      selectedStatuses: ['Completed'],
-      selectedPriorities: [],
-      selectedManagers: []
-    });
-  });
-
-  it('should remove priority filter correctly', () => {
-    spyOn(component.filtersChanged, 'emit');
-    component.selectedPriorities = ['High', 'Medium'];
-
-    component.removePriorityFilter('High');
-    expect(component.selectedPriorities).toEqual(['Medium']);
-    expect(component.filtersChanged.emit).toHaveBeenCalledWith({
-      selectedStatuses: [],
-      selectedPriorities: ['Medium'],
-      selectedManagers: []
-    });
-  });
-
-  it('should remove manager filter correctly', () => {
-    spyOn(component.filtersChanged, 'emit');
-    component.selectedManagers = ['John Doe', 'Jane Smith'];
-
-    component.removeManagerFilter('John Doe');
-    expect(component.selectedManagers).toEqual(['Jane Smith']);
-    expect(component.filtersChanged.emit).toHaveBeenCalledWith({
-      selectedStatuses: [],
-      selectedPriorities: [],
-      selectedManagers: ['Jane Smith']
-    });
-  });
-
-  it('should clear all filters correctly', () => {
-    spyOn(component.filtersChanged, 'emit');
-    component.selectedStatuses = ['Ongoing'];
-    component.selectedPriorities = ['High'];
-    component.selectedManagers = ['John Doe'];
-
+    component.selectedStatusIds = [1, 2];
+    component.selectedDeliveryUnitIds = [1];
+    component.selectedManagerIds = [1];
+    
     component.clearAllFilters();
-
-    expect(component.selectedStatuses).toEqual([]);
-    expect(component.selectedPriorities).toEqual([]);
-    expect(component.selectedManagers).toEqual([]);
-    expect(component.filtersChanged.emit).toHaveBeenCalledWith({
-      selectedStatuses: [],
-      selectedPriorities: [],
-      selectedManagers: []
-    });
+    
+    expect(component.selectedStatusIds.length).toBe(0);
+    expect(component.selectedDeliveryUnitIds.length).toBe(0);
+    expect(component.selectedManagerIds.length).toBe(0);
+    expect(component.filtersChanged.emit).toHaveBeenCalled();
   });
 
-  it('should toggle show all managers correctly', () => {
-    expect(component.showAllManagers).toBe(false);
-
-    component.toggleShowAllManagers();
-    expect(component.showAllManagers).toBe(true);
-
-    component.toggleShowAllManagers();
-    expect(component.showAllManagers).toBe(false);
+  it('should initialize with provided filter values', () => {
+    const newComponent = TestBed.createComponent(AdvancedFilters);
+    const instance = newComponent.componentInstance;
+    instance.initialSelectedStatusIds = [1, 2];
+    instance.initialSelectedDeliveryUnitIds = [1];
+    instance.statusOptions = mockStatusOptions;
+    instance.deliveryUnitOptions = mockDeliveryUnitOptions;
+    
+    newComponent.detectChanges();
+    
+    expect(instance.selectedStatusIds).toEqual([1, 2]);
+    expect(instance.selectedDeliveryUnitIds).toEqual([1]);
   });
 
-  it('should handle empty projects array gracefully', () => {
-    component.projects = [];
-
-    expect(component.uniqueManagers).toEqual([]);
-    expect(component.filteredManagers).toEqual([]);
-    expect(component.hasActiveFilters).toBe(false);
-    expect(component.getActiveFilterCount()).toBe(0);
-  });
-
-  it('should handle case insensitive manager search', () => {
-    component.projects = [
-      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'John Doe', teamSize: 5 }
-    ];
-
-    component.managerSearchQuery = 'JOHN';
-    expect(component.filteredManagers).toEqual(['John Doe']);
-
-    component.managerSearchQuery = 'doe';
-    expect(component.filteredManagers).toEqual(['John Doe']);
-  });
-
-  it('should handle null and undefined project managers', () => {
-    component.projects = [
-      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: null, teamSize: 5 },
-      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: undefined, teamSize: 3 },
-      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: '', teamSize: 4 }
-    ] as any;
-
-    const uniqueManagers = component.uniqueManagers as any[];
-    expect(uniqueManagers.length).toBe(3);
-    expect(uniqueManagers).toContain('');
-    expect(uniqueManagers).toContain(null);
-    expect(uniqueManagers).toContain(undefined);
-  });
-
-  it('should emit filters changed with correct data structure', () => {
-    spyOn(component.filtersChanged, 'emit');
-
-    component.selectedStatuses = ['Ongoing'];
-    component.selectedPriorities = ['High'];
-    component.selectedManagers = ['John Doe'];
-
-    component.clearAllFilters();
-
-    expect(component.filtersChanged.emit).toHaveBeenCalledWith({
-      selectedStatuses: [],
-      selectedPriorities: [],
-      selectedManagers: []
-    });
-  });
-
-  it('should maintain filter state independently', () => {
-    component.selectedStatuses = ['Ongoing'];
-    component.selectedPriorities = ['High'];
-    component.selectedManagers = ['John Doe'];
-
-    expect(component.selectedStatuses).toEqual(['Ongoing']);
-    expect(component.selectedPriorities).toEqual(['High']);
-    expect(component.selectedManagers).toEqual(['John Doe']);
-
-    component.removeStatusFilter('Ongoing');
-    expect(component.selectedStatuses).toEqual([]);
-    expect(component.selectedPriorities).toEqual(['High']); // Should remain
-    expect(component.selectedManagers).toEqual(['John Doe']); // Should remain
-  });
-
-  it('should handle multiple manager filtering with search', () => {
-    component.projects = [
-      { id: '1', name: 'Test1', projectCode: 'TST-001', status: 'Ongoing', priority: 'High', projectManager: 'John Smith', teamSize: 5 },
-      { id: '2', name: 'Test2', projectCode: 'TST-002', status: 'Completed', priority: 'Medium', projectManager: 'John Doe', teamSize: 3 },
-      { id: '3', name: 'Test3', projectCode: 'TST-003', status: 'Planning', priority: 'Low', projectManager: 'Jane Smith', teamSize: 8 }
-    ];
-
-    component.managerSearchQuery = 'John';
-    expect(component.filteredManagers).toEqual(['John Doe', 'John Smith']);
-
-    component.managerSearchQuery = 'Smith';
-    expect(component.filteredManagers).toEqual(['Jane Smith', 'John Smith']);
-  });
-
-  it('should handle complex filter combinations correctly', () => {
-    component.selectedStatuses = ['Ongoing', 'Completed'];
-    component.selectedPriorities = ['High', 'Medium'];
-    component.selectedManagers = ['John Doe'];
-
-    expect(component.hasActiveFilters).toBe(true);
-    expect(component.getActiveFilterCount()).toBe(5);
-
-    component.clearAllFilters();
-    expect(component.hasActiveFilters).toBe(false);
-    expect(component.getActiveFilterCount()).toBe(0);
+  it('should handle edge cases', () => {
+    component.toggleStatusFilter('NonExistent');
+    expect(component.selectedStatusIds.length).toBe(0);
+    
+    component.managerOptions = [];
+    expect(component.displayedManagerCount).toBe(0);
+    
+    component.managerSearchQuery = '@#$%';
+    expect(component.filteredManagers.length).toBe(0);
   });
 });

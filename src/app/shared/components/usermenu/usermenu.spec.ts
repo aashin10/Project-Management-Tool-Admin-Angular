@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Usermenu } from './usermenu';
 import { CommonModule } from '@angular/common';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { By } from '@angular/platform-browser';
 
 describe('Usermenu', () => {
@@ -9,7 +10,7 @@ describe('Usermenu', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CommonModule, Usermenu],
+      imports: [CommonModule, Usermenu, HttpClientTestingModule],
       declarations: [],
     }).compileComponents();
 
@@ -22,32 +23,37 @@ describe('Usermenu', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should display user name and email', () => {
+  it('should initialize with default user data', () => {
+    expect(component.user.name).toBe('Loading...');
+    expect(component.user.email).toBe('Loading...');
+  });
+
+  it('should display updated user name and email', () => {
     component.user.email = 'hello@gmail.com';
     component.user.name = 'John Doe';
     fixture.detectChanges();
 
-    const nameEl = fixture.nativeElement.querySelector('.flex.flex-col p');
-    const emailEl = fixture.nativeElement.querySelector('.text-xs.text-gray-500');
+    const nameEl = fixture.nativeElement.querySelector('.text-sm.font-semibold');
+    const emailEl = fixture.nativeElement.querySelector('.text-xs.text-gray-600');
 
-    expect(nameEl.textContent.trim()).toBe('John Doe');
-    expect(emailEl.textContent.trim()).toBe('hello@gmail.com');
+    expect(nameEl?.textContent.trim()).toBe('John Doe');
+    expect(emailEl?.textContent.trim()).toBe('hello@gmail.com');
   });
 
-  it('should render all menu items', () => {
-    const menuItems = fixture.debugElement.queryAll(By.css('.cursor-pointer'));
-    expect(menuItems.length).toBe(component.menuItems.length);
+  it('should render all menu items as buttons', () => {
+    const menuButtons = fixture.debugElement.queryAll(By.css('button'));
+    expect(menuButtons.length).toBe(component.menuItems.length);
   });
 
   it('should display correct icon and label for each menu item', () => {
-    const menuItems = fixture.debugElement.queryAll(By.css('.cursor-pointer'));
+    const menuButtons = fixture.debugElement.queryAll(By.css('button'));
 
-    menuItems.forEach((itemEl, index) => {
-      const imgEl = itemEl.query(By.css('img'));
-      const labelEl = itemEl.query(By.css('p'));
+    menuButtons.forEach((buttonEl, index) => {
+      const imgEl = buttonEl.query(By.css('img'));
+      const labelEl = buttonEl.query(By.css('span'));
 
-      expect(imgEl.attributes['src']).toBe(component.menuItems[index].icon);
-      expect(labelEl.nativeElement.textContent.trim()).toBe(component.menuItems[index].label);
+      expect(imgEl?.attributes['src']).toBe(component.menuItems[index].icon);
+      expect(labelEl?.nativeElement.textContent.trim()).toBe(component.menuItems[index].label);
     });
   });
 });

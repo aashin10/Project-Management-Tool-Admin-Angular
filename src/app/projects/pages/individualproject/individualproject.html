@@ -1,147 +1,325 @@
-<!-- Main Container - Adapts to sidebar state -->
-<div class="min-h-screen  transition-all duration-300">
-  
-
-  <!-- Back to Projects Button -->
-  <div class="bg-white border-b border-gray-200 py-4">
-    <button 
-      (click)="goBackToProjects()"
-      class="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors cursor-pointer">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
-        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="m15 18-6-6 6-6"></path>
-      </svg>
-      Back to Projects
-    </button>
+<!-- Main Container -->
+<div class="min-h-screen transition-all duration-300">
+  <!-- Loading State - Show while loading -->
+  <div *ngIf="isLoading" class="flex items-center justify-center py-12">
+    <div class="text-center">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#0052CC]"></div>
+      <p class="mt-4 text-sm text-gray-600">Loading project...</p>
+    </div>
   </div>
 
+  <!-- Error State - Show when NOT loading AND error exists -->
+  <div *ngIf="!isLoading && loadingError" class="max-w-3xl mx-auto mt-6 bg-red-50 border border-red-200 rounded-sm p-6 text-center">
+    <svg class="mx-auto h-12 w-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+    </svg>
+    <h3 class="mt-4 text-sm font-medium text-red-900">{{ loadingError }}</h3>
+    <div class="mt-4 flex justify-center gap-3">
+      <app-custom-button
+        label="Retry"
+        (action)="retryFetchProject()"
+        bgClass="bg-blue-600"
+        hoverClass="hover:bg-blue-700"
+        textColor="text-white"
+      ></app-custom-button>
+      <app-custom-button
+        label="Back to Projects"
+        (action)="goBackToProjects()"
+        bgClass="bg-white"
+        textColor="text-gray-700"
+        borderClass="border border-gray-300"
+        hoverClass="hover:bg-gray-50"
+      ></app-custom-button>
+    </div>
+  </div>
 
-  <!-- Project Header Section - Fixed for all tabs -->
-  <div class="bg-white mt-6 border border-gray-200">
-    <div class="px-6 py-5">
-      <div class="flex items-start justify-between">
-        
-        <!-- Left Section - Project Info -->
-        <div class="flex items-start gap-4">
-          <!-- Project Avatar -->
-          <div 
-            [style.background-color]="project.avatarColor"
-            class="w-14 h-14 rounded-full flex items-center justify-center text-white font-semibold text-lg flex-shrink-0">
-            {{ project.avatar }}
-          </div>
+  <!-- Content State - Show only when data is loaded -->
+  <ng-container *ngIf="!isLoading && !loadingError && project">
+  
+  <!-- Back to Projects Button -->
+  <div class="bg-white border-b border-gray-200 py-1">
+    <app-custom-button
+      [label]="'Back to Projects'"
+      [icon]="'/images/back-arrow.svg'"
+      [bgClass]="''"
+      [textColor]="'text-gray-600'"
+      [borderClass]="''"
+      [hoverClass]="'hover:bg-gray-100 hover:text-gray-900'"
+      [gap]="'gap-2'"
+      [padding]="'px-4 py-2'"
+      [fontSize]="'text-sm'"
+      [fontWeight]="'font-medium'"
+      [height]="'h-auto'"
+      [extraClasses]="'transition-colors cursor-pointer'"
+      (action)="goBackToProjects()">
+    </app-custom-button>
+  </div>
 
-          <!-- Project Details -->
-          <div class="flex flex-col gap-2">
-            <div class="flex items-baseline gap-2">
-              <h1 class="text-xl font-bold text-gray-900">{{ project.name }}</h1>
-              <span class="text-xs text-gray-500 font-medium">{{ project.code }}</span>
-            </div>
-            
-            <div class="flex items-center">
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
-                {{ project.status }}
+  <!-- Project Header Section - Combined with Project Details -->
+  <div class="py-6">
+    <div class="bg-white border border-gray-200 rounded-sm shadow-sm">
+      <div class="px-6 py-5">
+        <div class="flex items-start justify-between mb-6">
+          
+          <!-- Left Section - Project Info -->
+          <div class="flex items-start gap-4 flex-1">
+            <!-- Project Avatar -->
+            <div class="relative">
+              <div 
+                class="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
+                {{ project.name.substring(0, 2).toUpperCase() }}
+              </div>
+              <!-- Jira Import Badge on Avatar -->
+              <span *ngIf="project.isImportedFromJira" class="absolute -top-2 -right-2 w-6 h-6 bg-white border border-blue-200 rounded-full flex items-center justify-center shadow-md" title="Imported from Jira">
+                <img src="/images/import.svg" alt="Imported" class="w-3 h-3 object-contain" />
               </span>
             </div>
-            
-            <p class="text-sm text-gray-600">{{ project.description }}</p>
+
+            <!-- Project Details -->
+            <div class="flex flex-col gap-2 flex-1">
+              <div class="flex items-center gap-3">
+                <h1 class="text-2xl font-bold text-gray-900">{{ project.name }}</h1>
+                <span class="text-sm text-gray-500 font-medium">{{ project.projectCode }}</span>
+              </div>
+              
+              <div class="flex items-center gap-3">
+                <span 
+                  [ngClass]="{
+                    'bg-green-100 text-green-700 border-green-200': project.status === 'Active',
+                    'bg-gray-100 text-gray-700 border-gray-200': project.status === 'Inactive',
+                    'bg-blue-100 text-blue-700 border-blue-200': project.status === 'Completed'
+                  }"
+                  class="inline-flex items-center px-3 py-1 rounded-sm text-xs font-semibold border">
+                  {{ project.status }}
+                </span>
+                <p class="text-sm text-gray-600">Delivery Unit: <span class="font-semibold text-gray-900">{{ project.deliveryUnit && project.deliveryUnit.trim() ? project.deliveryUnit : 'Not specified' }}</span></p>
+                <div>
+                  <p class="text-sm font-semibold text-gray-900"><span class="text-xs font-medium text-gray-500">Project Manager:</span> {{ project.projectManager && project.projectManager.trim() ? project.projectManager : 'Not specified' }}</p>
+                </div>
+              </div>
+              
+              <p class="text-sm text-gray-600 mt-1 leading-relaxed">{{ project.description && project.description.trim() ? project.description : 'Not specified' }}</p>
+            </div>
+          </div>
+
+          <!-- Right Section - Action Buttons -->
+          <div class="flex items-center gap-3 flex-shrink-0">
+            <app-custom-button
+              [label]="'Edit Project'"
+              [icon]="'/images/edit.svg'"
+              [bgClass]="'bg-white'"
+              [textColor]="'text-gray-700'"
+              [borderClass]="'border border-gray-300'"
+              [hoverClass]="'hover:bg-gray-50'"
+              [extraClasses]="'transition-colors'"
+              (action)="editProject()">
+            </app-custom-button>
+
+            <app-custom-button
+              [label]="'Delete Project'"
+              [icon]="'/images/deletewhite.svg'"
+              [bgClass]="'bg-red-600'"
+              [textColor]="'text-white'"
+              [borderClass]="''"
+              [hoverClass]="'hover:bg-red-700'"
+              [gap]="'gap-2'"
+              [padding]="'px-4 py-2'"
+              [fontSize]="'text-sm'"
+              [fontWeight]="'font-semibold'"
+              [extraClasses]="'transition-colors items-center'"
+              (action)="deleteProject()">
+            </app-custom-button>
+          </div>
+        </div>
+          
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Cards Section -->
+  <div class="pb-6">
+    <div class="grid grid-cols-2 gap-6">
+      
+      <!-- Total Sprint Count Card -->
+      <div class="bg-white border border-gray-200 rounded-sm shadow-sm p-6">
+        <div class="flex items-start justify-between mb-4">
+          <h3 class="text-sm font-medium text-gray-500">Total Sprint Count</h3>
+          <div class="w-8 h-8 bg-purple-100 rounded-sm flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" 
+              stroke="#9333ea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+          </div>
+        </div>
+        <p class="text-4xl font-bold text-gray-900">{{ project.totalSprintCount !== null && project.totalSprintCount !== undefined ? project.totalSprintCount : 'Not specified' }}</p>
+      </div>
+
+      <!-- Team Members Card -->
+      <div class="bg-white border border-gray-200 rounded-sm shadow-sm p-6">
+        <div class="flex items-start justify-between mb-4">
+          <h3 class="text-sm font-medium text-gray-500">Total Team Members</h3>
+          <div class="w-8 h-8 bg-blue-100 rounded-sm flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" 
+              stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+          </div>
+        </div>
+        <p class="text-4xl font-bold text-gray-900">{{ project.teamSize !== null && project.teamSize !== undefined ? project.teamSize : 'Not specified' }}</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Customer Details Section - Full Width -->
+  <div class="pb-6">
+    <div class="bg-white border border-gray-200 rounded-sm shadow-sm">
+      <div class="px-6 py-5 border-b border-gray-200">
+        <div class="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" 
+            stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+          <h2 class="text-lg font-semibold text-gray-900">Customer Details</h2>
+        </div>
+      </div>
+      
+      <div class="px-6 py-5">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <!-- Organisation Name -->
+          <div>
+            <p class="text-xs font-medium text-gray-500 mb-2">Organisation Name</p>
+            <p class="text-sm font-semibold text-gray-900">{{ project.organisationName && project.organisationName.trim() ? project.organisationName : 'Not specified' }}</p>
+          </div>
+          
+          <!-- Customer POC Email -->
+          <div>
+            <p class="text-xs font-medium text-gray-500 mb-2">POC Email</p>
+            <a *ngIf="project?.pocEmail" [href]="'mailto:' + project.pocEmail" class="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" 
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+              </svg>
+              {{ project.pocEmail }}
+            </a>
+            <p *ngIf="!project?.pocEmail" class="text-sm text-gray-500">Not specified</p>
+          </div>
+          
+          <!-- Customer POC Phone Number -->
+          <div>
+            <p class="text-xs font-medium text-gray-500 mb-2">POC Phone</p>
+            <a *ngIf="project?.pocPhone" [href]="'tel:' + project.pocPhone" class="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" 
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+              </svg>
+              {{ project.pocPhone }}
+            </a>
+            <p *ngIf="!project?.pocPhone" class="text-sm text-gray-500">Not specified</p>
+          </div>
+          
+          <!-- Website -->
+          <div>
+            <p class="text-xs font-medium text-gray-500 mb-2">Website</p>
+            <a *ngIf="project?.organisationWebsite" [href]="project.organisationWebsite" target="_blank" class="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1">
+              {{ project.organisationWebsite }}
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" 
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
+            </a>
+            <p *ngIf="!project?.organisationWebsite" class="text-sm text-gray-500">Not specified</p>
           </div>
         </div>
 
-        
-        <!-- Right Section - Action Buttons -->
-        <div class="flex items-center gap-2">
-
-          <app-custom-button
-            [label]="'Edit Project'"
-            [icon]="'/images/edit.svg'"
-            [bgClass]="'bg-white'"
-            [textColor]="'text-gray-700'"
-            [borderClass]="'border border-gray-300'"
-            [hoverClass]="'hover:bg-gray-50'"
-            [extraClasses]="'transition-colors'"
-            (action)="editProject()">
-          </app-custom-button>
-
-          <app-custom-button
-            [label]="'Archive Project'"
-            [icon]="'/images/archive.svg'"
-            [bgClass]="'bg-white'"
-            [textColor]="'text-gray-700'"
-            [borderClass]="'border border-gray-300'"
-            [hoverClass]="'hover:bg-gray-50'"
-            [extraClasses]="'transition-colors'"
-            (action)="archiveProject()">
-          </app-custom-button>
-
-          <app-custom-button
-            [label]="'Delete Project'"
-            [icon]="'/images/deletewhite.svg'"
-            [bgClass]="'bg-red-600'"
-            [textColor]="'text-white'"
-            [borderClass]="''"
-            [hoverClass]="'hover:bg-red-700'"
-            [rounded]="'rounded'"
-            [gap]="'gap-2'"
-            [padding]="'px-3 py-1.5'"
-            [fontSize]="'text-sm'"
-            [fontWeight]="'font-medium'"
-            [extraClasses]="'transition-colors items-center'"
-            (action)="deleteProject()">
-          </app-custom-button>
-
+        <!-- Organisation Description - Full Width Below -->
+        <div class="mt-6 pt-6 border-t border-gray-100">
+          <p class="text-xs font-medium text-gray-500 mb-2">Description</p>
+          <p class="text-sm text-gray-700 leading-relaxed">{{ project.organisationDescription && project.organisationDescription.trim() ? project.organisationDescription : 'Not specified' }}</p>
         </div>
-
       </div>
     </div>
   </div>
 
-  <!-- Tab Navigation -->
-  <div class="mt-1 bg-white border border-gray-200">
-    <nav class="flex w-full">
-      <button 
-        (click)="selectTab('overview')"
-        [class.bg-white]="activeTab === 'overview'"
-        [class.text-blue-600]="activeTab === 'overview'"
-        [class.border-b-2]="activeTab === 'overview'"
-        [class.border-blue-600]="activeTab === 'overview'"
-        [class.bg-gray-50]="activeTab !== 'overview'"
-        [class.text-gray-600]="activeTab !== 'overview'"
-        [class.border-b]="activeTab !== 'overview'"
-        [class.border-gray-200]="activeTab !== 'overview'"
-        class="flex-1 py-3 text-center text-sm font-medium hover:text-blue-600 hover:bg-gray-100 transition-all duration-200">
-        Overview
-      </button>
+  <!-- Additional Information Card - Full Width -->
+  <div *ngIf="project && project.additionalInformation && project.additionalInformation.length > 0" class="pb-6">
+    <div class="bg-white border border-gray-200 rounded-sm shadow-sm">
+      <div class="px-6 py-5 border-b border-gray-200">
+        <div class="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" 
+            stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          <h2 class="text-lg font-semibold text-gray-900">Additional Information</h2>
+        </div>
+      </div>
       
-      <button 
-        (click)="selectTab('team')"
-        [class.bg-white]="activeTab === 'team'"
-        [class.text-blue-600]="activeTab === 'team'"
-        [class.border-b-2]="activeTab === 'team'"
-        [class.border-blue-600]="activeTab === 'team'"
-        [class.bg-gray-50]="activeTab !== 'team'"
-        [class.text-gray-600]="activeTab !== 'team'"
-        [class.border-b]="activeTab !== 'team'"
-        [class.border-gray-200]="activeTab !== 'team'"
-        class="flex-1 py-3 text-center text-sm font-medium hover:text-blue-600 hover:bg-gray-100 transition-all duration-200">
-        Team & Roles
-      </button>
-    </nav>
-  </div>
-
-  <!-- Tab Content Area - Lazy Loaded Components -->
-  <div class="mt-8">
-    
-    <!-- Overview Tab Content -->
-    <div *ngIf="activeTab === 'overview'" class="animate-fadeIn">
-      <app-overview  (viewAllClicked)="selectTab('team')"></app-overview>
-    </div>
-
-    <!-- Team & Roles Tab Content -->
-    <div *ngIf="activeTab === 'team'" class="animate-fadeIn">
-      <div class="bg-white">
-        <app-teams-and-roles/>
+      <div class="px-6 py-5">
+        <div class="grid grid-cols-2 gap-6">
+          <div *ngFor="let info of project!.additionalInformation" class="bg-gray-50 border border-gray-200 rounded-sm p-4">
+            <p class="text-xs font-medium text-gray-500 mb-2">{{ info.name | titlecase }}</p>
+            <p class="text-sm font-semibold text-gray-900">{{ info.value && info.value.toString().trim() ? (info.value | titlecase) : 'Not specified' }}</p>
+          </div>
+        </div>
       </div>
     </div>
-
   </div>
+
+  <!-- Project Teams Section -->
+  <div *ngIf="project && project.teams" class="pb-6">
+    <app-project-teams [projectId]="projectId" [teams]="project.teams"></app-project-teams>
+  </div>
+
+  </ng-container>
+
 </div>
+
+<!-- Delete Confirmation Modal -->
+<app-modal [isOpen]="showDeleteModal" (close)="cancelDelete()">
+  <div class="px-6 py-6">
+    <!-- Modal Header -->
+    <h2 class="text-xl font-semibold text-gray-900 mb-2">Confirm Deletion</h2>
+    <!-- Modal Content -->
+    <div class="mb-6">
+      <p class="text-gray-700">
+  Are you sure you want to delete the project <span class="font-semibold text-gray-900">"{{ project?.name }}"</span>?
+        This action cannot be undone.
+      </p>
+    </div>
+
+    <!-- Modal Actions -->
+    <div class="flex gap-3 justify-end">
+      <app-custom-button
+        (action)="cancelDelete()"
+        label="Cancel"
+        bgClass="bg-gray-100"
+        textColor="text-gray-700"
+        hoverClass="hover:bg-gray-200"
+        borderClass="border border-gray-300"
+        height="h-10"
+        padding="px-4"
+      />
+      <app-custom-button
+        (action)="confirmDelete()"
+        label="Delete"
+        bgClass="bg-red-600"
+        textColor="text-white"
+        hoverClass="hover:bg-red-700"
+        borderClass="border-none"
+        height="h-10"
+        padding="px-4"
+      />
+    </div>
+  </div>
+</app-modal>

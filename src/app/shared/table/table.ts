@@ -5,35 +5,32 @@ import { FormsModule } from '@angular/forms';
 export interface TableColumn {
   header: string;
   field: string;
-  type?: 'text' | 'badge' | 'avatar' | 'user' | 'actions'|'roleIcon';
+  type?: 'text' | 'badge' | 'avatar' | 'user' | 'actions' | 'roleIcon';
   sortable?: boolean;
   width?: string;
-  align?: 'left' | 'center' | 'right'; // Text alignment
-  icon?: string; // Icon path for text type
-  badgeColors?: { [key: string]: string }; // For different badge colors
-  actions?:ActionItem [];
+  align?: 'left' | 'center' | 'right';
+  icon?: string;
+  iconPosition?: 'left' | 'right';
+  badgeColors?: { [key: string]: string };
+  actions?: ActionItem[];
 }
+
 export interface ActionItem {
   label: string;
   icon?: string;
   action: string;
-  class?: string; // For styling (e.g., danger for delete)
+  class?: string;
 }
 
 @Component({
   selector: 'app-table',
-  imports: [CommonModule,FormsModule],
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './table.html',
   styleUrl: './table.css'
 })
 export class Table implements OnChanges, AfterViewChecked {
-
   @ViewChild('selectAllCheckbox') selectAllCheckbox!: ElementRef<HTMLInputElement>;
-
- isLastRows(index: number): boolean {
-  // Show dropdown above only for the last row
-  return index === this.paginatedData.length - 1;
-}
 
   @Input() columns: TableColumn[] = [];
   @Input() data: any[] = [];
@@ -41,50 +38,43 @@ export class Table implements OnChanges, AfterViewChecked {
   @Input() itemsPerPage: number = 10;
   @Input() selectAllAcrossPages: boolean = false;
   @Input() clearSelections: boolean = false;
-  @Input() selectedItems: any[] = [];
+  @Input() rowClickAction: 'navigate' | 'select' = 'select';
+  @Input() resetPagination: boolean = false;
   
   @Output() rowSelect = new EventEmitter<any>();
   @Output() actionClick = new EventEmitter<{action: string, row: any}>();
   @Output() selectionChange = new EventEmitter<any[]>();
+  @Output() rowClick = new EventEmitter<{row: any, index: number}>();
   
   currentPage: number = 1;
   selectedRows: Set<number> = new Set();
   openActionMenuIndex: number | null = null;
-
+  
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['clearSelections'] && changes['clearSelections'].currentValue === true) {
       this.selectedRows.clear();
       this.emitSelectionChange();
     }
-    
-    // When data changes, clear selections that are out of bounds
-    if (changes['data'] && this.selectedRows.size > 0) {
-      const validIndices = new Set<number>();
-      this.selectedRows.forEach(index => {
-        if (index < this.data.length) {
-          validIndices.add(index);
-        }
-      });
-      this.selectedRows = validIndices;
+
+    // Reset pagination when explicitly requested (e.g., when filters are applied)
+    if (changes['resetPagination'] && changes['resetPagination'].currentValue === true) {
+      this.currentPage = 1;
     }
 
-    // When selectedItems changes, update selections
-    if (changes['selectedItems']) {
+    // When data changes, reinitialize selections
+    if (changes['data']) {
+      // Clear existing selections
       this.selectedRows.clear();
-      if (this.selectedItems && this.selectedItems.length > 0) {
+
+      // Initialize selection state based on data items that have selected property
+      if (this.data && this.data.length > 0) {
         this.data.forEach((item, index) => {
-          if (this.selectedItems.some(selectedItem => this.isItemSelected(item, selectedItem))) {
+          if (item.selected) {
             this.selectedRows.add(index);
           }
         });
       }
-      this.emitSelectionChange();
     }
-  }
-
-  private isItemSelected(item: any, selectedItem: any): boolean {
-    // Compare based on actions field (which contains the ID)
-    return item.actions === selectedItem.actions;
   }
 
   ngAfterViewChecked(): void {
@@ -97,17 +87,17 @@ export class Table implements OnChanges, AfterViewChecked {
       const isIndeterminate = this.isSomeSelected();
       const allSelected = this.isAllSelected();
 
-      // When all selected, show indeterminate (dash) like many UI libraries do
-      // When some selected, show indeterminate (dash)
-      // When none selected, show unchecked
       checkbox.indeterminate = isIndeterminate || allSelected;
       checkbox.checked = false;
     }
   }
 
-  
-
   get paginatedData() {
+    const totalPages = this.totalPages;
+    if (this.currentPage > totalPages) {
+      this.currentPage = totalPages || 1;
+    }
+
     const start = (this.currentPage - 1) * this.itemsPerPage;
     const end = start + this.itemsPerPage;
     return this.data.slice(start, end);
@@ -147,47 +137,64 @@ export class Table implements OnChanges, AfterViewChecked {
       this.currentPage = page;
     }
   }
+
   toggleAll() {
     if (this.selectAllAcrossPages) {
-      // Select/deselect all items across all pages
       const allSelected = this.selectedRows.size === this.data.length;
       const someSelected = this.isSomeSelected();
 
-      if (allSelected) {
-        // All selected - deselect all
+      if (allSelected || someSelected) {
+        // All or some selected - deselect all
         this.selectedRows.clear();
-      } else if (someSelected) {
-        // Some selected (indeterminate/dash) - deselect all
-        this.selectedRows.clear();
+        // Update all data items
+        if (this.data) {
+          this.data.forEach(item => {
+            item.selected = false;
+          });
+        }
       } else {
-        // None selected - select all items across all pages
         this.selectedRows.clear();
         for (let i = 0; i < this.data.length; i++) {
           this.selectedRows.add(i);
+          // Update data item
+          if (this.data && this.data[i]) {
+            this.data[i].selected = true;
+          }
         }
       }
     } else {
-      // Select/deselect only current page
       const allOnPageSelected = this.selectedRows.size === this.paginatedData.length;
       const someOnPageSelected = this.selectedRows.size > 0 && this.selectedRows.size < this.paginatedData.length;
 
-      if (allOnPageSelected) {
-        // All on page selected - deselect all
-        this.selectedRows.clear();
-      } else if (someOnPageSelected) {
-        // Some on page selected (indeterminate/dash) - deselect all
-        this.selectedRows.clear();
+      if (allOnPageSelected || someOnPageSelected) {
+        // All or some on page selected - deselect all on page
+        // Clear selections for current page items
+        const pageStart = (this.currentPage - 1) * this.itemsPerPage;
+        for (let i = 0; i < this.paginatedData.length; i++) {
+          const globalIndex = pageStart + i;
+          this.selectedRows.delete(globalIndex);
+          // Update data item
+          if (this.data && this.data[globalIndex]) {
+            this.data[globalIndex].selected = false;
+          }
+        }
       } else {
         // None on page selected - select all on current page
-        this.selectedRows.clear();
+        const pageStart = (this.currentPage - 1) * this.itemsPerPage;
         for (let i = 0; i < this.paginatedData.length; i++) {
-          this.selectedRows.add(i);
+          const globalIndex = pageStart + i;
+          this.selectedRows.add(globalIndex);
+          // Update data item
+          if (this.data && this.data[globalIndex]) {
+            this.data[globalIndex].selected = true;
+          }
         }
       }
     }
     this.emitSelectionChange();
     this.updateCheckboxState();
   }
+
   previousPage() {
     this.goToPage(this.currentPage - 1);
   }
@@ -196,31 +203,42 @@ export class Table implements OnChanges, AfterViewChecked {
     this.goToPage(this.currentPage + 1);
   }
 
+  onItemsPerPageChange() {
+    this.currentPage = 1;
+  }
+
   toggleRow(index: number) {
     let rowIndex: number;
+    let dataIndex: number;
     if (this.selectAllAcrossPages) {
-      // When selecting across pages, convert paginated index to global index
       rowIndex = (this.currentPage - 1) * this.itemsPerPage + index;
+      dataIndex = rowIndex;
     } else {
-      // When selecting per page, use paginated index directly
       rowIndex = index;
+      dataIndex = (this.currentPage - 1) * this.itemsPerPage + index;
     }
 
     if (this.selectedRows.has(rowIndex)) {
       this.selectedRows.delete(rowIndex);
+      // Update the data item's selected property
+      if (this.data && this.data[dataIndex]) {
+        this.data[dataIndex].selected = false;
+      }
     } else {
       this.selectedRows.add(rowIndex);
+      // Update the data item's selected property
+      if (this.data && this.data[dataIndex]) {
+        this.data[dataIndex].selected = true;
+      }
     }
     this.emitSelectionChange();
   }
 
   isRowSelected(index: number): boolean {
     if (this.selectAllAcrossPages) {
-      // When selecting across pages, convert paginated index to global index
       const globalIndex = (this.currentPage - 1) * this.itemsPerPage + index;
       return this.selectedRows.has(globalIndex);
     } else {
-      // When selecting per page, use paginated index directly
       return this.selectedRows.has(index);
     }
   }
@@ -228,10 +246,8 @@ export class Table implements OnChanges, AfterViewChecked {
   emitSelectionChange() {
     let selectedData;
     if (this.selectAllAcrossPages) {
-      // When selecting across pages, selectedRows contains global indices
       selectedData = Array.from(this.selectedRows).map(index => this.data[index]);
     } else {
-      // When selecting per page, selectedRows contains paginated indices
       selectedData = Array.from(this.selectedRows).map(index => this.paginatedData[index]);
     }
     this.selectionChange.emit(selectedData);
@@ -243,10 +259,7 @@ export class Table implements OnChanges, AfterViewChecked {
     if (column.badgeColors && column.badgeColors[value]) {
       return `${baseClasses} ${column.badgeColors[value]}`;
     }
-
-   
     
-    // Default colors
     const colorMap: { [key: string]: string } = {
       'active': 'bg-green-100 text-green-800',
       'inactive': 'bg-gray-100 text-gray-800',
@@ -261,24 +274,19 @@ export class Table implements OnChanges, AfterViewChecked {
   isArray(value: any): boolean {
     return Array.isArray(value);
   }
-  
-
-  // ... existing methods
-
-  toggleActionsMenu(index: number) {
-    if (this.openActionMenuIndex === index) {
-      this.openActionMenuIndex = null;
-    } else {
-      this.openActionMenuIndex = index;
-    }
-  }
-
-  closeActionsMenu() {
-    this.openActionMenuIndex = null;
-  }
 
   handleAction(action: string, row: any) {
     this.actionClick.emit({ action, row });
+  }
+
+  handleRowClick(row: any, index: number) {
+    if (this.rowClickAction === 'navigate') {
+      // For navigation tables (like projects list), always emit rowClick for navigation
+      this.rowClick.emit({ row, index });
+    } else {
+      // For selection tables, toggle selection on row click
+      this.toggleRow(index);
+    }
   }
 
   getActionClass(customClass?: string): string {
@@ -287,10 +295,30 @@ export class Table implements OnChanges, AfterViewChecked {
     }
     return 'text-gray-700';
   }
-}
 
+  getActionButtonClass(action: string): string {
+    if (action === 'delete') {
+      return 'text-red-600 hover:bg-red-50';
+    }
+    if (action === 'edit') {
+      return 'text-blue-600 hover:bg-blue-50';
+    }
+    return 'text-gray-600 hover:bg-gray-50';
+  }
 
-function isLastRows(index: any, number: any) {
-  throw new Error('Function not implemented.');
+  toggleActionsMenu(index: number): void {
+    if (this.openActionMenuIndex === index) {
+      this.openActionMenuIndex = null;
+    } else {
+      this.openActionMenuIndex = index;
+    }
+  }
 
+  closeActionsMenu(): void {
+    this.openActionMenuIndex = null;
+  }
+
+  isLastRows(index: number): boolean {
+    return index === this.paginatedData.length - 1;
+  }
 }

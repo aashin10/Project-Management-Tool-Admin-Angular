@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CustomButton } from '../../../../shared/custom-button/custom-button';
 import { Modal } from '../../../../shared/modal/modal';
+import { Input } from '@angular/core';
 
 @Component({
   selector: 'app-additionalinfo',
@@ -14,19 +15,29 @@ export class Additionalinfo {
   modalOpen: boolean = false;
   newFieldName: string = '';
   newFieldValue: string = '';
-  addedFields: Array<{name: string, value: string}> = [];
-  @Output() addedFieldsChange = new EventEmitter<Array<{name: string, value: string}>>();
+  editingIndex: number | null = null;
+  
+  @Output() addedFieldsChange = new EventEmitter<Array<{id?: string, name: string, value: string}>>();
+  @Input() addedFields: Array<{ id?: string; name: string; value: string }> = [];
 
   onAddInfo() {
+    this.editingIndex = null;
+    this.newFieldName = '';
+    this.newFieldValue = '';
     this.modalOpen = true;
   }
 
-  handleAdd(info: {name: string, value: string}) {
-    console.log('Received additional info', info);
+  onEditField(index: number) {
+    this.editingIndex = index;
+    this.newFieldName = this.addedFields[index].name;
+    this.newFieldValue = this.addedFields[index].value;
+    this.modalOpen = true;
+  }
+
+  handleAdd(info: {id?: string, name: string, value: string}) {
     this.addedFields.push(info);
     this.modalOpen = false;
     this.emitAddedFields();
-    // TODO: persist or pass info to parent
   }
 
   addFromModal() {
@@ -36,10 +47,23 @@ export class Additionalinfo {
     
     if (!trimmedName || !trimmedValue) return;
     
-    const info = { name: this.toTitleCase(trimmedName), value: this.toTitleCase(trimmedValue) };
-    this.addedFields.push(info);
+    if (this.editingIndex !== null) {
+      // Edit existing field
+      this.addedFields[this.editingIndex].name = this.toTitleCase(trimmedName);
+      this.addedFields[this.editingIndex].value = this.toTitleCase(trimmedValue);
+    } else {
+      // Add new field
+      const info = { 
+        id: undefined, // New field, will be assigned by backend
+        name: this.toTitleCase(trimmedName), 
+        value: this.toTitleCase(trimmedValue) 
+      };
+      this.addedFields.push(info);
+    }
+    
     this.newFieldName = '';
     this.newFieldValue = '';
+    this.editingIndex = null;
     this.modalOpen = false;
     this.emitAddedFields();
   }
@@ -58,6 +82,9 @@ export class Additionalinfo {
 
   handleCancel() {
     this.modalOpen = false;
+    this.editingIndex = null;
+    this.newFieldName = '';
+    this.newFieldValue = '';
   }
 
   removeField(idx: number) {
@@ -71,3 +98,4 @@ export class Additionalinfo {
     this.addedFieldsChange.emit(this.addedFields);
   }
 }
+

@@ -1,0 +1,60 @@
+<ng-container *ngIf="!isImporting">
+  <div class="flex w-full justify-between">
+    <app-search-bar
+      class="w-full"
+      [placeholder]="'Select Projects..'"
+      (search)="onSearch($event)"
+    ></app-search-bar>
+  </div>
+
+  <div
+    *ngIf="cloudIds && cloudIds.length > 0"
+    class="flex flex-col md:flex-row md:items-center md:justify-between w-full space-y-2 md:space-y-0 md:space-x-4"
+  >
+    <select
+      name="cloudIds"
+      id="cloudIds"
+      (change)="onCloudIdChange($event)"
+      class="w-full pl-4 pr-4 md:max-w-md px-4 py-2 border border-gray-300 bg-white text-gray-800"
+    >
+      <option *ngFor="let cloud of cloudIds" [value]="cloud.id">
+        {{ cloud.name || cloud.id }}
+      </option>
+    </select>
+    <app-custom-button
+      [label]="allSelected ? 'Unselect All' : 'Select All'"
+      [shortLabel]="allSelected ? 'Unselect All' : 'Select All'"
+      bgClass="border border-gray-300 hover:bg-gray-50 ml-4"
+      (action)="toggleSelectAll()"
+    ></app-custom-button>
+  </div>
+
+  <div *ngIf="loadingProjects" class="flex justify-center items-center h-32">
+    <app-loading-indicator></app-loading-indicator>
+  </div>
+
+  <app-import-project-card-list
+    *ngIf="!loadingProjects"
+    class="w-full"
+    [projects]="projects"
+  ></app-import-project-card-list>
+
+  <div class="w-full md:max-w-md mt-4 flex justify-center">
+    <app-custom-button
+      label="Import Projects ({{ selectedProjectCount }})"
+      (action)="importProjects()"
+      class="w-3/4 flex justify-center items-center"
+      shortLabel="Import"
+      bgClass="bg-[#0052cc] border border-gray-300 w-3/4"
+      [hoverClass]="'hover:bg-[#0052cce6]'"
+      [textColor]="'text-white'"
+      [icon]="'/images/import-white.svg'"
+    ></app-custom-button>
+  </div>
+</ng-container>
+<ng-container *ngIf="isImporting">
+  <div class="flex flex-col items-center justify-center h-64 space-y-4">
+    <app-loading-indicator></app-loading-indicator>
+    <p class="text-gray-600 text-lg">Importing Projects...</p>
+  </div>
+</ng-container>

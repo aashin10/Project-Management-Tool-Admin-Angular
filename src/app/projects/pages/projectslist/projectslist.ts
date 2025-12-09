@@ -1,259 +1,555 @@
-// projectslist.component.ts
-import { Component, ViewChild, ElementRef, AfterViewChecked, ChangeDetectorRef } from '@angular/core';
+import { Component, ViewChild, ElementRef, AfterViewChecked, ChangeDetectorRef, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ToastrService } from 'ngx-toastr';
 import { CustomButton } from '../../../shared/custom-button/custom-button';
 import { Sectiontitle } from '../../../shared/sectiontitle/sectiontitle';
 import { Modal } from '../../../shared/modal/modal';
+import { PaginatedTable, TableColumn } from '../../../shared/paginated-table/paginated-table';
 import { AdvancedFilters } from './advanced-filters/advanced-filters';
-import { BulkActions } from './bulk-actions/bulk-actions';
-import { ActionsMenu } from './actions-menu/actions-menu';
-
-interface Project {
-  id: string;
-  name: string;
-  projectCode: string;
-  status: 'Ongoing' | 'On Hold' | 'Completed' | 'Planning' | 'Archived';
-  priority: 'High' | 'Medium' | 'Low' | 'Critical';
-  projectManager: string;
-  teamSize: number;
-  selected?: boolean;
-}
+import { ProjectTemplateModal } from './project-template-modal/project-template-modal';
+import { CreateProjectModal } from './create-project-modal/create-project-modal';
+import { NotificationService } from '../../../shared/services/notification.service';
+import { ProjectsService, Project, ProjectTableDTO } from '../../../projects/services/projects.service';
+import { DeliveryUnitService } from '../../../duservice/deliveryunits.service';
+import { ProjectStatusService } from '../../../shared/services/project-status/project-status.service';
+import { Subject, debounceTime, distinctUntilChanged, takeUntil, switchMap, finalize, Observable, map } from 'rxjs';
 
 interface TableHeader {
-  field: SortField | null;
+  field: string | null;
   label: string;
   sortable: boolean;
   minWidth: string;
 }
 
-type SortField = 'name' | 'status' | 'priority' | 'projectManager' | 'teamSize';
-type SortDirection = 'asc' | 'desc';
-
-interface SortCriteria {
-  field: SortField;
-  direction: SortDirection;
-}
-
 @Component({
   selector: 'app-projectslist',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomButton, Sectiontitle, Modal, AdvancedFilters, BulkActions, ActionsMenu],
+  imports: [CommonModule, FormsModule, CustomButton, Sectiontitle, Modal, PaginatedTable, AdvancedFilters, ProjectTemplateModal, CreateProjectModal],
   templateUrl: './projectslist.html',
   styleUrl: './projectslist.css'
 })
-export class Projectslist implements AfterViewChecked {
+export class Projectslist implements AfterViewChecked, OnInit, OnDestroy {
   @ViewChild('selectAllCheckbox') selectAllCheckbox!: ElementRef<HTMLInputElement>;
 
   showFilters = false;
-  searchQuery = '';
-  showActionsMenu = false;
-  activeProjectId: string | null = null;
+  private _searchQuery = '';
   sidebarCollapsed = false;
+  showTemplateModal = false;
+  showCreateProjectModal = false;
+  selectedTemplate: string = '';
+  loadingError: string | null = null;
+  deliveryUnits: any[] = [];
+
+  get searchQuery(): string {
+    return this._searchQuery;
+  }
+
+  set searchQuery(value: string) {
+    if (this._searchQuery !== value) {
+      this._searchQuery = value;
+      this.isLoading = true;
+      this.loadingError = null;
+      this.cdr.markForCheck();
+      this.searchSubject.next({query: value, isSearch: true});
+    }
+  }
 
   // Delete modal properties
   showDeleteModal = false;
-  projectToDelete: string | null = null;
-  deleteMode: 'single' | 'bulk' = 'single';
-  projectsToDelete: Project[] = [];
+  projectToDelete: Project | null = null;
 
-  // Multi-select filter options
-  selectedStatuses: string[] = [];
-  selectedPriorities: string[] = [];
-  selectedManagers: string[] = [];
+  // Loading / error states for project listing
+  isLoading: boolean = true;
+  isInitialLoad: boolean = true;
 
-  constructor(private router: Router, private cdr: ChangeDetectorRef) {}
-  
-  // Sorting - single criteria at a time
-  sortCriteria: SortCriteria | null = null;
-  
-  rowsPerPage = 10;
-  currentPage = 1;
-  rowsPerPageOptions = [10, 20, 30, 50, 100];
+  // Multi-select filter options - now storing IDs instead of codes
+  selectedStatusIds: number[] = [];
+  selectedDeliveryUnitIds: number[] = [];
+  selectedManagerIds: number[] = [];
+  managerOptions: {id: number, name: string}[] = [];
+  private _resetPagination: boolean = false;
+  private searchSubject = new Subject<{query: string, isSearch: boolean}>();
+  private searchSubscription: any;
+  private queryParamsSubscription: any;
+  private destroy$ = new Subject<void>();
+  private lastRequestState: any = null;
 
-  // Available filter options
-  statusOptions = ['Ongoing', 'On Hold', 'Completed', 'Planning', 'Archived'];
-  priorityOptions = ['Critical', 'High', 'Medium', 'Low'];
+  // Pagination state
+  pagination = {
+    currentPage: 1,
+    pageSize: 10,
+    totalCount: 0,
+    sortBy: '',
+    sortOrder: 'asc' as 'asc' | 'desc'
+  };
 
-  // Table headers configuration
-  tableHeaders: TableHeader[] = [
-    { field: 'name' as SortField, label: 'Project Info', sortable: true, minWidth: '200px' },
-    { field: 'status' as SortField, label: 'Status', sortable: true, minWidth: '100px' },
-    { field: 'priority' as SortField, label: 'Priority', sortable: true, minWidth: '90px' },
-    { field: 'projectManager' as SortField, label: 'Project Manager', sortable: true, minWidth: '160px' },
-    { field: 'teamSize' as SortField, label: 'Team Size', sortable: true, minWidth: '100px' },
-    { field: null, label: 'Actions', sortable: false, minWidth: '80px' }
-  ];
+  get resetPagination(): boolean {
+    return this._resetPagination;
+  }
 
-  projects: Project[] = [
-    { id: '1', name: 'Atlas App', projectCode: 'PROJ-001', status: 'Ongoing', priority: 'High', projectManager: 'Asha Varma', teamSize: 12, selected: false },
-    { id: '2', name: 'RoadSim', projectCode: 'PROJ-002', status: 'On Hold', priority: 'Medium', projectManager: 'Pranav Iyer', teamSize: 8, selected: false },
-    { id: '3', name: 'CloudSync Pro', projectCode: 'PROJ-003', status: 'Completed', priority: 'High', projectManager: 'Sarah Chen', teamSize: 15, selected: false },
-    { id: '4', name: 'DataViz Dashboard', projectCode: 'PROJ-004', status: 'Ongoing', priority: 'Medium', projectManager: 'Michael Rodriguez', teamSize: 6, selected: false },
-    { id: '5', name: 'SecureAuth API', projectCode: 'PROJ-005', status: 'Ongoing', priority: 'Critical', projectManager: 'Emma Thompson', teamSize: 9, selected: false },
-    { id: '6', name: 'E-Learning Hub', projectCode: 'PROJ-006', status: 'Planning', priority: 'Low', projectManager: 'James Wilson', teamSize: 11, selected: false },
-    { id: '7', name: 'MarketPlace Connect', projectCode: 'PROJ-007', status: 'Archived', priority: 'Medium', projectManager: 'Lisa Anderson', teamSize: 18, selected: false },
-    { id: '8', name: 'Mobile Banking App', projectCode: 'PROJ-008', status: 'Ongoing', priority: 'Critical', projectManager: 'David Kumar', teamSize: 20, selected: false },
-    { id: '9', name: 'Healthcare Portal', projectCode: 'PROJ-009', status: 'Planning', priority: 'High', projectManager: 'Rachel Green', teamSize: 14, selected: false },
-    { id: '10', name: 'Inventory Management', projectCode: 'PROJ-010', status: 'On Hold', priority: 'Medium', projectManager: 'Tom Harris', teamSize: 7, selected: false },
-    { id: '11', name: 'Social Media Platform', projectCode: 'PROJ-011', status: 'Ongoing', priority: 'High', projectManager: 'Nina Patel', teamSize: 25, selected: false },
-    { id: '12', name: 'CRM System', projectCode: 'PROJ-012', status: 'Completed', priority: 'Medium', projectManager: 'Alex Johnson', teamSize: 10, selected: false },
-    { id: '13', name: 'Analytics Dashboard', projectCode: 'PROJ-013', status: 'Ongoing', priority: 'High', projectManager: 'Sophie Turner', teamSize: 8, selected: false },
-    { id: '14', name: 'Payment Gateway', projectCode: 'PROJ-014', status: 'Planning', priority: 'Critical', projectManager: 'Robert Chen', teamSize: 12, selected: false },
-    { id: '15', name: 'Logistics Tracker', projectCode: 'PROJ-015', status: 'Ongoing', priority: 'Medium', projectManager: 'Maria Garcia', teamSize: 9, selected: false },
-    { id: '16', name: 'Video Streaming Service', projectCode: 'PROJ-016', status: 'On Hold', priority: 'Low', projectManager: 'Kevin Lee', teamSize: 16, selected: false },
-    { id: '17', name: 'Smart Home App', projectCode: 'PROJ-017', status: 'Ongoing', priority: 'High', projectManager: 'Laura Martinez', teamSize: 11, selected: false },
-    { id: '18', name: 'Restaurant Management', projectCode: 'PROJ-018', status: 'Completed', priority: 'Medium', projectManager: 'Chris Brown', teamSize: 6, selected: false },
-    { id: '19', name: 'Fitness Tracking App', projectCode: 'PROJ-019', status: 'Ongoing', priority: 'Low', projectManager: 'Amanda White', teamSize: 8, selected: false },
-    { id: '20', name: 'Real Estate Platform', projectCode: 'PROJ-020', status: 'Planning', priority: 'High', projectManager: 'Daniel Kim', teamSize: 13, selected: false },
-    { id: '21', name: 'Travel Booking System', projectCode: 'PROJ-021', status: 'Ongoing', priority: 'Medium', projectManager: 'Jessica Wang', teamSize: 15, selected: false },
-    { id: '22', name: 'HR Management Portal', projectCode: 'PROJ-022', status: 'On Hold', priority: 'Low', projectManager: 'Michael Smith', teamSize: 7, selected: false },
-    { id: '23', name: 'Customer Support Chat', projectCode: 'PROJ-023', status: 'Ongoing', priority: 'Critical', projectManager: 'Olivia Davis', teamSize: 10, selected: false },
-    { id: '24', name: 'Weather Forecast App', projectCode: 'PROJ-024', status: 'Completed', priority: 'Low', projectManager: 'Ryan Taylor', teamSize: 5, selected: false },
-    { id: '25', name: 'Task Management Tool', projectCode: 'PROJ-025', status: 'Ongoing', priority: 'High', projectManager: 'Emily Wilson', teamSize: 12, selected: false },
-    { id: '26', name: 'AI Chatbot Platform', projectCode: 'PROJ-026', status: 'Ongoing', priority: 'Critical', projectManager: 'Benjamin Clarke', teamSize: 18, selected: false },
-    { id: '27', name: 'Blockchain Wallet', projectCode: 'PROJ-027', status: 'Planning', priority: 'High', projectManager: 'Sophia Williams', teamSize: 14, selected: false },
-    { id: '28', name: 'Supply Chain Management', projectCode: 'PROJ-028', status: 'Ongoing', priority: 'Medium', projectManager: 'Lucas Brown', teamSize: 22, selected: false },
-    { id: '29', name: 'Virtual Event Platform', projectCode: 'PROJ-029', status: 'Completed', priority: 'Low', projectManager: 'Isabella Martinez', teamSize: 9, selected: false },
-    { id: '30', name: 'Code Review Automation', projectCode: 'PROJ-030', status: 'On Hold', priority: 'Medium', projectManager: 'Ethan Anderson', teamSize: 7, selected: false },
-    { id: '31', name: 'Document Management System', projectCode: 'PROJ-031', status: 'Ongoing', priority: 'High', projectManager: 'Mia Thompson', teamSize: 11, selected: false },
-    { id: '32', name: 'Fleet Management App', projectCode: 'PROJ-032', status: 'Planning', priority: 'Medium', projectManager: 'Noah Garcia', teamSize: 13, selected: false },
-    { id: '33', name: 'Expense Tracking Tool', projectCode: 'PROJ-033', status: 'Ongoing', priority: 'Low', projectManager: 'Ava Rodriguez', teamSize: 6, selected: false },
-    { id: '34', name: 'Network Monitoring System', projectCode: 'PROJ-034', status: 'Ongoing', priority: 'Critical', projectManager: 'William Lee', teamSize: 16, selected: false },
-    { id: '35', name: 'Content Management CMS', projectCode: 'PROJ-035', status: 'Archived', priority: 'Medium', projectManager: 'Charlotte Davis', teamSize: 10, selected: false },
-    { id: '36', name: 'Recruitment Portal', projectCode: 'PROJ-036', status: 'Ongoing', priority: 'High', projectManager: 'James Miller', teamSize: 12, selected: false },
-    { id: '37', name: 'IoT Device Manager', projectCode: 'PROJ-037', status: 'Planning', priority: 'Critical', projectManager: 'Amelia Wilson', teamSize: 19, selected: false },
-    { id: '38', name: 'Email Marketing Suite', projectCode: 'PROJ-038', status: 'Completed', priority: 'Medium', projectManager: 'Oliver Moore', teamSize: 8, selected: false },
-    { id: '39', name: 'Bug Tracking System', projectCode: 'PROJ-039', status: 'Ongoing', priority: 'High', projectManager: 'Emma Taylor', teamSize: 14, selected: false },
-    { id: '40', name: 'Appointment Scheduler', projectCode: 'PROJ-040', status: 'On Hold', priority: 'Low', projectManager: 'Liam Anderson', teamSize: 5, selected: false },
-    { id: '41', name: 'Digital Asset Management', projectCode: 'PROJ-041', status: 'Ongoing', priority: 'Medium', projectManager: 'Harper Thomas', teamSize: 11, selected: false },
-    { id: '42', name: 'Knowledge Base System', projectCode: 'PROJ-042', status: 'Planning', priority: 'High', projectManager: 'Elijah Jackson', teamSize: 9, selected: false },
-    { id: '43', name: 'Invoice Generator', projectCode: 'PROJ-043', status: 'Completed', priority: 'Low', projectManager: 'Abigail White', teamSize: 4, selected: false },
-    { id: '44', name: 'Video Conference App', projectCode: 'PROJ-044', status: 'Ongoing', priority: 'Critical', projectManager: 'Alexander Harris', teamSize: 21, selected: false },
-    { id: '45', name: 'Sales Forecasting Tool', projectCode: 'PROJ-045', status: 'Ongoing', priority: 'High', projectManager: 'Emily Martin', teamSize: 15, selected: false },
-    { id: '46', name: 'Warehouse Management', projectCode: 'PROJ-046', status: 'On Hold', priority: 'Medium', projectManager: 'Daniel Thompson', teamSize: 17, selected: false },
-    { id: '47', name: 'Learning Management System', projectCode: 'PROJ-047', status: 'Ongoing', priority: 'High', projectManager: 'Sofia Garcia', teamSize: 20, selected: false },
-    { id: '48', name: 'API Gateway Service', projectCode: 'PROJ-048', status: 'Planning', priority: 'Critical', projectManager: 'Matthew Martinez', teamSize: 13, selected: false },
-    { id: '49', name: 'Performance Analytics', projectCode: 'PROJ-049', status: 'Ongoing', priority: 'Medium', projectManager: 'Chloe Robinson', teamSize: 10, selected: false },
-    { id: '50', name: 'Notification Service', projectCode: 'PROJ-050', status: 'Completed', priority: 'Low', projectManager: 'Jacob Clark', teamSize: 6, selected: false }
-  ];
+  set resetPagination(value: boolean) {
+    this._resetPagination = value;
+    if (value) {
+      setTimeout(() => this._resetPagination = false, 0);
+    }
+  }
+
+  constructor(
+    private router: Router, 
+    private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef,
+    private notificationService: NotificationService,
+    private projectsService: ProjectsService,
+    private deliveryUnitsService: DeliveryUnitService,
+    private projectStatusService: ProjectStatusService,
+    private toastr: ToastrService
+  ) {}
+
+  ngOnInit(): void {
+    // Load delivery units and manager options first, then fetch projects
+    Promise.all([
+      this.loadDeliveryUnits(),
+      this.loadManagerOptions()
+    ]).then(() => {
+      // Set up debounced search with switchMap to cancel previous requests
+      this.searchSubscription = this.searchSubject.pipe(
+        debounceTime(300),
+        distinctUntilChanged((prev, curr) => {
+          // Check if search query OR other state has changed
+          const currentState = {
+            query: curr.query,
+            statusIds: JSON.stringify(this.selectedStatusIds),
+            duIds: JSON.stringify(this.selectedDeliveryUnitIds),
+            managerIds: JSON.stringify(this.selectedManagerIds),
+            page: this.pagination.currentPage,
+            pageSize: this.pagination.pageSize,
+            sortBy: this.pagination.sortBy,
+            sortOrder: this.pagination.sortOrder
+          };
+          
+          const isSame = this.lastRequestState && 
+            currentState.query === this.lastRequestState.query &&
+            currentState.statusIds === this.lastRequestState.statusIds &&
+            currentState.duIds === this.lastRequestState.duIds &&
+            currentState.managerIds === this.lastRequestState.managerIds &&
+            currentState.page === this.lastRequestState.page &&
+            currentState.pageSize === this.lastRequestState.pageSize &&
+            currentState.sortBy === this.lastRequestState.sortBy &&
+            currentState.sortOrder === this.lastRequestState.sortOrder;
+          
+          this.lastRequestState = currentState;
+          return isSame;
+        }),
+        switchMap(({query, isSearch}) => {
+          if (isSearch) {
+            this.pagination.currentPage = 1;
+          }
+          this.isLoading = true;
+          this.loadingError = null;
+          this.cdr.markForCheck();
+          return this.fetchProjectsObservable();
+        }),
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        })
+      ).subscribe({
+        next: (response) => {
+          this.handleFetchResponse(response);
+        },
+        error: (err) => {
+          this.handleFetchError(err);
+        }
+      });
+
+      // Subscribe to query parameters
+      this.queryParamsSubscription = this.route.queryParams
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(params => {
+        if (params['status']) {
+          this.selectedStatusIds = [parseInt(params['status'])];
+          this.showFilters = true;
+          this.resetPagination = true;
+          this.cdr.markForCheck();
+        }
+        if (params['deleted']) {
+          const deletedId = params['deleted'];
+          this.projects = this.projects.filter(p => p.id !== deletedId);
+          this.router.navigate([], { relativeTo: this.route, queryParams: { deleted: null }, queryParamsHandling: 'merge' });
+          this.cdr.markForCheck();
+        }
+      });
+
+      // Initial fetch after manager options are loaded
+      this.fetchProjects();
+    });
+  }
+
+  /**
+   * Load unique project managers from API
+   */
+  loadManagerOptions(): Promise<void> {
+    return new Promise((resolve) => {
+      this.projectsService.getUniqueProjectManagers()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response) => {
+            if (response.status === 200) {
+              this.managerOptions = response.data.map(manager => ({
+                id: manager.id,
+                name: manager.name || 'Unknown'
+              }));
+            }
+            this.cdr.detectChanges();
+            resolve();
+          },
+          error: (err) => {
+            // Only log error if it's not a 401 (401 will be handled by interceptor)
+            if (err.status !== 401) {
+              this.managerOptions = [];
+            }
+            this.cdr.detectChanges();
+            resolve();
+          }
+        });
+    });
+  }
+
+  /**
+   * Load delivery units from API
+   */
+  loadDeliveryUnits(): Promise<void> {
+    return new Promise((resolve) => {
+      this.deliveryUnitsService.getAllDeliveryUnits().subscribe({
+        next: (deliveryUnits) => {
+          this.deliveryUnits = deliveryUnits;
+          this.cdr.detectChanges();
+          resolve();
+        },
+        error: (err) => {
+          // Only log error if it's not a 401 (401 will be handled by interceptor)
+          if (err.status !== 401) {
+            this.deliveryUnits = [];
+          }
+          this.cdr.detectChanges();
+          resolve();
+        }
+      });
+    });
+  }
+
+  /**
+   * Fetch projects from API with current pagination and filters
+   * Returns an Observable for use with switchMap
+   */
+  private fetchProjectsObservable() {
+    const statusIds = this.selectedStatusIds.length > 0 ? this.selectedStatusIds : undefined;
+    const deliveryUnitIds = this.selectedDeliveryUnitIds.length > 0 ? this.selectedDeliveryUnitIds : undefined;
+    const projectManagerIds = this.selectedManagerIds.length > 0 ? this.selectedManagerIds : undefined;
+
+    return this.projectsService.getProjects(
+      this.pagination.currentPage,
+      this.pagination.pageSize,
+      this.searchQuery,
+      statusIds,
+      deliveryUnitIds,
+      projectManagerIds
+    );
+  }
+
+  /**
+   * Subscribe to the fetch projects observable and handle the response
+   */
+  private handleFetchResponse(response: any) {
+    try {
+      if (response.status === 200) {
+        this.projects = response.data.items.map((item: any) => this.mapProjectTableDTOToProject(item));
+        this.pagination.totalCount = response.data.totalCount;
+        this.pagination.currentPage = response.data.page;
+        this.pagination.pageSize = response.data.pageSize;
+        
+        const totalPages = Math.ceil(this.pagination.totalCount / this.pagination.pageSize);
+        if (this.pagination.currentPage > totalPages && totalPages > 0) {
+          this.pagination.currentPage = totalPages;
+        }
+        this.loadingError = null;
+
+        // Mark initial load as complete (no success toaster)
+        if (this.isInitialLoad) {
+          this.isInitialLoad = false;
+        }
+      } else {
+        this.loadingError = response.message || 'Failed to load projects';
+        this.toastr.error(this.loadingError!, 'Load Failed', {
+          timeOut: 5000,
+          progressBar: true
+        });
+      }
+    } finally {
+      this.isLoading = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  /**
+   * Handle fetch error
+   */
+  private handleFetchError(err: any) {
+    // Handle authentication errors specifically
+    if (err instanceof HttpErrorResponse && err.status === 401) {
+      this.toastr.error('Your session has expired. Please log in again.', 'Session Expired', {
+        timeOut: 5000,
+        progressBar: true
+      });
+      // The interceptor should handle logout, but let's also clear local state
+      this.loadingError = 'Session expired. Redirecting to login...';
+      this.isLoading = false;
+      this.cdr.markForCheck();
+      return;
+    }
+    
+    // Provide specific messages for different error types
+    let errorMessage = 'Failed to load projects. Please try again.';
+    if (err?.name === 'TimeoutError' || err?.message?.includes('Timeout')) {
+      errorMessage = 'Loading projects is taking longer than expected. Please wait or try refreshing the page.';
+    } else if (err instanceof HttpErrorResponse) {
+      if (err.status === 0) {
+        errorMessage = 'Unable to connect to the server. Please check your internet connection.';
+      } else if (err.status >= 500) {
+        errorMessage = 'Server error occurred. Please try again later.';
+      } else if (err.status === 404) {
+        errorMessage = 'Projects data not found.';
+      }
+    }
+    
+    this.loadingError = errorMessage;
+    this.toastr.error(this.loadingError, 'Load Failed', {
+      timeOut: 5000,
+      progressBar: true
+    });
+    this.isLoading = false;
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Fetch projects from API with current pagination and filters
+   * This method triggers the search subject to ensure all requests go through the same debounced pipeline
+   */
+  fetchProjects(): void {
+    this.searchSubject.next({query: this.searchQuery, isSearch: false});
+  }
+
+  /**
+   * Retry fetching projects - bypasses debounce for immediate retry
+   */
+  retryFetchProjects(): void {
+    this.isLoading = true;
+    this.loadingError = null;
+    this.cdr.markForCheck();
+    
+    this.fetchProjectsObservable()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.handleFetchResponse(response);
+        },
+        error: (err) => {
+          this.handleFetchError(err);
+        }
+      });
+  }
+
+  private mapProjectTableDTOToProject(dto: ProjectTableDTO): Project {
+    return {
+      id: dto.id,
+      name: dto.name || '',
+      projectCode: dto.key || '',
+      status: dto.status?.name as 'Active' | 'Inactive' | 'Completed' || 'Active',
+      deliveryUnit: dto.deliveryUnit?.code || '',
+      projectManager: dto.projectManager?.name || '',
+      projectManagerId: dto.projectManager?.id,
+      teamSize: dto.teamSize,
+      template: 'Scrum', // Default
+      organisationName: '', // Not in DTO
+      isImportedFromJira: dto.isImportedFromJira || false,
+      selected: false
+    };
+  }
+
+  loadSampleDataManually(): void {
+    // Helpful debug action: populate with a small sample set when error occurs
+    this.projects = [
+      { id: '1', name: 'Atlas App', projectCode: 'PROJ-001', status: 'Active', deliveryUnit: 'DU1', projectManager: 'Asha Varma', teamSize: 12, template: 'Scrum', organisationName: 'TechCorp Solutions', selected: false }
+    ];
+    this.isLoading = false;
+    this.cdr.detectChanges();
+  }
+
+  // Available filter options - now using services
+  get statusOptions(): Observable<{id: number, code: string}[]> {
+    return this.projectStatusService.getStatuses().pipe(
+      map(statuses => statuses.map(status => ({ id: status.id, code: status.code })))
+    );
+  }
+
+  get deliveryUnitOptions(): {id: number, code: string}[] {
+    // Return cached delivery units or empty array if not loaded yet
+    const options = this.deliveryUnits?.map(du => ({ id: du.id, code: du.code })) || [];
+    return options;
+  }
+
+  // Table columns configuration - now using services for colors
+  get tableColumns(): TableColumn[] {
+    return [
+      {
+        header: 'Project Info',
+        field: 'projectInfo',
+        type: 'avatar',
+        width: '25%'
+      },
+      {
+        header: 'Status',
+        field: 'status',
+        type: 'badge',
+        badgeColors: this.getStatusBadgeColors(),
+        width: '15%'
+      },
+      {
+        header: 'Delivery Unit',
+        field: 'deliveryUnit',
+        type: 'badge',
+        badgeColors: this.getDeliveryUnitBadgeColors(),
+        width: '20%'
+      },
+      {
+        header: 'Project Manager',
+        field: 'projectManager',
+        type: 'user',
+        width: '25%'
+      },
+      {
+        header: 'Team Size',
+        field: 'teamSize',
+        type: 'text',
+        icon: 'images/team-size.svg',
+        width: '15%'
+      },
+      {
+        header: 'Actions',
+        field: 'actions',
+        type: 'actions',
+        actions: [
+          { label: 'Edit', icon: '/images/edit-black.svg', action: 'edit' },
+          { label: 'Delete', icon: '/images/delete-black.svg', action: 'delete', class: 'danger' }
+        ]
+      }
+    ];
+  }
+
+  projects: Project[] = [];
 
   // Getters
-  get paginatedProjects(): Project[] {
-    const start = (this.currentPage - 1) * this.rowsPerPage;
-    const end = start + this.rowsPerPage;
-    return this.filteredProjects.slice(start, end);
-  }
-
-  get totalPages(): number {
-    return Math.max(1, Math.ceil(this.filteredProjects.length / this.rowsPerPage));
-  }
-
-  get startIndex(): number {
-    if (this.filteredProjects.length === 0) return 0;
-    return (this.currentPage - 1) * this.rowsPerPage;
-  }
-
-  get endIndex(): number {
-    const end = this.startIndex + this.rowsPerPage;
-    return Math.min(end, this.filteredProjects.length);
-  }
-
   get hasActiveFilters(): boolean {
-    return this.selectedStatuses.length > 0 ||
-           this.selectedPriorities.length > 0 ||
-           this.selectedManagers.length > 0;
+    return this.selectedStatusIds.length > 0 ||
+           this.selectedDeliveryUnitIds.length > 0 ||
+           this.selectedManagerIds.length > 0;
   }
 
   get filteredProjects(): Project[] {
-    let filtered = [...this.projects];
+    // Since filtering is now handled server-side, just return the projects array
+    return this.projects;
+  }
 
-    if (this.searchQuery.trim()) {
-      const query = this.searchQuery.toLowerCase().trim();
-      filtered = filtered.filter(project => 
-        project.name.toLowerCase().includes(query) ||
-        project.projectCode.toLowerCase().includes(query) ||
-        project.projectManager.toLowerCase().includes(query)
-      );
-    }
+  get tableData(): any[] {
+    return this.filteredProjects.map(project => ({
+      projectInfo: {
+        name: project.name,
+        subtitle: project.projectCode,
+        initials: project.name.substring(0, 2).toUpperCase(),
+        // Use a fixed blue Tailwind class for all projects
+        bgColor: 'bg-blue-600',
+        // expose whether this project was imported from Jira so the table can show a badge
+        isImportedFromJira: !!project.isImportedFromJira
+      },
+      status: project.status,
+      deliveryUnit: project.deliveryUnit,
+      projectManager: {
+        name: project.projectManager,
+        avatar: this.getInitials(project.projectManager)
+      },
+      teamSize: project.teamSize.toString(),
+      actions: project.id,
+      selected: project.selected
+    }));
+  }
 
-    if (this.selectedStatuses.length > 0) {
-      filtered = filtered.filter(project => 
-        this.selectedStatuses.includes(project.status)
-      );
-    }
-
-    if (this.selectedPriorities.length > 0) {
-      filtered = filtered.filter(project => 
-        this.selectedPriorities.includes(project.priority)
-      );
-    }
-
-    if (this.selectedManagers.length > 0) {
-      filtered = filtered.filter(project => 
-        this.selectedManagers.includes(project.projectManager)
-      );
-    }
-
-    // Apply single sorting criteria
-    if (this.sortCriteria) {
-      filtered.sort((a, b) => {
-        let comparison = 0;
-        const field = this.sortCriteria!.field;
-
-        if (field === 'teamSize') {
-          comparison = a[field] - b[field];
-        } else if (field === 'priority') {
-          // Higher priority values should come first in ascending order
-          const priorityOrder: Record<string, number> = {
-            'Low': 1, 'Medium': 2, 'High': 3, 'Critical': 4
-          };
-          comparison = priorityOrder[a[field]] - priorityOrder[b[field]];
-        } else if (field === 'status') {
-          // Logical workflow order: Planning -> Ongoing -> On Hold -> Completed -> Archived
-          const statusOrder: Record<string, number> = {
-            'Planning': 1, 'Ongoing': 2, 'On Hold': 3, 'Completed': 4, 'Archived': 5
-          };
-          comparison = statusOrder[a[field]] - statusOrder[b[field]];
-        } else {
-          comparison = String(a[field]).localeCompare(String(b[field]));
-        }
-
-        // Apply direction
-        comparison = this.sortCriteria!.direction === 'asc' ? comparison : -comparison;
-
-        return comparison;
-      });
-    }
-
-    return filtered;
+  // Simple deterministic avatar background selector based on project id
+  getAvatarBgColor(projectId: string): string {
+    const classes = [
+      'bg-blue-600',
+      'bg-green-600',
+      'bg-purple-600',
+      'bg-pink-600',
+      'bg-yellow-600',
+      'bg-indigo-600',
+      'bg-red-600',
+      'bg-teal-600'
+    ];
+    const num = parseInt(projectId, 10) || 0;
+    return classes[num % classes.length];
   }
 
   get selectedProjects(): Project[] {
-    // Return only selected projects that are currently visible in filtered results
     return this.filteredProjects.filter(p => p.selected);
   }
 
+  // Helper methods for badge colors
+  private getStatusBadgeColors(): { [key: string]: string } {
+    // Default colors - could be updated when status data loads
+    return {
+      'Active': 'bg-green-100 text-green-800',
+      'Inactive': 'bg-gray-100 text-gray-800',
+      'Completed': 'bg-blue-100 text-blue-800'
+    };
+  }
+
+  private getDeliveryUnitBadgeColors(): { [key: string]: string } {
+    const colors: { [key: string]: string } = {
+      '--': 'bg-gray-100 text-gray-800'
+    };
+    // Map DU1..DU8 to distinct badge color classes
+    const duColors = [
+      'bg-blue-100 text-blue-800',
+      'bg-green-100 text-green-800',
+      'bg-purple-100 text-purple-800',
+      'bg-pink-100 text-pink-800',
+      'bg-yellow-100 text-yellow-800',
+      'bg-indigo-100 text-indigo-800',
+      'bg-red-100 text-red-800',
+      'bg-teal-100 text-teal-800'
+    ];
+    this.deliveryUnits.forEach((du, index) => {
+      colors[du.code] = duColors[index % duColors.length];
+    });
+    return colors;
+  }
+
   get allSelectedProjects(): Project[] {
-    // Return all selected projects from the entire dataset
     return this.projects.filter(p => p.selected);
   }
 
   get deleteCount(): number {
-    // Return the count for delete operations (use stored projects for bulk delete)
-    return this.deleteMode === 'bulk' ? this.projectsToDelete.length : this.allSelectedProjects.length;
+    return this.allSelectedProjects.length;
   }
 
   get allSelected(): boolean {
     const filteredProjects = this.filteredProjects;
     return filteredProjects.length > 0 &&
            filteredProjects.every(p => p.selected);
-  }
-
-  get allOnCurrentPageSelected(): boolean {
-    return this.paginatedProjects.length > 0 &&
-           this.paginatedProjects.every(p => p.selected);
   }
 
   ngAfterViewChecked(): void {
@@ -266,7 +562,6 @@ export class Projectslist implements AfterViewChecked {
       const isIndeterminate = this.isIndeterminateSelection();
       const allSelected = this.allSelected;
 
-      // Show indeterminate state for both partial selection and full selection
       checkbox.indeterminate = isIndeterminate || allSelected;
       checkbox.checked = false;
     }
@@ -278,7 +573,6 @@ export class Projectslist implements AfterViewChecked {
     return selectedCount > 0 && selectedCount < filteredProjects.length;
   }
 
-  // Get initials from project manager name
   getInitials(managerName: string): string {
     const parts = managerName.split(' ');
     if (parts.length >= 2) {
@@ -289,75 +583,12 @@ export class Projectslist implements AfterViewChecked {
     return '';
   }
 
-  // Filter change handler
-  onFiltersChanged(filters: { selectedStatuses: string[]; selectedPriorities: string[]; selectedManagers: string[] }): void {
-    this.selectedStatuses = filters.selectedStatuses;
-    this.selectedPriorities = filters.selectedPriorities;
-    this.selectedManagers = filters.selectedManagers;
-    this.currentPage = 1;
-
-    // Force change detection to update checkbox state
-    this.cdr.detectChanges();
-  }
-
-  // Pagination Handlers
-  handleRowsPerPageChange(newRowsPerPage: number): void {
-    this.rowsPerPage = newRowsPerPage;
-    this.currentPage = 1;
-    this.scrollToTop();
-  }
-
-  handleFirstPage(): void {
-    this.currentPage = 1;
-    this.scrollToTop();
-  }
-
-  handlePreviousPage(): void {
-    if (this.currentPage > 1) {
-      this.currentPage--;
-      this.scrollToTop();
-    }
-  }
-
-  handleNextPage(): void {
-    if (this.currentPage < this.totalPages) {
-      this.currentPage++;
-      this.scrollToTop();
-    }
-  }
-
-  handleLastPage(): void {
-    this.currentPage = this.totalPages;
-    this.scrollToTop();
-  }
-
-  handleTwoPagesBack(): void {
-    if (this.currentPage > 2) {
-      this.currentPage -= 2;
-    } else {
-      this.currentPage = 1;
-    }
-    this.scrollToTop();
-  }
-
-  handleTwoPagesForward(): void {
-    if (this.currentPage < this.totalPages - 1) {
-      this.currentPage += 2;
-    } else {
-      this.currentPage = this.totalPages;
-    }
-    this.scrollToTop();
-  }
-
-  scrollToTop(): void {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  // Other Methods
-  onSearchChange(): void {
-    this.currentPage = 1;
-    // Force change detection to update checkbox state when search changes
-    this.cdr.detectChanges();
+  onFiltersChanged(filters: { selectedStatusIds: number[]; selectedDeliveryUnitIds: number[]; selectedManagerIds: number[] }): void {
+    this.selectedStatusIds = filters.selectedStatusIds;
+    this.selectedDeliveryUnitIds = filters.selectedDeliveryUnitIds;
+    this.selectedManagerIds = filters.selectedManagerIds;
+    this.pagination.currentPage = 1; // Reset to first page when filters change
+    this.fetchProjects();
   }
 
   toggleFilters(): void {
@@ -367,136 +598,183 @@ export class Projectslist implements AfterViewChecked {
   toggleSelectAll(): void {
     const allSelected = this.allSelected;
     const someSelected = this.isIndeterminateSelection();
-
     let newSelectionState: boolean;
 
     if (allSelected || someSelected) {
-      // All or some selected (showing dash) - deselect all
       newSelectionState = false;
     } else {
-      // None selected (empty) - select all
       newSelectionState = true;
     }
 
-    // Apply the new selection state to all filtered projects (across all pages)
     this.filteredProjects.forEach(project => {
       project.selected = newSelectionState;
     });
 
-    // Explicitly update checkbox state immediately after selection changes
     this.updateCheckboxState();
-
-    // Force change detection
     this.cdr.detectChanges();
   }
 
-  sortBy(field: SortField): void {
-    if (this.sortCriteria && this.sortCriteria.field === field) {
-      // Field is currently being sorted
-      if (this.sortCriteria.direction === 'asc') {
-        // Change from asc to desc
-        this.sortCriteria.direction = 'desc';
-      } else {
-        // Remove sorting (was desc, now removing)
-        this.sortCriteria = null;
-      }
-    } else {
-      // Set new field as sort criteria with ascending order
-      this.sortCriteria = { field, direction: 'asc' };
-    }
-  }
-
-  // Helper method to get sort direction for a field (for UI display)
-  getSortDirection(field: SortField): SortDirection | null {
-    return this.sortCriteria && this.sortCriteria.field === field ? this.sortCriteria.direction : null;
-  }
-
-  // Check if any sorting is active
-  get hasActiveSorting(): boolean {
-    return this.sortCriteria !== null;
-  }
-
-  // Get human-readable field label
-  getFieldLabel(field: SortField): string {
-    const fieldLabels: Record<SortField, string> = {
-      'name': 'Project Name',
-      'status': 'Status',
-      'priority': 'Priority',
-      'projectManager': 'Manager',
-      'teamSize': 'Team Size'
-    };
-    return fieldLabels[field] || field;
-  }
-
-  toggleActionsMenu(projectId: string, event: Event): void {
-    event.stopPropagation();
-    if (this.activeProjectId === projectId && this.showActionsMenu) {
-      this.showActionsMenu = false;
-      this.activeProjectId = null;
-    } else {
-      this.showActionsMenu = true;
-      this.activeProjectId = projectId;
-    }
-  }
-
-  closeActionsMenu(): void {
-    this.showActionsMenu = false;
-    this.activeProjectId = null;
-  }
-
-  viewDetails(projectId: string): void {
-    console.log('View details:', projectId);
-    this.closeActionsMenu();
-    this.router.navigate(['/projects', projectId]);
-  }
-
-  // Smart row click handler: toggle selection if projects selected, navigate if none selected
   onRowClick(project: Project): void {
     if (this.allSelectedProjects.length > 0) {
-      // If any projects are selected globally, toggle this project's selection
       project.selected = !project.selected;
-      // Force change detection to update checkbox and bulk actions popup
       this.cdr.detectChanges();
     } else {
-      // If no projects are selected, navigate to project details
-      this.viewProjectDetails(project.id);
+      // Navigate directly to project details when row clicked
+      this.router.navigate(['/projects', project.id]);
     }
   }
 
-  // Handle individual checkbox changes to ensure UI updates
   onSelectionChange(): void {
-    // Force change detection when individual selections change
     this.cdr.detectChanges();
   }
 
-  viewProjectDetails(projectId: string): void {
-    this.router.navigate(['/projects', projectId]);
+  // Note: preview/view logic removed. Navigation happens directly where needed.
+
+  handleTableAction(event: { action: string; row: any }): void {
+    const projectId = event.row.actions;
+    const project = this.projects.find(p => p.id === projectId);
+
+    switch (event.action) {
+      case 'edit':
+        this.editProject(projectId);
+        break;
+      case 'delete':
+        this.projectToDelete = project || null;
+        this.showDeleteModal = true;
+        break;
+    }
+  }
+
+  handleRowClick(event: { row: any; index: number }): void {
+    const projectId = event.row.actions;
+    const project = this.projects.find(p => p.id === projectId);
+    if (project) {
+      this.onRowClick(project);
+    }
+  }
+
+  handleSelectionChange(selectedRows: any[]): void {
+    this.projects.forEach(project => {
+      project.selected = false;
+    });
+
+    selectedRows.forEach(selectedRow => {
+      const projectId = selectedRow.actions;
+      const project = this.projects.find(p => p.id === projectId);
+      if (project) {
+        project.selected = true;
+      }
+    });
+
+    this.cdr.detectChanges();
   }
 
   editProject(projectId: string): void {
-    console.log('Edit project:', projectId);
-    this.closeActionsMenu();
     this.router.navigate(['/projects', projectId, 'edit']);
   }
 
-  archiveProject(projectId: string): void {
+  deleteProject(projectId: string): void {
     const project = this.projects.find(p => p.id === projectId);
-    if (project) {
-      project.status = 'Archived';
-      console.log('Project archived:', projectId);
-    }
-    this.closeActionsMenu();
+    this.projectToDelete = project || null;
+    this.showDeleteModal = true;
   }
 
-  deleteProject(projectId: string): void {
-    this.projectToDelete = projectId;
-    this.deleteMode = 'single';
+  deleteSelected(): void {
+    if (this.selectedProjects.length === 0) return;
     this.showDeleteModal = true;
-    this.closeActionsMenu();
   }
 
   exportAll(): void {
-    console.log('Exporting all projects...');
+    // Show loading state
+    this.notificationService.addNotification('info', 'Preparing export...', 'Export');
+    this.isLoading = true;
+    this.cdr.markForCheck();
+
+    // Get filters but NO search query (as requested)
+    const statusIds = this.selectedStatusIds.length > 0 ? this.selectedStatusIds : undefined;
+    const deliveryUnitIds = this.selectedDeliveryUnitIds.length > 0 ? this.selectedDeliveryUnitIds : undefined;
+    const projectManagerIds = this.selectedManagerIds.length > 0 ? this.selectedManagerIds : undefined;
+
+    // Fetch all projects with current filters but set pageSize to total count to get all data
+    // First, we need to get the total count, then fetch all records
+    this.projectsService.getProjects(
+      1,
+      10000, // Request a large page size to get all records
+      undefined, // No search query
+      statusIds,
+      deliveryUnitIds,
+      projectManagerIds
+    ).subscribe({
+      next: (response) => {
+        try {
+          if (response.status === 200 && response.data.items) {
+            const allProjects = response.data.items.map((item: any) => this.mapProjectTableDTOToProject(item));
+            this.exportToCSV(allProjects);
+            this.notificationService.addNotification('success', `Exported ${allProjects.length} projects`, 'Export Success');
+          } else {
+            this.notificationService.addNotification('error', 'Failed to fetch projects for export', 'Export Failed');
+          }
+        } finally {
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        }
+      },
+      error: (err) => {
+        this.notificationService.addNotification('error', 'Failed to export projects', 'Export Error');
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  exportToCSV(projectsToExport?: Project[]): void {
+    // If no projects provided, use current filtered/selected projects
+    if (!projectsToExport) {
+      projectsToExport = this.selectedProjects.length > 0 ? this.selectedProjects : this.filteredProjects;
+    }
+
+    // CSV headers
+    const headers = ['Project Name', 'Project Code', 'Status', 'Delivery Unit', 'Project Manager', 'Team Size'];
+    
+    // Escape CSV values to handle commas and quotes
+    const escapeCsvValue = (value: string | number): string => {
+      const stringValue = String(value);
+      if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+      return stringValue;
+    };
+
+    const rows = projectsToExport.map(project => [
+      escapeCsvValue(project.name),
+      escapeCsvValue(project.projectCode),
+      escapeCsvValue(project.status),
+      escapeCsvValue(project.deliveryUnit),
+      escapeCsvValue(project.projectManager),
+      escapeCsvValue(project.teamSize.toString())
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+
+    link.setAttribute('href', url);
+    const filterInfo = this.hasActiveFilters ? '_filtered' : '_all';
+    const timestamp = new Date().toISOString().split('T')[0];
+    link.setAttribute('download', `projects_export${filterInfo}_${projectsToExport.length}_${timestamp}.csv`);
+    link.style.visibility = 'hidden';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Clean up
+    setTimeout(() => URL.revokeObjectURL(url), 100);
   }
 
   importFromJira(): void {
@@ -504,68 +782,179 @@ export class Projectslist implements AfterViewChecked {
   }
 
   createProject(): void {
-    this.router.navigate(['/projects/create']);
+    this.showTemplateModal = true;
   }
 
-  deleteSelected(): void {
-    if (this.allSelectedProjects.length === 0) return;
 
-    // Store the selected projects for deletion
-    this.projectsToDelete = [...this.allSelectedProjects];
+  // Template modal handlers
+  onTemplateSelected(template: string): void {
+    this.selectedTemplate = template;
+    this.showTemplateModal = false;
+    this.showCreateProjectModal = true;
+  }
 
-    // Clear all selections to hide bulk actions
-    this.projects.forEach(project => {
-      project.selected = false;
+  closeTemplateModal(): void {
+    this.showTemplateModal = false;
+  }
+
+  // Create project modal handlers
+  onCreateProject(projectData: { name: string; projectKey: string; shareWithExisting: boolean; selectedProject?: string }): void {
+    // Ensure projectKey exists: derive from first 3 alphanumeric chars of name if not provided
+    let projectKey = projectData.projectKey && projectData.projectKey.trim()
+      ? projectData.projectKey.trim()
+      : (projectData.name || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().substring(0, 3);
+
+    if (!projectKey) projectKey = 'PRJ';
+
+    this.router.navigate(['/projects/create'], {
+      queryParams: {
+        template: this.selectedTemplate,
+        name: projectData.name,
+        projectKey,
+        shareWithExisting: projectData.shareWithExisting,
+        selectedProject: projectData.selectedProject
+      }
     });
-
-    this.deleteMode = 'bulk';
-    this.showDeleteModal = true;
   }
 
-  // Modal handlers
+  closeCreateProjectModal(): void {
+    this.showCreateProjectModal = false;
+    this.selectedTemplate = '';
+  }
+
+  onBackToTemplateSelection(): void {
+    this.showCreateProjectModal = false;
+    this.showTemplateModal = true;
+  }
+
   cancelDelete(): void {
-    this.closeActionsMenu();
     this.showDeleteModal = false;
     this.projectToDelete = null;
-    this.deleteMode = 'single';
-    // Clear stored projects for bulk delete
-    this.projectsToDelete = [];
   }
 
   confirmDelete(): void {
-    // Close actions menu immediately before any other operations
-    this.closeActionsMenu();
+    if (this.projectToDelete) {
+      // Single project deletion
+      const deletedName = this.projectToDelete.name;
+      const deletedId = this.projectToDelete.id;
+      
+      this.isLoading = true;
+      this.cdr.markForCheck();
 
-    if (this.deleteMode === 'single' && this.projectToDelete) {
-      this.projects = this.projects.filter(p => p.id !== this.projectToDelete);
-      console.log('Project deleted:', this.projectToDelete);
-      if (this.paginatedProjects.length === 0 && this.currentPage > 1) {
-        this.currentPage--;
-      }
-    } else if (this.deleteMode === 'bulk') {
-      // Use stored projects to delete instead of current selections
-      const projectIdsToDelete = this.projectsToDelete.map(p => p.id);
-      this.projects = this.projects.filter(p => !projectIdsToDelete.includes(p.id));
-      console.log('Projects deleted:', projectIdsToDelete.length);
-      if (this.paginatedProjects.length === 0 && this.currentPage > 1) {
-        this.currentPage--;
-      }
-      // Clear the stored projects after deletion
-      this.projectsToDelete = [];
+      this.projectsService.deleteProject(deletedId).subscribe({
+        next: (response) => {
+          try {
+            if (response.status === 200) {
+              // Remove from local array
+              this.projects = this.projects.filter(project => project.id !== deletedId);
+              // Show toaster for successful deletion
+              this.toastr.success(`Project "${deletedName}" was deleted successfully.`, 'Project Deleted');
+              // Refresh the projects list
+              this.fetchProjects();
+            } else {
+              // Show toaster for error
+              this.toastr.error(response.message || `Failed to delete project "${deletedName}".`, 'Delete Failed');
+            }
+          } finally {
+            this.showDeleteModal = false;
+            this.projectToDelete = null;
+            this.isLoading = false;
+            this.cdr.markForCheck();
+          }
+        },
+        error: (err) => {
+          // Show toaster for error
+          this.toastr.error(`Failed to delete project "${deletedName}".`, 'Delete Failed');
+          this.showDeleteModal = false;
+          this.projectToDelete = null;
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        }
+      });
+    } else {
+      // Bulk deletion of selected projects
+      const projectsToDelete = [...this.selectedProjects];
+      const count = projectsToDelete.length;
+      let successCount = 0;
+      let failedCount = 0;
+
+      this.isLoading = true;
+      this.cdr.markForCheck();
+
+      // Delete projects sequentially
+      const deleteNext = (index: number) => {
+        if (index >= projectsToDelete.length) {
+          // All deletions complete
+          if (successCount > 0) {
+            // Remove deleted projects from local array
+            this.projects = this.projects.filter(project => 
+              !projectsToDelete.some(deleted => deleted.id === project.id)
+            );
+            const successMsg = `${successCount} project${successCount > 1 ? 's' : ''} ${successCount > 1 ? 'were' : 'was'} deleted successfully.`;
+            // Show toaster for successful deletions
+            this.toastr.success(successMsg, 'Projects Deleted');
+            this.fetchProjects();
+          }
+
+          if (failedCount > 0) {
+            const failMsg = `${failedCount} project${failedCount > 1 ? 's' : ''} could not be deleted.`;
+            // Show toaster for errors
+            this.toastr.error(failMsg, 'Deletion Failed');
+          }
+
+          this.showDeleteModal = false;
+          this.isLoading = false;
+          this.cdr.markForCheck();
+          return;
+        }
+
+        const project = projectsToDelete[index];
+        this.projectsService.deleteProject(project.id).subscribe({
+          next: (response) => {
+            if (response.status === 200) {
+              successCount++;
+            } else {
+              failedCount++;
+            }
+            deleteNext(index + 1);
+          },
+          error: (err) => {
+            failedCount++;
+            deleteNext(index + 1);
+          }
+        });
+      };
+
+      deleteNext(0);
     }
-
-    this.showDeleteModal = false;
-    this.projectToDelete = null;
-    this.deleteMode = 'single';
-
-    // Force change detection to ensure all UI updates properly
-    this.cdr.detectChanges();
   }
 
-  // Helper method to get project name for modal display
-  getProjectName(projectId: string | null): string {
-    if (!projectId) return '';
-    const project = this.projects.find(p => p.id === projectId);
-    return project ? project.name : '';
+  onPageChange(page: number): void {
+    this.pagination.currentPage = page;
+    this.fetchProjects();
+  }
+
+  onPageSizeChange(pageSize: number): void {
+    this.pagination.pageSize = pageSize;
+    this.pagination.currentPage = 1; // Reset to first page
+    this.fetchProjects();
+  }
+
+  onSortChange(sort: {sortBy: string, sortOrder: 'asc' | 'desc'}): void {
+    this.pagination.sortBy = sort.sortBy;
+    this.pagination.sortOrder = sort.sortOrder;
+    this.fetchProjects();
+  }
+
+  ngOnDestroy(): void {
+    this.searchSubject.complete();
+    this.destroy$.next();
+    this.destroy$.complete();
+    if (this.searchSubscription) {
+      this.searchSubscription.unsubscribe();
+    }
+    if (this.queryParamsSubscription) {
+      this.queryParamsSubscription.unsubscribe();
+    }
   }
 }

@@ -1,13 +1,25 @@
 import { Routes } from '@angular/router';
 import { Login } from './authentication/pages/login/login';
 import { Layout } from './shared/layout/layout';
+import { NotFound } from './shared/components/not-found/not-found';
+import { AuthGuard } from './shared/services/authenticationservice/auth.guard';
+import { LoginRedirectGuard } from './shared/services/authenticationservice/login-redirect.guard';
 
 export const routes: Routes = [
-  { path: 'login', component: Login },
+  // Login route (outside layout)
+  { 
+    path: 'login', 
+    component: Login,
+    canActivate: [LoginRedirectGuard]
+  },
+  
+  // All authenticated routes wrapped inside the layout
   {
     path: '',
     component: Layout,
+    canActivate: [AuthGuard],
     children: [
+      // Default redirect to dashboard
       {
         path: '',
         redirectTo: 'dashboard',
@@ -35,13 +47,21 @@ export const routes: Routes = [
       },
       {
         path: 'deliveryunits',
+        canActivate: [AuthGuard],
         loadChildren: () =>
           import('./deliveryunits/deliveryunits-module').then((m) => m.DeliveryunitsModule),
       },
       {
         path: 'roles',
+        canActivate: [AuthGuard],
         loadChildren: () => import('./roles/roles-module').then((m) => m.RolesModule),
       },
     ],
+  },
+
+  // Wildcard route for 404 - must be last
+  {
+    path: '**',
+    component: NotFound
   },
 ];

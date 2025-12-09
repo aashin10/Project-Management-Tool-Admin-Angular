@@ -1,4 +1,4 @@
-<div class="p-6">
+<div class="">
   <!-- Header with Title and Create Button -->
   <div class="flex justify-between items-center mb-6">
     <app-sectiontitle
@@ -27,21 +27,139 @@
     </app-search-bar>
   </div>
  
-  <!-- Roles Table -->
-  <app-table
-    [columns]="columns"
-    [data]="filteredRoles"
-    [showCheckbox]="false"
-    (actionClick)="handleTableAction($event)">
-  </app-table>
+  <!-- Loading Indicator -->
+  <div *ngIf="isLoading" class="flex justify-center items-center py-12">
+    <div class="flex flex-col items-center gap-3">
+      <app-loading-indicator></app-loading-indicator>
+      <p class="text-sm text-gray-500">Loading roles...</p>
+    </div>
+  </div>
+
+  <!-- Roles Table with Custom Overlays -->
+  <div class="relative" *ngIf="!isLoading">
+    <app-table
+      [columns]="columns"
+      [data]="filteredRoles"
+      [showCheckbox]="false"
+      (actionClick)="handleTableAction($event)">
+    </app-table>
+
+    <!-- Custom Action Buttons Overlay (replaces 3-dot menu) -->
+    <div class="absolute pointer-events-none" style="top: 49px; right: 0;">
+      <div 
+        *ngFor="let role of filteredRoles; let i = index"
+        class="flex items-center justify-end gap-2 pr-14 pointer-events-auto"
+        style="height: 65px; position: relative;">
+        
+        <!-- Edit Button -->
+        <button
+          (click)="handleEditClick(role, $event)"
+          [disabled]="role.isDefault"
+          [class.opacity-40]="role.isDefault"
+          [class.cursor-not-allowed]="role.isDefault"
+          [class.cursor-pointer]="!role.isDefault"
+          class="p-2 rounded-sm transition-colors relative group z-10"
+          [class.hover:bg-gray-100]="!role.isDefault"
+          (mouseenter)="showActionTooltip($event, 'Edit', role.isDefault)"
+          (mouseleave)="hideActionTooltip()">
+          <img src="images/edit.svg" class="w-4 h-4" alt="Edit" />
+        </button>
+
+        <!-- Delete Button -->
+        <button
+          (click)="handleDeleteClick(role, $event)"
+          [disabled]="role.isDefault"
+          [class.opacity-40]="role.isDefault"
+          [class.cursor-not-allowed]="role.isDefault"
+          [class.cursor-pointer]="!role.isDefault"
+          class="p-2 rounded-sm transition-colors relative group z-10"
+          [class.hover:bg-red-50]="!role.isDefault"
+          (mouseenter)="showActionTooltip($event, 'Delete', role.isDefault)"
+          (mouseleave)="hideActionTooltip()">
+          <img src="images/delete.svg" class="w-4 h-4" alt="Delete" />
+        </button>
+
+<!-- Delete Confirmation Modal -->
+<div *ngIf="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center" style="background-color: rgba(0, 0, 0, 0.1);">
+  <div class="bg-white rounded-sm shadow-lg p-8 max-w-md w-full relative">
+    <button (click)="cancelDeleteRole()" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+    <h2 class="text-xl font-semibold mb-2">Confirm Deletion</h2>
+  <p class="mb-6">Are you sure you want to delete the role <b>"{{ roleToDelete?.roleInfo?.name || '' }}"</b>? This action cannot be undone.</p>
+    <div class="flex justify-end gap-3">
+      <button (click)="cancelDeleteRole()" class="px-4 py-2 rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">Cancel</button>
+      <button (click)="confirmDeleteRole()" class="px-4 py-2 rounded bg-red-600 text-white font-semibold hover:bg-red-700">Delete</button>
+    </div>
+  </div>
+</div>
+      </div>
+    </div>
+
+    <!-- Hover overlay for role name tooltips -->
+    <div class="absolute inset-0 pointer-events-none" style="top: 49px;">
+      <div 
+        *ngFor="let role of filteredRoles; let i = index"
+        class="pointer-events-auto"
+        style="height: 65px; position: relative;">
+        <!-- Hover area for role name (first 25% of row) -->
+        <div
+          class="absolute cursor-pointer"
+          [style.width]="'25%'"
+          style="height: 65px;"
+          (mouseenter)="showRoleTooltip($event, role)"
+          (mouseleave)="hideRoleTooltip()"
+          (mousemove)="updateTooltipPosition($event)">
+        </div>
+      </div>
+    </div>
+
+    <!-- Role Privileges Tooltip -->
+    <div 
+      *ngIf="hoveredRole"
+      class="fixed z-[9999] bg-white text-gray-800 text-xs rounded-sm shadow-2xl py-3 px-4 pointer-events-none transition-opacity duration-200 border border-gray-200"
+      [style.left.px]="tooltipPosition.x"
+      [style.top.px]="tooltipPosition.y"
+      style="min-width: 220px; max-width: 320px;">
+      <div class="font-semibold mb-2 text-sm border-b border-gray-200 pb-2 text-gray-900">
+        Privileges for {{ hoveredRole.roleInfo.name }}
+      </div>
+      <ul class="space-y-1.5">
+        <li 
+          *ngFor="let permId of hoveredRole.permissionIds" 
+          class="flex items-start gap-2">
+          <svg class="w-3.5 h-3.5 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+          <span class="text-gray-700">{{ getPermissionNameById(permId) }}</span>
+        </li>
+        <li 
+          *ngIf="!hoveredRole.permissionIds || hoveredRole.permissionIds.length === 0"
+          class="text-gray-400 italic">
+          No privileges assigned
+        </li>
+      </ul>
+      <!-- Arrow pointer -->
+      <div class="absolute w-2 h-2 bg-white border-l border-t border-gray-200 transform rotate-45 -left-1 top-4"></div>
+    </div>
+
+    <!-- Action Tooltip (Edit/Delete) -->
+    <div 
+      *ngIf="actionTooltip"
+      class="fixed z-[9999] bg-gray-800 text-white text-xs rounded py-1.5 px-2.5 pointer-events-none whitespace-nowrap"
+      [style.left.px]="actionTooltipPosition.x"
+      [style.top.px]="actionTooltipPosition.y">
+      {{ actionTooltip }}
+    </div>
+  </div>
 </div>
  
 <!-- Modal for Create/Edit Role -->
 <app-modal [isOpen]="isModalOpen" (close)="closeModal()">
   <div class="p-5 max-w-xl mx-auto">
     <!-- Modal Header -->
-    <div class="flex items-start gap-3 mb-4">
-      <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+    <div class="flex items-start gap-3 mb-3">
+      <div class="w-10 h-10 bg-blue-100 rounded-sm flex items-center justify-center flex-shrink-0">
         <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
             d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -58,7 +176,7 @@
     </div>
  
     <!-- Form Content -->
-    <form (ngSubmit)="saveRole()" #roleForm="ngForm" class="space-y-3">
+    <form (ngSubmit)="saveRole()" #roleForm="ngForm" class="space-y-2.5">
       <!-- Role Name -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -69,7 +187,7 @@
           [(ngModel)]="newRole.roleInfo!.name"
           name="roleName"
           placeholder="e.g., Admin, Manager, Developer"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none placeholder:text-gray-400"
+          class="w-full px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none placeholder:text-gray-400 text-sm"
           required
         />
       </div>
@@ -84,7 +202,7 @@
           [(ngModel)]="newRole.description"
           name="description"
           placeholder="Describe the role's purpose and responsibilities..."
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none placeholder:text-gray-400"
+          class="w-full px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none placeholder:text-gray-400 text-sm"
           required
         ></textarea>
       </div>
@@ -98,7 +216,7 @@
           [(ngModel)]="newRole.cloneFrom"
           name="cloneFrom"
           (change)="onCloneFromChange()"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          class="w-full px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
         >
           <option value="">-- Select a role to clone --</option>
           <option *ngFor="let role of roles" [value]="role.roleInfo.name">
@@ -108,33 +226,34 @@
       </div>
  
       <!-- Permissions -->
-      <div class="pt-3 border-t border-gray-200">
+      <div class="pt-2 border-t border-gray-200">
         <div class="flex items-center gap-2 mb-2">
-          <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
               d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           </svg>
           <h3 class="text-sm font-semibold text-gray-900">Permissions <span class="text-red-500">*</span></h3>
         </div>
  
-        <div class="space-y-2 max-h-48 overflow-y-auto">
+        <div class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
           <label
             *ngFor="let permission of permissionsList"
-            class="flex items-center gap-2 p-2.5 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+            class="flex items-center gap-2 p-2 border border-gray-200 rounded-sm hover:bg-gray-50 cursor-pointer transition-colors"
           >
             <input
               type="checkbox"
-              [checked]="newRole.permissions?.includes(permission)"
-              (change)="togglePermission(permission)"
-              class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              [checked]="isPermissionSelected(permission.id)"
+              (change)="togglePermission(permission.id)"
+              class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
             />
-            <span class="text-sm text-gray-700">{{ permission }}</span>
+            <span class="text-sm text-gray-700">{{ permission.name }}</span>
+            <span *ngIf="permission.description" class="text-xs text-gray-400 ml-2">{{ permission.description }}</span>
           </label>
         </div>
       </div>
  
       <!-- Action Buttons -->
-      <div class="flex justify-end gap-3 pt-4">
+      <div class="flex justify-end gap-3 pt-3 mt-3">
         <!-- Cancel Button -->
         <app-custom-button
           label="Cancel"
@@ -149,7 +268,7 @@
         <!-- Submit Button -->
         <button
           type="submit"
-          class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+          class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-sm hover:bg-blue-700 transition-colors"
         >
           {{ isEditMode ? 'Update Role' : 'Create Role' }}
         </button>

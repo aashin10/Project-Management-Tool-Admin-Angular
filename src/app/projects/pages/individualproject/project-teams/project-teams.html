@@ -1,0 +1,162 @@
+<div class="bg-white rounded-sm shadow-sm border border-gray-200">
+  <!-- Header -->
+  <div class="px-6 py-5 border-b border-gray-100">
+    <div class="flex items-start justify-between">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          <h2 class="text-lg font-semibold text-gray-900">Team Members</h2>
+        </div>
+        <p class="text-sm text-gray-500">View all team members by team</p>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <!-- Team Dropdown -->
+        <div class="relative" *ngIf="teams.length > 0">
+          <button 
+            (click)="toggleDropdown()"
+            class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-sm text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <span>{{ selectedTeamName }}</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              [class.rotate-180]="showDropdown" class="transition-transform">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+
+          <!-- Dropdown Menu -->
+          <div *ngIf="showDropdown" 
+            class="absolute right-0 mt-2 bg-white border border-gray-200 rounded-sm shadow-lg z-10 min-w-max">
+            <div class="py-1">
+              <button
+                *ngFor="let team of teams"
+                (click)="selectTeam(team.id)"
+                [class.bg-blue-50]="team.id === selectedTeam"
+                [class.text-blue-600]="team.id === selectedTeam"
+                class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 focus:outline-none whitespace-nowrap">
+                {{ team.name }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Member Count Badge -->
+        <div class="text-sm font-medium text-gray-900">
+          {{ membersCount }} Members
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="p-6">
+    <!-- No Teams Found -->
+    <div *ngIf="teams.length === 0" class="text-center py-12">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+        stroke="#d1d5db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-4 opacity-50">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+        <circle cx="9" cy="7" r="4"></circle>
+      </svg>
+      <p class="text-gray-500 text-base font-medium mb-1">No teams found</p>
+      <p class="text-gray-400 text-sm">This project does not have any teams assigned yet.</p>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading && teams.length > 0" class="text-center py-12">
+      <div class="inline-flex flex-col items-center">
+        <div class="w-8 h-8 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mb-3"></div>
+        <p class="text-gray-500 text-sm">Loading team members...</p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="teams.length > 0 && !isLoading && errorMessage" class="bg-red-50 border border-red-200 rounded-sm p-4">
+      <div class="flex items-start">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+          stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3 mt-0.5 flex-shrink-0">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <div>
+          <p class="text-red-700 text-sm font-semibold mb-1">Error Loading Members</p>
+          <p class="text-red-600 text-sm">{{ errorMessage }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Members Grid -->
+    <div *ngIf="teams.length > 0 && !isLoading && !errorMessage && selectedTeamMembers.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div *ngFor="let member of selectedTeamMembers" 
+        class="bg-white border border-gray-200 rounded-sm p-4 hover:shadow-md transition-shadow">
+        
+        <!-- Member Name -->
+        <div class="mb-3">
+          <h3 class="text-base font-semibold text-gray-900">{{ member.name && member.name.trim() ? member.name : 'Not specified' }}</h3>
+        </div>
+
+        <!-- Member Details - 2 columns -->
+        <div class="grid grid-cols-2 gap-3">
+          <!-- Left Column -->
+          <div class="space-y-2">
+            <!-- Role -->
+            <div>
+              <p class="text-xs text-gray-500 mb-1">Role</p>
+              <span
+                [ngClass]="{
+                  'bg-purple-50 text-purple-700 border-purple-200': member.role && member.role.includes('Lead'),
+                  'bg-blue-50 text-blue-700 border-blue-200': member.role && member.role.includes('Developer'),
+                  'bg-pink-50 text-pink-700 border-pink-200': member.role && member.role.includes('UX'),
+                  'bg-orange-50 text-orange-700 border-orange-200': member.role === 'UI Designer',
+                  'bg-green-50 text-green-700 border-green-200': member.role && member.role.includes('DevOps'),
+                  'bg-amber-50 text-amber-700 border-amber-200': member.role && member.role.includes('QA'),
+                  'bg-gray-50 text-gray-700 border-gray-200': !member.role || member.role === 'Client' || !member.role.trim()
+                }"
+                class="inline-flex items-center px-2 py-1 rounded text-xs font-medium border">
+                {{ member.role && member.role.trim() ? member.role : 'Not specified' }}
+              </span>
+            </div>
+
+            <!-- Team -->
+            <div>
+              <p class="text-xs text-gray-500 mb-1">Team</p>
+              <p class="text-sm text-gray-900">{{ getTeamName(member.team) && getTeamName(member.team).trim() ? getTeamName(member.team) : 'Not specified' }}</p>
+            </div>
+          </div>
+
+          <!-- Right Column -->
+          <div class="space-y-2">
+            <!-- Email -->
+            <div>
+              <p class="text-xs text-gray-500 mb-1">Email</p>
+              <p class="text-sm text-gray-900 truncate" [title]="member.email">{{ member.email && member.email.trim() ? member.email : 'Not specified' }}</p>
+            </div>
+
+            <!-- ID -->
+            <div>
+              <p class="text-xs text-gray-500 mb-1">Member ID</p>
+              <p class="text-sm text-gray-900">{{ member.id && member.id.trim() ? member.id : 'Not specified' }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State - No Members in Team -->
+    <div *ngIf="teams.length > 0 && !isLoading && selectedTeamMembers.length === 0 && !errorMessage" class="text-center py-8">
+      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none"
+        stroke="#d1d5db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-3 opacity-50">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+        <circle cx="9" cy="7" r="4"></circle>
+      </svg>
+      <p class="text-gray-500 text-sm font-medium">No team members found for this team.</p>
+      <p class="text-gray-400 text-xs mt-1">Try selecting a different team.</p>
+    </div>
+  </div>
+</div>

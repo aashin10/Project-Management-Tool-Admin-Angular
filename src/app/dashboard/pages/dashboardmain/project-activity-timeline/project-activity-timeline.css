@@ -1,0 +1,67 @@
+:host {
+  display: block;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* FIX: Ensure chart container maintains fixed dimensions */
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 350px; /* Match chart height exactly */
+}
+
+/* Prevent ApexCharts from expanding beyond container */
+::ng-deep .chart-container .apexcharts-canvas {
+  margin: 0 auto;
+}
+
+/* Lock SVG dimensions */
+::ng-deep .chart-container svg.apexcharts-svg {
+  height: 350px !important;
+}
+
+::ng-deep .apexcharts-tooltip {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+  border: 1px solid #E5E7EB !important;
+  border-radius: 8px !important;
+}
+
+::ng-deep .apexcharts-tooltip-title {
+  background: #F9FAFB !important;
+  border-bottom: 1px solid #E5E7EB !important;
+  font-weight: 600 !important;
+}
+
+::ng-deep .apexcharts-gridline {
+  stroke: #F3F4F6 !important;
+}
+
+::ng-deep .apexcharts-xcrosshairs, 
+::ng-deep .apexcharts-ycrosshairs {
+  stroke: #E5E7EB !important;
+}
+
+/* FIX: Prevent y-axis label from shrinking */
+::ng-deep .apexcharts-yaxis-title-text {
+  font-size: 12px !important;
+  fill: #6B7280 !important;
+}
+
+/* Ensure consistent spacing in chart inner elements */
+::ng-deep .apexcharts-inner {
+  transform-origin: center center;
+}
